@@ -1,4 +1,4 @@
-const CACHE_NAME = 'athar-pwa-v1.0.1';
+const CACHE_NAME = 'athar-pwa-v1.0.2';
 const STATIC_ASSETS = [
     '/',
     '/login.html',
@@ -96,6 +96,58 @@ self.addEventListener('fetch', (event) => {
             }).catch(() => cachedResponse);
 
             return cachedResponse || fetchPromise;
+        })
+    );
+});
+
+// التعامل مع النقر على إشعارات النظام في شاشة القفل وسطح المكتب
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/dashboard.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // إذا كانت النافذة مفتوحة بالفعل، يتم التركيز عليها وتوجيهها
+            for (let client of windowClients) {
+                if (client.url.includes('dashboard.html') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // إذا لم تكن مفتوحة، يتم فتح نافذة جديدة
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+
+// استقبال إشعارات Push المباشرة إن وُجدت
+self.addEventListener('push', (event) => {
+    let payload = {
+        title: 'منصة أثر التعليمية 🌿',
+        body: 'لديك تحديث جديد في المنصة.',
+        icon: '/static/assets/icon-192.png',
+        badge: '/static/assets/favicon.png',
+        data: { url: '/dashboard.html' }
+    };
+
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch (e) {
+            payload.body = event.data.text();
+        }
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, {
+            body: payload.body,
+            icon: payload.icon || '/static/assets/icon-192.png',
+            badge: payload.badge || '/static/assets/favicon.png',
+            vibrate: [200, 100, 200],
+            dir: 'rtl',
+            lang: 'ar',
+            data: payload.data || { url: '/dashboard.html' }
         })
     );
 });

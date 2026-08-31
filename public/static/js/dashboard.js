@@ -28,11 +28,15 @@ import {
     startMessagingFlow, resetMessageCounts, insertVariable,
     closeMessagingQueue, openAIInstructionsModal, saveAIInstructions
 } from "./messaging.js";
-import { exportToExcel, getReportFile, backupData, restoreData } from "./reports.js";
 import {
     downloadCertificate, downloadLecturePDF, openCertSettings,
     closeCertSettings, saveCertSettings, handleCertTemplateUpload
 } from "./certificates.js";
+import { exportToExcel, getReportFile, backupData, restoreData } from "./reports.js";
+import {
+    checkTransferNotifications, checkNewLectureNotifications,
+    checkPendingRepliedReminder, requestNotificationPermission
+} from "./pwa.js";
 
 let sortDirection = 1;
 let contextTarget = { sId: null, lId: null };
@@ -195,6 +199,17 @@ function listenToGroup(groupId, uid) {
 
             renderDashboard();
             removeLoader();
+
+            // 1. فحص إشعارات إضافة المحاضرات الجديدة
+            checkNewLectureNotifications(groupId, state.lectures, state.userInfo?.role);
+
+            // 2. فحص إشعارات نقل واستلام الطلاب
+            if (groupData.transfers && state.userInfo?.phone) {
+                checkTransferNotifications(groupData.transfers, state.userInfo.phone);
+            }
+
+            // 3. فحص إشعارات التذكير بالطلاب المعلقين (رد ولم يختبر منذ 24 ساعة)
+            checkPendingRepliedReminder(state.students, state.lectures, state.userInfo?.role);
 
             if (state.userInfo?.role === 'followup_supervisor') {
                 checkPendingTransfers(() => renderDashboard());
@@ -840,6 +855,7 @@ window.app = {
     saveProfileChanges: () => saveProfileChanges(),
     openAIInstructionsModal: () => openAIInstructionsModal(),
     saveAIInstructions: () => saveAIInstructions(),
+    requestNotificationPermission: () => requestNotificationPermission(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
     toggleMenu: () => toggleMenuFlow()
 };

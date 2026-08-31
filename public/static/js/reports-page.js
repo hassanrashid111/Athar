@@ -25,6 +25,7 @@ import {
     openCertSettings, closeCertSettings, saveCertSettings,
     handleCertTemplateUpload
 } from "./certificates.js";
+import { requestNotificationPermission } from "./pwa.js";
 
 /**
  * تهيئة صفحة التقارير
@@ -535,6 +536,7 @@ window.app = {
     saveProfileChanges: () => saveProfileChanges(),
     openAIInstructionsModal: () => openAIInstructionsModal(),
     saveAIInstructions: () => saveAIInstructions(),
+    requestNotificationPermission: () => requestNotificationPermission(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
     toggleTheme: () => toggleTheme(),
     toggleMenu: () => toggleMenuFlow()
