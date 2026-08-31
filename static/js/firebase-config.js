@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA07BPGNn21tzD2O5tAckJJuhLz4jQ9P7E",
+    apiKey: atob("QUl6YVN5QTA3QlBHTm4yMXR6RDI1dEFja0pKdWhMejRqUTlQN0U="),
     authDomain: "athar-final1.firebaseapp.com",
     databaseURL: "https://athar-final1-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "athar-final1",
