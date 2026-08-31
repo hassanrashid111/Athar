@@ -755,3 +755,46 @@ export async function resetMessageCounts() {
     await saveData();
     showAtharNotification("تم تصفير عداد الرسائل بنجاح ✓", "success");
 }
+
+/**
+ * بدء طابور المراسلة الفورية لطلاب رادار المتابعة والتسرب بالذكاء الاصطناعي
+ */
+export async function startRadarAIMessagingFlow(filterType = 'all') {
+    const radarModal = document.getElementById('at-risk-radar-modal');
+    if (radarModal) radarModal.style.display = 'none';
+
+    const { detectAtRiskStudents } = await import("./pwa.js");
+    let atRiskList = detectAtRiskStudents();
+
+    if (filterType === 'high') {
+        atRiskList = atRiskList.filter(item => item.riskLevel === 'high');
+    }
+
+    if (atRiskList.length === 0) {
+        showAtharNotification("لا يوجد طلاب مطابقون في رادار المتابعة لإرسال الرسائل إليهم!", "info");
+        return;
+    }
+
+    const targetStudents = atRiskList.map(item => item.student);
+    const latestLecIndex = state.lectures.length > 0 ? state.lectures.length - 1 : 0;
+    const radarTopic = "رسالة تفقد واطمئنان ومتابعة وتشجيع لطالب كان متميزاً وملتزماً وانقطع مؤخراً، مع تحفيزه وتذكيره بأجره وتزويده برابط الاختبار والمحاضرة للعودة.";
+
+    showAtharNotification(`🚀 جاري فتح طابور المراسلة لـ (${targetStudents.length}) طالب مع الصياغة الذكية...`, "info");
+    initMobileQueue(targetStudents, "", radarTopic, true, latestLecIndex, 'radar', true);
+}
+
+/**
+ * مراسلة طالب فردي من رادار المتابعة بالذكاء الاصطناعي
+ */
+export async function startSingleRadarAIMessage(studentId) {
+    const radarModal = document.getElementById('at-risk-radar-modal');
+    if (radarModal) radarModal.style.display = 'none';
+
+    const student = (state.students || []).find(s => s.id === studentId);
+    if (!student) return;
+
+    const latestLecIndex = state.lectures.length > 0 ? state.lectures.length - 1 : 0;
+    const radarTopic = "رسالة تفقد واطمئنان وتشجيع مخصصة من المشرف، مع تذكيره بتميزه وحثه على إكمال المسير وتزويده برابط المحاضرة.";
+
+    initMobileQueue([student], "", radarTopic, true, latestLecIndex, 'radar', true);
+}

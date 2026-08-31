@@ -736,7 +736,33 @@ export function openAtRiskRadar() {
             </div>
         `;
     } else {
-        let cardsHtml = '';
+        const highRiskCount = atRiskList.filter(item => item.riskLevel === 'high').length;
+
+        let cardsHtml = `
+            <div style="background: linear-gradient(135deg, rgba(26, 93, 58, 0.08) 0%, rgba(212, 175, 55, 0.12) 100%); border: 1.5px solid var(--accent-gold); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.95rem; color: var(--primary-green); font-weight: bold;">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> المتابعة الذكية بالذكاء الاصطناعي
+                        </h4>
+                        <p style="margin: 3px 0 0 0; font-size: 0.8rem; color: var(--text-dark);">
+                            يقوم النظام بتوليد رسائل تشجيع مخصصة لكل طالب تشيد بتميزه السابق وتحثه على إكمال المسير وتزويده برابط المحاضرة فورياً.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${highRiskCount > 0 ? `
+                            <button onclick="window.app.startRadarAIMessagingFlow('high')" class="btn-save-notes" style="width: auto; margin: 0; padding: 8px 14px; font-size: 0.85rem; background: #e74c3c;">
+                                <i class="fa-solid fa-bolt"></i> مراسلة الحالات الحرجة 🔴 (${highRiskCount})
+                            </button>
+                        ` : ''}
+                        <button onclick="window.app.startRadarAIMessagingFlow('all')" class="btn-save-notes" style="width: auto; margin: 0; padding: 8px 14px; font-size: 0.85rem; background: var(--primary-green);">
+                            <i class="fa-solid fa-paper-plane"></i> بدء طابور الإرسال للجميع (${atRiskList.length}) 🚀
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
         atRiskList.forEach(item => {
             const s = item.student;
             const safeName = escapeHTML(s.name || 'بدون اسم');
@@ -766,10 +792,13 @@ export function openAtRiskRadar() {
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button onclick="window.app.startSingleRadarAIMessage(${s.id})" class="btn-action" style="background: linear-gradient(135deg, #1A5D3A 0%, #114027 100%); color: white; border: 1px solid var(--accent-gold); padding: 5px 12px; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> مراسلة ذكية بالـ AI
+                        </button>
                         ${cleanP ? `
                             <a href="https://wa.me/${cleanP}" target="_blank" class="btn-action" style="background: #25D366; color: white; border: none; padding: 5px 12px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fa-brands fa-whatsapp"></i> محادثة واتساب
+                                <i class="fa-brands fa-whatsapp"></i> فتح المحادثة
                             </a>
                         ` : ''}
                     </div>

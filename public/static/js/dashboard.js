@@ -29,7 +29,8 @@ import {
 } from "./lectures.js";
 import {
     startMessagingFlow, resetMessageCounts, insertVariable,
-    closeMessagingQueue, openAIInstructionsModal, saveAIInstructions
+    closeMessagingQueue, openAIInstructionsModal, saveAIInstructions,
+    startRadarAIMessagingFlow, startSingleRadarAIMessage
 } from "./messaging.js";
 import {
     downloadCertificate, downloadLecturePDF, openCertSettings,
@@ -875,6 +876,8 @@ window.app = {
     openAtRiskRadar: () => openAtRiskRadar(),
     closeAtRiskRadar: () => closeAtRiskRadar(),
     updateAtRiskRadarBadge: () => updateAtRiskRadarBadge(),
+    startRadarAIMessagingFlow: (filterType) => startRadarAIMessagingFlow(filterType),
+    startSingleRadarAIMessage: (studentId) => startSingleRadarAIMessage(studentId),
 
     openGroupInfoModal: () => openGroupInfoModal(),
     copyGroupCode: (code) => copyGroupCode(code),
