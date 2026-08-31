@@ -23,9 +23,13 @@ import {
 } from "./messaging.js";
 import {
     openCertSettings, closeCertSettings, saveCertSettings,
-    handleCertTemplateUpload
+    handleCertTemplateUpload, updateVisualMarkersPositions
 } from "./certificates.js";
-import { requestNotificationPermission } from "./pwa.js";
+import {
+    requestNotificationPermission, toggleNotificationCenter,
+    openNotificationCenter, closeNotificationCenter, dismissNotification,
+    clearAllNotifications, toggleNotificationsSetting, updateNotificationBadgeUI
+} from "./pwa.js";
 
 /**
  * تهيئة صفحة التقارير
@@ -531,6 +535,14 @@ window.app = {
     closeCertSettings: () => closeCertSettings(),
     saveCertSettings: () => saveCertSettings(),
     handleCertTemplateUpload: (input) => handleCertTemplateUpload(input),
+    updateVisualMarkersPositions: () => updateVisualMarkersPositions(),
+
+    toggleNotificationCenter: () => toggleNotificationCenter(),
+    openNotificationCenter: () => openNotificationCenter(),
+    closeNotificationCenter: () => closeNotificationCenter(),
+    dismissNotification: (id) => dismissNotification(id),
+    clearAllNotifications: () => clearAllNotifications(),
+    toggleNotificationsSetting: (el) => toggleNotificationsSetting(el),
 
     openProfileModal: () => openProfileModal(),
     saveProfileChanges: () => saveProfileChanges(),

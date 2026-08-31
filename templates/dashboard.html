@@ -24,9 +24,16 @@
             </div>
         </div>
 
-        <button class="hamburger-btn" onclick="window.app.toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-action notif-btn" id="notif-center-btn" onclick="window.app.toggleNotificationCenter()" title="مركز التنبيهات" style="position: relative; padding: 8px 12px; background: var(--bg-light); border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-bell" style="font-size: 1.1rem; color: var(--accent-gold);"></i>
+                <span id="notif-badge" class="notif-badge" style="display: none; position: absolute; top: -4px; right: -4px; background: #e74c3c; color: white; border-radius: 10px; font-size: 0.68rem; font-weight: bold; padding: 2px 6px; line-height: 1; border: 2px solid white;">0</span>
+            </button>
+
+            <button class="hamburger-btn" onclick="window.app.toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
 
         <div class="header-left" id="main-menu">
             <div class="menu-header-mobile">
@@ -35,6 +42,11 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+
+            <button class="btn-action" id="at-risk-radar-btn" onclick="window.app.openAtRiskRadar()" style="border: 1px solid rgba(231, 76, 60, 0.4); color: #e74c3c; font-weight: bold; background: rgba(231, 76, 60, 0.06);">
+                <i class="fa-solid fa-crosshairs"></i> رادار المتابعة
+                <span id="at-risk-badge" style="display: none; background: #e74c3c; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.72rem; margin-right: 4px;">0</span>
+            </button>
 
             <button class="btn-action" onclick="window.app.openAICleaner()" style="background: linear-gradient(135deg, rgba(26, 93, 58, 0.1) 0%, rgba(212, 175, 55, 0.15) 100%); border: 1px solid var(--accent-gold); color: var(--primary-green); font-weight: bold;">
                 <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> المنظف الذكي

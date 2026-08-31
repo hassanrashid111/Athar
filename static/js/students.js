@@ -6,7 +6,7 @@ import { db, ref, set, get, update, push } from "./firebase-config.js";
 import { state, currentUser, currentGroup, saveData } from "./state.js";
 import {
     showAtharNotification, showAtharPrompt, showAtharChoice, showAtharConfirm,
-    cleanPhone, getInitials, calculateScore
+    cleanPhone, getInitials, calculateScore, escapeHTML
 } from "./utils.js";
 
 let performanceChart = null;

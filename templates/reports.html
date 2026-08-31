@@ -24,9 +24,16 @@
             </div>
         </div>
 
-        <button class="hamburger-btn" onclick="window.app.toggleMenu()">
-            <i class="fa-solid fa-bars"></i>
-        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-action notif-btn" id="notif-center-btn" onclick="window.app.toggleNotificationCenter()" title="مركز التنبيهات" style="position: relative; padding: 8px 12px; background: var(--bg-light); border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-bell" style="font-size: 1.1rem; color: var(--accent-gold);"></i>
+                <span id="notif-badge" class="notif-badge" style="display: none; position: absolute; top: -4px; right: -4px; background: #e74c3c; color: white; border-radius: 10px; font-size: 0.68rem; font-weight: bold; padding: 2px 6px; line-height: 1; border: 2px solid white;">0</span>
+            </button>
+
+            <button class="hamburger-btn" onclick="window.app.toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
 
         <div class="header-left" id="main-menu">
             <div class="menu-header-mobile">

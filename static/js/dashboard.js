@@ -33,12 +33,16 @@ import {
 } from "./messaging.js";
 import {
     downloadCertificate, downloadLecturePDF, openCertSettings,
-    closeCertSettings, saveCertSettings, handleCertTemplateUpload
+    closeCertSettings, saveCertSettings, handleCertTemplateUpload,
+    updateVisualMarkersPositions
 } from "./certificates.js";
 import { exportToExcel, getReportFile, backupData, restoreData } from "./reports.js";
 import {
     checkTransferNotifications, checkNewLectureNotifications,
-    checkPendingRepliedReminder, requestNotificationPermission
+    checkPendingRepliedReminder, requestNotificationPermission,
+    toggleNotificationCenter, openNotificationCenter, closeNotificationCenter,
+    dismissNotification, clearAllNotifications, toggleNotificationsSetting,
+    openAtRiskRadar, closeAtRiskRadar, updateAtRiskRadarBadge, updateNotificationBadgeUI
 } from "./pwa.js";
 
 let sortDirection = 1;
@@ -430,6 +434,8 @@ export function renderTable(studentsList = null) {
         } else {
             tbody.style.minHeight = '';
             window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+            updateAtRiskRadarBadge();
+            updateNotificationBadgeUI();
         }
     }
 
@@ -857,6 +863,18 @@ window.app = {
     closeCertSettings: () => closeCertSettings(),
     saveCertSettings: () => saveCertSettings(),
     handleCertTemplateUpload: (input) => handleCertTemplateUpload(input),
+    updateVisualMarkersPositions: () => updateVisualMarkersPositions(),
+
+    toggleNotificationCenter: () => toggleNotificationCenter(),
+    openNotificationCenter: () => openNotificationCenter(),
+    closeNotificationCenter: () => closeNotificationCenter(),
+    dismissNotification: (id) => dismissNotification(id),
+    clearAllNotifications: () => clearAllNotifications(),
+    toggleNotificationsSetting: (el) => toggleNotificationsSetting(el),
+
+    openAtRiskRadar: () => openAtRiskRadar(),
+    closeAtRiskRadar: () => closeAtRiskRadar(),
+    updateAtRiskRadarBadge: () => updateAtRiskRadarBadge(),
 
     openGroupInfoModal: () => openGroupInfoModal(),
     copyGroupCode: (code) => copyGroupCode(code),
