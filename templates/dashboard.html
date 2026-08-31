@@ -66,8 +66,16 @@
                     <i class="fa-solid fa-caret-down"></i>
                 </button>
                 <div class="dropdown-content" id="tools-dropdown-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border-color); background: var(--bg-light); border-radius: 8px 8px 0 0;">
+                        <span style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-bell" style="color: var(--accent-gold);"></i> التنبيهات الفورية
+                        </span>
+                        <label class="switch">
+                            <input type="checkbox" class="athar-notif-checkbox" onchange="window.app.toggleNotificationsSetting(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                     <a onclick="window.app.promptPWAInstall()" style="color: var(--primary-green); font-weight: bold;"><i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق 📲</a>
-                    <a onclick="window.app.requestNotificationPermission()" style="color: #27ae60; font-weight: bold;"><i class="fa-solid fa-bell"></i> تفعيل التنبيهات الفورية 🔔</a>
                     <a onclick="window.app.exportData()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</a>
                     <a onclick="window.app.getReport()"><i class="fa-solid fa-file-lines"></i> تقرير نصي</a>
                     <a onclick="window.app.openGroupInfoModal()"><i class="fa-solid fa-circle-info"></i> معلومات المجموعة</a>

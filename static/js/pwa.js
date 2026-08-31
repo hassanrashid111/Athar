@@ -17,8 +17,14 @@ export function areNotificationsEnabled() {
 
 export function setNotificationsEnabled(enabled) {
     localStorage.setItem('athar_notifications_enabled', enabled ? 'true' : 'false');
-    const toggleSwitch = document.getElementById('notif-toggle-switch');
-    if (toggleSwitch) toggleSwitch.checked = enabled;
+    syncNotificationToggles();
+}
+
+export function syncNotificationToggles() {
+    const isEnabled = areNotificationsEnabled();
+    document.querySelectorAll('.athar-notif-checkbox').forEach(cb => {
+        cb.checked = isEnabled;
+    });
 }
 
 /**
@@ -63,9 +69,10 @@ export function initPWA() {
         showAtharNotification("🎉 تم تثبيت منصة أثر كتطبيق على جهازك بنجاح!", "success");
     });
 
-    // 4. تحديث شارة الإشعارات عند التحميل
+    // 4. تحديث شارة الإشعارات ومفاتيح التبديل عند التحميل
     setTimeout(() => {
         updateNotificationBadgeUI();
+        syncNotificationToggles();
         checkAndPromptNotificationPermission();
     }, 2000);
 }
@@ -366,10 +373,7 @@ export function openNotificationCenter() {
     // تصفير عداد غير المقروء بمجرد فتح المركز
     localStorage.setItem('athar_notifications_unread_count', '0');
     updateNotificationBadgeUI();
-
-    // تحديث حالة مفتاح التبديل
-    const toggleSwitch = document.getElementById('notif-toggle-switch');
-    if (toggleSwitch) toggleSwitch.checked = areNotificationsEnabled();
+    syncNotificationToggles();
 
     renderNotificationCenterList();
     modal.style.display = 'flex';
@@ -615,66 +619,70 @@ export function checkPendingRepliedReminder(students, lectures, userRole) {
    ========================================================================== */
 
 /**
- * خوارزمية رصد الطلاب المعرضين للتسرب بعد تميز سابق
+ * خوارزمية رصد الطلاب المعرضين للتسرب:
+ * تقارن أداء الطالب في المحاضرة الأخيرة مع جميع المحاضرات السابقة مجتمعة
  */
 export function detectAtRiskStudents() {
     const activeStudents = (state.students || []).filter(s => !s.deleted);
     const lectures = state.lectures || [];
     const totalLec = lectures.length;
 
-    if (totalLec < 3 || activeStudents.length === 0) {
+    // يتطلب وجود محاضرتين على الأقل لإجراء المقارنة
+    if (totalLec < 2 || activeStudents.length === 0) {
         return [];
     }
 
+    const latestLec = lectures[totalLec - 1];
+    const previousLectures = lectures.slice(0, totalLec - 1);
     const atRiskList = [];
-    const recentCount = Math.min(3, Math.max(2, Math.floor(totalLec / 2)));
-    const pastLectures = lectures.slice(0, totalLec - recentCount);
-    const recentLectures = lectures.slice(totalLec - recentCount);
 
     activeStudents.forEach(student => {
         if (!student.name || !student.name.trim()) return;
 
-        let pastAttended = 0;
-        let recentAttended = 0;
-        let recentReplied = 0;
+        // 1. فحص حالة الطالب في المحاضرة الأخيرة
+        const latestProgress = (student.progress && latestLec) ? student.progress[latestLec.id] : null;
+        const isLatestTested = (latestProgress && latestProgress !== 'replied');
+        const isLatestReplied = (latestProgress === 'replied');
 
+        // إذا كان الطالب قد اختبر المحاضرة الأخيرة بنجاح، فهو مواظب وغير منقطع
+        if (isLatestTested) return;
+
+        // 2. حساب نسبة الالتزام والتميز في كل المحاضرات السابقة مجتمعة
+        let prevAttended = 0;
         if (student.progress) {
-            pastLectures.forEach(lec => {
+            previousLectures.forEach(lec => {
                 const p = student.progress[lec.id];
-                if (p && p !== 'replied') pastAttended++;
-            });
-
-            recentLectures.forEach(lec => {
-                const p = student.progress[lec.id];
-                if (p && p !== 'replied') recentAttended++;
-                else if (p === 'replied') recentReplied++;
+                if (p && p !== 'replied') prevAttended++;
             });
         }
 
-        const pastRate = pastLectures.length > 0 ? (pastAttended / pastLectures.length) : 0;
-        const recentRate = recentLectures.length > 0 ? (recentAttended / recentLectures.length) : 0;
+        const prevTotal = previousLectures.length;
+        const prevRate = prevTotal > 0 ? (prevAttended / prevTotal) : 0;
+        const prevPercent = Math.round(prevRate * 100);
 
-        // شرط التراجع: كان أداؤه ممتازاً/جيداً (>= 50%) وتراجع في المحاضرات الأخيرة (<= 34% حضور)
-        if (pastRate >= 0.5 && recentRate <= 0.34) {
+        // 3. شرط الرادار: كان ملتزماً أو متميزاً سابقاً (>= 50%) وتغيب عن المحاضرة الأخيرة
+        if (prevPercent >= 50) {
             let riskLevel = 'moderate';
             let riskTitle = 'تراجع يستوجب المتابعة ⚠️';
             let riskColor = '#f39c12';
 
-            if (pastRate >= 0.75 && recentAttended === 0) {
+            if (prevPercent === 100) {
                 riskLevel = 'high';
-                riskTitle = 'خطر انقطاع مرتفع 🔴';
+                riskTitle = 'خطر انقطاع مرتفع 🔴 (حضور 100% سابقاً)';
+                riskColor = '#e74c3c';
+            } else if (prevPercent >= 75) {
+                riskLevel = 'high';
+                riskTitle = 'انقطاع بعد تميز 🔴';
                 riskColor = '#e74c3c';
             }
 
             atRiskList.push({
                 student,
-                pastAttended,
-                pastTotal: pastLectures.length,
-                pastPercent: Math.round(pastRate * 100),
-                recentAttended,
-                recentTotal: recentLectures.length,
-                recentPercent: Math.round(recentRate * 100),
-                recentReplied,
+                prevAttended,
+                prevTotal,
+                prevPercent,
+                latestLecTitle: latestLec.title || 'المحاضرة الأخيرة',
+                isLatestReplied,
                 riskLevel,
                 riskTitle,
                 riskColor
@@ -682,8 +690,8 @@ export function detectAtRiskStudents() {
         }
     });
 
-    // ترتيب الحالات حسب شدة التراجع
-    atRiskList.sort((a, b) => (b.pastPercent - b.recentPercent) - (a.pastPercent - a.recentPercent));
+    // ترتيب الحالات: الطلاب الأكثر التزاماً في السابق أولاً (100% ثم 90% ...)
+    atRiskList.sort((a, b) => b.prevPercent - a.prevPercent);
 
     return atRiskList;
 }
@@ -700,7 +708,7 @@ export function triggerAtRiskRadarCheck(lectureCount) {
     localStorage.setItem(cooldownKey, 'true');
 
     sendNativeNotification("🎯 رادار المتابعة والتسرب", {
-        body: `تم رصد (${atRiskList.length}) طلاب بدأ أداؤهم في التراجع بعد تميز سابق في المحاضرات الأخيرة. اضغط للاطلاع وتداركهم!`,
+        body: `تم رصد (${atRiskList.length}) طلاب كانوا متميزين في المحاضرات السابقة وتغيبوا عن المحاضرة الأخيرة. اضغط لتداركهم!`,
         tag: `at-risk-radar-${lectureCount}`,
         data: { url: '/dashboard.html', action: 'at_risk', type: 'at_risk' }
     });
@@ -719,20 +727,20 @@ export function openAtRiskRadar() {
 
     if (totalSpan) totalSpan.innerText = `إجمالي الحالات المرصودة: ${atRiskList.length} طالب`;
 
-    if (state.lectures.length < 3) {
+    if (state.lectures.length < 2) {
         content.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
                 <i class="fa-solid fa-chart-line" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px;"></i>
-                <h4 style="margin: 0; color: var(--text-dark);">الرادار يتطلب 3 محاضرات على الأقل</h4>
-                <p style="font-size: 0.85rem; margin: 6px 0 0 0;">يقوم الرادار بمقارنة التميز في المحاضرات الأولى مع المحاضرات الأخيرة لكشف الانحدار.</p>
+                <h4 style="margin: 0; color: var(--text-dark);">الرادار يتطلب محاضرتين على الأقل</h4>
+                <p style="font-size: 0.85rem; margin: 6px 0 0 0;">يقوم الرادار بمقارنة التميز في المحاضرات السابقة مع المحاضرة الأخيرة لكشف الانقطاع المفاجئ.</p>
             </div>
         `;
     } else if (atRiskList.length === 0) {
         content.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
                 <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: #27ae60; margin-bottom: 12px;"></i>
-                <h4 style="margin: 0; color: #27ae60;">أداء طلابك ممتاز ومستقر! 🎉</h4>
-                <p style="font-size: 0.85rem; margin: 6px 0 0 0;">لم يتم رصد أي تراجع أو انقطاع مفاجئ لدى الطلاب المتميزين.</p>
+                <h4 style="margin: 0; color: #27ae60;">أداء طلابك ممتاز ومستمر! 🎉</h4>
+                <p style="font-size: 0.85rem; margin: 6px 0 0 0;">لم يتم رصد أي انقطاع مفاجئ لدى الطلاب المتميزين في المحاضرة الأخيرة.</p>
             </div>
         `;
     } else {
@@ -785,10 +793,10 @@ export function openAtRiskRadar() {
 
                     <div style="display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; font-size: 0.85rem;">
                         <div style="background: rgba(39, 174, 96, 0.1); color: #27ae60; padding: 4px 10px; border-radius: 6px; font-weight: bold;">
-                            <i class="fa-solid fa-arrow-trend-up"></i> الأداء السابق: ${item.pastAttended}/${item.pastTotal} (${item.pastPercent}%)
+                            <i class="fa-solid fa-trophy"></i> المحاضرات السابقة: ${item.prevAttended}/${item.prevTotal} محاضرة (${item.prevPercent}%)
                         </div>
                         <div style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; padding: 4px 10px; border-radius: 6px; font-weight: bold;">
-                            <i class="fa-solid fa-arrow-trend-down"></i> الأداء الأخير: ${item.recentAttended}/${item.recentTotal} (${item.recentPercent}%)
+                            <i class="fa-solid fa-circle-xmark"></i> ${item.latestLecTitle}: ${item.isLatestReplied ? 'رد ولم يختبر ⏳' : 'غائب لم يختبر ❌'}
                         </div>
                     </div>
 
