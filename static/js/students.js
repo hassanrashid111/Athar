@@ -365,10 +365,13 @@ export async function wipeAllData(onSuccess) {
     }
 }
 
+let customTransferSelectedIds = new Set();
+let customTransferCallback = null;
+
 /**
- * تسليم الطلاب لمشرف آخر
+ * تسليم الطلاب لمشرف آخر (مع اختيار الفئات أو التحديد المخصص)
  */
-export async function initiateStudentTransfer() {
+export async function initiateStudentTransfer(onSuccess) {
     if (!currentUser || !currentGroup) return;
 
     const activeStudents = state.students.filter(s => !s.deleted);
@@ -377,9 +380,75 @@ export async function initiateStudentTransfer() {
         return;
     }
 
+    const latestLec = state.lectures.length > 0 ? state.lectures[state.lectures.length - 1] : null;
+
+    // 1. عرض خيارات الفئات والتحديد المخصص
+    const filterChoice = await showAtharChoice(
+        "تسليم الطلاب لمشرف آخر",
+        "اختر فئة الطلاب التي تود تسليمها للمشرف الآخر:",
+        [
+            { id: '1', text: "🔴 الغياب الحقيقي (أسماء مسجلة غائبة عن المحاضرة الأخيرة)" },
+            { id: '2', text: "💬 رد ولم يختبر (الأصفر)" },
+            { id: '3', text: "⚪ غير مسجل (الخانات الفارغة)" },
+            { id: '4', text: "⚫ كل المتغيبين (من لم يختبروا المحاضرة الأخيرة)" },
+            { id: '5', text: "🟢 المختبرون فقط" },
+            { id: '6', text: "🌐 الجميع (كل القائمة)" },
+            { id: '7', text: "✨ تحديد مخصص (اختيار يدوي من الجدول)" }
+        ]
+    );
+
+    if (!filterChoice) return;
+
+    if (filterChoice === '7') {
+        // فتح نافذة التحديد المخصص للطلاب
+        openCustomTransferModal((selectedList) => {
+            proceedWithTransfer(selectedList, onSuccess);
+        });
+        return;
+    }
+
+    // تصفية الطلاب حسب الفئة المختارة
+    let selectedStudents = [];
+    activeStudents.forEach(s => {
+        const p = (latestLec && s.progress) ? s.progress[latestLec.id] : null;
+        const hasName = s.name && s.name.trim().length > 0;
+        const isReplied = (p === 'replied');
+        const isTested = (p && p !== 'replied');
+
+        let matches = false;
+        switch (filterChoice) {
+            case '1': matches = (!p && hasName); break;
+            case '2': matches = isReplied; break;
+            case '3': matches = (!isTested && !hasName); break;
+            case '4': matches = !isTested; break;
+            case '5': matches = isTested; break;
+            case '6': matches = true; break;
+            default: matches = false;
+        }
+
+        if (matches) selectedStudents.push(s);
+    });
+
+    if (selectedStudents.length === 0) {
+        showAtharNotification("لا يوجد طلاب يطابقون هذه الفئة لتسليمهم!", "info");
+        return;
+    }
+
+    await proceedWithTransfer(selectedStudents, onSuccess);
+}
+
+/**
+ * استكمال إرسال طلب التسليم
+ */
+async function proceedWithTransfer(selectedStudents, onSuccess) {
+    if (!selectedStudents || selectedStudents.length === 0) {
+        showAtharNotification("لم يتم تحديد أي طالب للتسليم!", "warning");
+        return;
+    }
+
     const recipientPhoneRaw = await showAtharPrompt(
         "تسليم الطلاب",
-        "أدخل رقم واتساب المشرف الذي سيتسلم طلابك (يجب أن يكون صحيحاً):",
+        `عدد الطلاب المحددين للتسليم: (${selectedStudents.length}) طالب.\n\nأدخل رقم واتساب المشرف الذي سيتسلم الطلاب:`,
         ""
     );
     if (!recipientPhoneRaw) return;
@@ -391,8 +460,8 @@ export async function initiateStudentTransfer() {
     }
 
     const confirm = await showAtharConfirm(
-        "تأكيد التسليم",
-        `أنت على وشك إرسال طلب تسليم (${activeStudents.length}) طالب إلى المشرف صاحب الرقم (${recipientPhone}).\n\nلن يتم حذفهم من عندك إلا بعد قيامه بالقبول.\nهل تود الاستمرار؟`
+        "تأكيد إرسال طلب التسليم",
+        `أنت على وشك إرسال طلب تسليم (${selectedStudents.length}) طالب إلى المشرف صاحب الرقم (${recipientPhone}).\n\n📌 ملاحظة هامة: سيتم حذف هؤلاء الطلاب من عندك ونقلهم للمشرف الآخر بمجرد موافقته على الطلب.\n\nهل تود الاستمرار؟`
     );
     if (!confirm) return;
 
@@ -401,13 +470,15 @@ export async function initiateStudentTransfer() {
         await set(transferRef, {
             senderUid: currentUser.uid,
             senderName: state.userInfo?.name || "مشرف مجهول",
+            senderPhone: state.userInfo?.phone || "",
             recipientPhone: recipientPhone,
-            students: activeStudents,
+            students: selectedStudents,
             status: 'pending',
             timestamp: Date.now()
         });
 
-        showAtharNotification("تم إرسال طلب التسليم بنجاح. بمجرد قبول المشرف الآخر ستختفي القائمة من عندك.");
+        showAtharNotification(`تم إرسال طلب تسليم (${selectedStudents.length}) طالب بنجاح ✓ بمجرد قبول المشرف الآخر سيتم نقلهم وحذفهم من عندك.`);
+        if (onSuccess) onSuccess();
     } catch (error) {
         showAtharNotification("خطأ أثناء إرسال الطلب: " + error.message, "error");
     }
@@ -475,7 +546,7 @@ export async function checkPendingTransfers(onSuccess) {
 }
 
 /**
- * قبول استلام الطلاب
+ * قبول استلام الطلاب ونقلهم وحذفهم من المشرف المرسل
  */
 export async function acceptStudentTransfer(tid, data, onSuccess) {
     try {
@@ -483,20 +554,171 @@ export async function acceptStudentTransfer(tid, data, onSuccess) {
         const currentStudents = state.students || [];
         const combinedStudents = [...currentStudents, ...data.students];
 
+        // قراءة قائمة طلاب المشرف المرسل الحالية لحذف الطلاب المنقولين فقط من عنده
+        let remainingSenderStudents = [];
+        try {
+            const senderSnapshot = await get(ref(db, `athar_groups/${groupId}/students/${data.senderUid}/students`));
+            if (senderSnapshot.exists()) {
+                const senderList = senderSnapshot.val() || [];
+                const transferredIds = new Set(data.students.map(s => s.id));
+                remainingSenderStudents = senderList.filter(s => !transferredIds.has(s.id));
+            }
+        } catch (err) {
+            console.warn("Could not read sender student list:", err);
+        }
+
         const updates = {};
         updates[`athar_groups/${groupId}/students/${currentUser.uid}/students`] = combinedStudents;
-        updates[`athar_groups/${groupId}/students/${data.senderUid}/students`] = [];
+        updates[`athar_groups/${groupId}/students/${data.senderUid}/students`] = remainingSenderStudents;
         updates[`athar_groups/${groupId}/transfers/${tid}/status`] = 'completed';
         updates[`athar_groups/${groupId}/transfers/${tid}/acceptedAt`] = Date.now();
 
         await update(ref(db), updates);
         state.students = combinedStudents;
 
-        showAtharNotification("تم استلام الطلاب بنجاح!", "success");
+        showAtharNotification(`🎉 تم استلام (${data.students.length}) طالب بنجاح وإضافتهم لقائمتك!`, "success");
         if (onSuccess) onSuccess();
     } catch (error) {
         showAtharNotification("خطأ أثناء استلام الطلاب: " + error.message, "error");
     }
+}
+
+/* ==========================================================================
+   ✨ نافذة التحديد المخصص للطلاب المراد تسليمهم (Custom Transfer Selection)
+   ========================================================================== */
+
+export function openCustomTransferModal(onProceed) {
+    customTransferCallback = onProceed;
+    customTransferSelectedIds = new Set();
+
+    const modal = document.getElementById('custom-transfer-modal');
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+    renderCustomTransferTable();
+}
+
+export function closeCustomTransferModal() {
+    const modal = document.getElementById('custom-transfer-modal');
+    if (modal) modal.style.display = 'none';
+    customTransferCallback = null;
+}
+
+export function renderCustomTransferTable(filterText = '') {
+    const tbody = document.getElementById('transfer-students-tbody');
+    if (!tbody) return;
+
+    const activeStudents = state.students.filter(s => !s.deleted);
+    const totalLectures = state.lectures.length;
+
+    let filtered = activeStudents;
+    if (filterText) {
+        const query = filterText.toLowerCase().trim();
+        filtered = activeStudents.filter(s =>
+            (s.name || '').toLowerCase().includes(query) ||
+            (s.phone || '').toLowerCase().includes(query)
+        );
+    }
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#888;">لا يوجد طلاب مطابقون للبحث</td></tr>`;
+        updateTransferBadge();
+        return;
+    }
+
+    let rowsHTML = '';
+    filtered.forEach(s => {
+        const isChecked = customTransferSelectedIds.has(s.id);
+        const safeName = escapeHTML(s.name || 'بدون اسم');
+        const safePhone = escapeHTML(s.phone || '-');
+
+        // حساب المحاضرات المختبرة
+        let testedCount = 0;
+        if (s.progress) {
+            for (const lec of state.lectures) {
+                const p = s.progress[lec.id];
+                if (p && p !== 'replied') testedCount++;
+            }
+        }
+        const percent = totalLectures > 0 ? Math.round((testedCount / totalLectures) * 100) : 0;
+        let badgeColor = '#e74c3c';
+        if (percent >= 75) badgeColor = '#27ae60';
+        else if (percent >= 50) badgeColor = '#f39c12';
+
+        rowsHTML += `
+            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s; ${isChecked ? 'background: rgba(26, 93, 58, 0.08);' : ''}">
+                <td style="text-align: center; padding: 8px 6px;">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.app.toggleTransferStudentSelection(${s.id}, this.checked)" style="cursor: pointer; transform: scale(1.15);">
+                </td>
+                <td style="padding: 8px;">
+                    <strong>${safeName}</strong>
+                </td>
+                <td style="padding: 8px; direction: ltr; font-family: monospace;">
+                    ${safePhone}
+                </td>
+                <td style="padding: 8px; text-align: center;">
+                    <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">
+                        ${testedCount} / ${totalLectures} (${percent}%)
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = rowsHTML;
+    updateTransferBadge();
+}
+
+export function toggleTransferStudentSelection(sId, checked) {
+    if (checked) {
+        customTransferSelectedIds.add(sId);
+    } else {
+        customTransferSelectedIds.delete(sId);
+    }
+    updateTransferBadge();
+}
+
+export function toggleSelectAllTransfer() {
+    const activeStudents = state.students.filter(s => !s.deleted);
+    const btn = document.getElementById('transfer-select-all-btn');
+
+    if (customTransferSelectedIds.size === activeStudents.length) {
+        customTransferSelectedIds.clear();
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-check-double"></i> تحديد الكل';
+    } else {
+        activeStudents.forEach(s => customTransferSelectedIds.add(s.id));
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-xmark"></i> إلغاء تحديد الكل';
+    }
+
+    const searchInput = document.getElementById('transfer-search-input');
+    renderCustomTransferTable(searchInput ? searchInput.value : '');
+}
+
+export function filterTransferStudentsList() {
+    const searchInput = document.getElementById('transfer-search-input');
+    renderCustomTransferTable(searchInput ? searchInput.value : '');
+}
+
+function updateTransferBadge() {
+    const countBadge = document.getElementById('transfer-selected-count-badge');
+    const proceedBtn = document.getElementById('proceed-custom-transfer-btn');
+    const count = customTransferSelectedIds.size;
+
+    if (countBadge) countBadge.innerText = `المحدد: ${count} طالب`;
+    if (proceedBtn) proceedBtn.innerText = `متابعة التسليم (${count} طالب) ➡️`;
+}
+
+export function proceedCustomTransfer() {
+    if (customTransferSelectedIds.size === 0) {
+        showAtharNotification("يرجى تحديد طالب واحد على الأقل للمتابعة!", "warning");
+        return;
+    }
+
+    const selectedStudents = state.students.filter(s => customTransferSelectedIds.has(s.id));
+    const cb = customTransferCallback;
+    closeCustomTransferModal();
+
+    if (cb) cb(selectedStudents);
 }
 
 let cleanedStudentsCache = [];

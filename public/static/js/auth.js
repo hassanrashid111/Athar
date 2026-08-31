@@ -155,7 +155,7 @@ export async function redirectAfterAuth(uid) {
     const userData = snapshot.val();
 
     if (!userData) {
-        window.location.href = '/setup';
+        window.location.replace('/setup');
         return;
     }
 
@@ -163,11 +163,11 @@ export async function redirectAfterAuth(uid) {
     const activeGroupId = userData.activeGroupId || userData.groupId;
 
     if (!activeGroupId) {
-        window.location.href = '/setup';
+        window.location.replace('/setup');
     } else if (userData.role === 'group_supervisor') {
-        window.location.href = '/reports';
+        window.location.replace('/reports');
     } else {
-        window.location.href = '/dashboard';
+        window.location.replace('/dashboard');
     }
 }
 

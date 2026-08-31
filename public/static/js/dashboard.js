@@ -17,7 +17,10 @@ import {
     closeNotesModal, saveStudentNotes, wipeAllData,
     initiateStudentTransfer, checkPendingTransfers,
     openAICleaner, closeAICleaner, runAICleaner,
-    importCleanedStudents, copyCleanedStudents
+    importCleanedStudents, copyCleanedStudents,
+    openCustomTransferModal, closeCustomTransferModal,
+    renderCustomTransferTable, toggleTransferStudentSelection,
+    toggleSelectAllTransfer, filterTransferStudentsList, proceedCustomTransfer
 } from "./students.js";
 import {
     addLectureFlow, deleteLectureFlow, toggleStudentCheck,
@@ -815,6 +818,12 @@ window.app = {
     saveNotes: () => saveStudentNotes(() => renderDashboard()),
     clearAllData: () => wipeAllData(() => renderDashboard()),
     initiateStudentTransfer: () => initiateStudentTransfer(() => renderDashboard()),
+    openCustomTransferModal: (cb) => openCustomTransferModal(cb),
+    closeCustomTransferModal: () => closeCustomTransferModal(),
+    toggleTransferStudentSelection: (sId, checked) => toggleTransferStudentSelection(sId, checked),
+    toggleSelectAllTransfer: () => toggleSelectAllTransfer(),
+    filterTransferStudentsList: () => filterTransferStudentsList(),
+    proceedCustomTransfer: () => proceedCustomTransfer(),
 
     addLecture: () => addLectureFlow(() => renderDashboard()),
     deleteLecture: (id) => deleteLectureFlow(id, () => renderDashboard()),
