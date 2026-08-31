@@ -1,0 +1,12 @@
+/venv
+/__pycache__
+/dist
+/build
+*.spec
+*.db
+.env
+node_modules/
+.firebase/
+chrome_data/
+test_*.py
+test_*.js

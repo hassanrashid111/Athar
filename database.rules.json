@@ -1,0 +1,39 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && ($uid === auth.uid || root.child('users/'+auth.uid+'/role').val() === 'group_supervisor')"
+      }
+    },
+    "athar_groups": {
+      ".read": "auth != null",
+      "$group_id": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "info": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "data": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "students": {
+          ".read": "auth != null",
+          "$supervisor_uid": {
+            ".write": "auth != null && ($supervisor_uid === auth.uid || root.child('users/'+auth.uid+'/role').val() === 'group_supervisor')"
+          }
+        },
+        "transfers": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "responses": {
+          ".read": "auth != null",
+          ".write": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}منصة أثر التعليمية{% endblock %}</title>
+    
+    <!-- PWA Settings & Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1A5D3A" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="أثر" />
+    <link rel="apple-touch-icon" href="/static/assets/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png" />
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Base & Components CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}" />
+    
+    <!-- Third-Party Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/css/intlTelInput.css">
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    
+    {% block content %}{% endblock %}
+
+    {% include 'components/modals.html' %}
+
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" id="scrollTopBtn" class="scroll-top-btn" title="الرجوع للأعلى">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+    <script>
+        window.onscroll = function () {
+            const btn = document.getElementById("scrollTopBtn");
+            if (btn) {
+                btn.style.display = (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) ? "block" : "none";
+            }
+        };
+    </script>
+
+    <!-- PWA Registration Module -->
+    <script type="module" src="{{ url_for('static', filename='js/pwa.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

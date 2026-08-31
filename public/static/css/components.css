@@ -1,0 +1,426 @@
+/**
+ * منصة أثر - أنماط المكونات المشتركة (Components CSS)
+ * المودالات، طابور الموبايل، قائمة الكليك يمين، ملف الطالب، والشهادات
+ */
+
+/* ================= Modal Overlay ================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 25, 18, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.25s ease;
+}
+
+.modal-card {
+    background: var(--card-white);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+    border: 1px solid var(--border-color);
+}
+
+.modal-header {
+    background: var(--bg-light);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.student-info-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.modal-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-green);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 10px rgba(26, 93, 58, 0.2);
+}
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: block;
+}
+
+.close-modal {
+    background: transparent;
+    border: none;
+    font-size: 1.6rem;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-modal:hover {
+    color: var(--accent-red);
+    background: rgba(231, 76, 60, 0.1);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.modal-body textarea,
+.modal-body input[type="text"],
+.modal-body input[type="email"],
+.modal-body input[type="password"],
+.modal-body input[type="number"],
+.modal-body input[type="url"],
+.modal-body select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.95rem;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+}
+
+.modal-body textarea:focus,
+.modal-body input:focus,
+.modal-body select:focus {
+    border-color: var(--primary-green);
+    background-color: var(--card-white);
+    box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15);
+    outline: none;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background: var(--bg-light);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ================= Mobile WhatsApp Queue Modal ================= */
+#messaging-queue-modal .student-target-card {
+    background: var(--bg-light);
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+#queue-send-btn {
+    background: #25D366 !important;
+    color: white !important;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    transition: all 0.2s ease;
+}
+
+#queue-send-btn:hover {
+    background: #1eb956 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+/* الزرار الخاص بالتخطي للطالب التالي - تم توضيحه وتجميله بالكامل */
+#queue-next-btn {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+    border: 2px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+#queue-next-btn:hover {
+    background: #cbd5e1 !important;
+    border-color: #94a3b8 !important;
+    transform: translateY(-1px);
+}
+
+body.dark-theme #queue-next-btn {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body.dark-theme #queue-next-btn:hover {
+    background: #334155 !important;
+    border-color: #475569 !important;
+}
+
+/* ================= Context Menu ================= */
+.context-menu {
+    position: fixed;
+    z-index: 100000;
+    width: 220px;
+    background: var(--card-white);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    font-size: 0.9rem;
+    animation: fadeIn 0.15s ease;
+}
+
+.context-menu .menu-header {
+    background: var(--bg-light);
+    padding: 10px 16px;
+    font-weight: 700;
+    color: var(--primary-green);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+
+.context-menu ul {
+    list-style: none;
+    padding: 6px 0;
+    margin: 0;
+}
+
+.context-menu li {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s ease;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.context-menu li:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-green);
+}
+
+.context-menu li.separator {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+/* ================= Student Profile & Notes Card ================= */
+.profile-card-wide {
+    max-width: 900px;
+    width: 95%;
+}
+
+.modal-body-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    background: var(--card-white);
+}
+
+.chart-container {
+    background: var(--bg-light);
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    height: 250px;
+}
+
+.chart-container h3,
+.profile-sidebar h3 {
+    font-size: 0.95rem;
+    color: var(--primary-green);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    font-weight: 700;
+}
+
+.profile-sidebar {
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    height: 100%;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--card-white);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    border-right: 4px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.history-item.present { border-right-color: #27ae60; }
+.history-item.absent  { border-right-color: #e74c3c; opacity: 0.85; }
+.history-item .date   { font-size: 0.75rem; color: var(--text-light); }
+.history-item .status { font-weight: 700; }
+.present .status      { color: #27ae60; }
+.absent .status       { color: #e74c3c; }
+
+.notes-section {
+    margin-top: 15px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notes-section label {
+    font-size: 0.95rem;
+    color: var(--primary-green);
+    font-weight: 700;
+}
+
+.notes-section textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+/* ================= Dark Mode Overhaul for Modals ================= */
+body.dark-theme .modal-card {
+    background-color: #13221c;
+    color: #f1f5f9;
+    border: 1px solid #1e3a2f;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+body.dark-theme .modal-header {
+    background: #0d1a15;
+    border-bottom: 1px solid #1e3a2f;
+}
+
+body.dark-theme .modal-footer {
+    background: #0d1a15;
+    border-top: 1px solid #1e3a2f;
+}
+
+body.dark-theme .modal-body textarea,
+body.dark-theme .modal-body input,
+body.dark-theme .modal-body select {
+    background: #0b1311;
+    border-color: #1e3a2f;
+    color: #f1f5f9;
+}
+
+body.dark-theme .modal-body-grid {
+    background: #13221c;
+}
+
+body.dark-theme .chart-container,
+body.dark-theme .profile-sidebar,
+body.dark-theme .notes-section {
+    background: #0d1a15;
+    border-color: #1e3a2f;
+}
+
+body.dark-theme .history-item {
+    background: #13221c;
+}
+
+body.dark-theme .cert-field-config {
+    background: #0b1311 !important;
+    border-color: #1e3a2f !important;
+}
+
+body.dark-theme .context-menu {
+    background-color: #13221c !important;
+    border: 1px solid #1e3a2f !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-theme .context-menu .menu-header {
+    background: #0d1a15 !important;
+    border-bottom: 1px solid #1e3a2f !important;
+}
+
+body.dark-theme .context-menu li:hover {
+    background-color: #1e3a2f !important;
+    color: #25D366 !important;
+}
+
+@media (max-width: 768px) {
+    .modal-card {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-body-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 12px;
+    }
+    .chart-container {
+        height: 180px;
+    }
+    .profile-sidebar {
+        max-height: 280px;
+    }
+}

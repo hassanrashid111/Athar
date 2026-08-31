@@ -1,0 +1,20 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true,
+    "rewrites": [
+      { "source": "/login", "destination": "/login.html" },
+      { "source": "/setup", "destination": "/setup.html" },
+      { "source": "/dashboard", "destination": "/dashboard.html" },
+      { "source": "/reports", "destination": "/reports.html" }
+    ]
+  }
+}

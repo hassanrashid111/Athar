@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}إعداد المجموعة - أثر{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div id="group-setup-view" class="login-card" style="max-width: 500px;">
+        <div class="login-logo-wrapper">
+            <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" />
+        </div>
+        <h2>أثر - إعداد المجموعة</h2>
+        <p class="subtitle">منصة أثر لإدارة الدورات العلمية</p>
+
+        <!-- Create Group Section (Group Supervisor) -->
+        <div id="create-group-section" style="display: none;">
+            <div class="input-group">
+                <label for="new-group-name">اسم المجموعة</label>
+                <div class="input-wrapper">
+                    <input type="text" id="new-group-name" placeholder="مثال: دورة العقيدة" required />
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="new-group-number">رقم المجموعة</label>
+                <div class="input-wrapper">
+                    <input type="text" id="new-group-number" placeholder="مثال: 101" required />
+                    <i class="fa-solid fa-hashtag"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="new-group-lectures">عدد محاضرات الدورة</label>
+                <div class="input-wrapper">
+                    <input type="number" id="new-group-lectures" value="12" min="1" max="50" required />
+                    <i class="fa-solid fa-list-ol"></i>
+                </div>
+            </div>
+
+            <button type="button" class="btn-login" style="background: var(--primary-green);" onclick="window.app.createGroup()">
+                إنشاء المجموعة <i class="fa-solid fa-check"></i>
+            </button>
+        </div>
+
+        <!-- Join Group Section (Followup Supervisor) -->
+        <div id="join-group-section" style="display: none;">
+            <div class="input-group">
+                <label for="join-group-id">كود المجموعة</label>
+                <div class="input-wrapper">
+                    <input type="text" id="join-group-id" placeholder="الصق كود المجموعة هنا (مثال: GRP-101-ABCD)" required />
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <small style="color: var(--text-light); margin-top: 5px; display: block;">احصل على الكود من المشرف المسؤول عن المجموعة.</small>
+            </div>
+
+            <button type="button" class="btn-login" style="background: var(--primary-green);" onclick="window.app.joinGroup()">
+                الانضمام للمجموعة <i class="fa-solid fa-right-to-bracket"></i>
+            </button>
+        </div>
+
+        <button type="button" class="btn-action" onclick="window.app.logout()" style="margin-top: 15px; width: 100%; background: #eee; color: #555; border: 1px solid #ddd; justify-content: center;">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+        </button>
+
+        <div class="copyright">
+            تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng. Hassan Rashed</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{{ url_for('static', filename='js/setup.js') }}"></script>
+{% endblock %}

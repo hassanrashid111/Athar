@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الدخول - أثر{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <!-- Login Card -->
+    <div id="login-card" class="login-card">
+        <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" class="login-logo-img" />
+        <h1>أثر</h1>
+        <p class="subtitle">منصة أثر لإدارة الدورات العلمية</p>
+
+        <!-- Role Tabs -->
+        <div class="role-tabs" style="display: flex; gap: 10px; background: #f1f1f1; padding: 5px; border-radius: 10px; margin-bottom: 20px;">
+            <button type="button" class="role-btn active" onclick="switchAuthTab('login')" style="flex: 1; border: none; background: white; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--primary-green);">
+                تسجيل الدخول
+            </button>
+            <button type="button" class="role-btn" onclick="switchAuthTab('register')" style="flex: 1; border: none; background: transparent; padding: 8px; border-radius: 8px; cursor: pointer; color: #777;">
+                إنشاء حساب
+            </button>
+        </div>
+
+        <form id="login-form" onsubmit="window.app.login(event)">
+            <div class="input-group">
+                <label for="username">البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                    <input type="email" id="username" placeholder="أدخل البريد الإلكتروني" required autocomplete="username" />
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">كلمة المرور</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password" />
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">
+                دخول <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+
+            <button type="button" class="btn-google" onclick="window.app.loginWithGoogle()" style="width:100%; margin-top:12px; background:white; color:#757575; border:1px solid #ddd; padding:10px; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-weight:bold;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google">
+                الدخول عبر حساب جوجل
+            </button>
+        </form>
+
+        <div class="copyright">
+            تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng.Hassan Rashid</a>
+        </div>
+    </div>
+
+    <!-- Register Card -->
+    <div id="register-card" class="login-card" style="display: none;">
+        <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" class="login-logo-img" />
+        <h1>إنشاء حساب جديد</h1>
+        <p class="subtitle">منصة أثر لإدارة الدورات العلمية</p>
+
+        <!-- Role Tabs -->
+        <div class="role-tabs" style="display: flex; gap: 10px; background: #f1f1f1; padding: 5px; border-radius: 10px; margin-bottom: 20px;">
+            <button type="button" class="role-btn" onclick="switchAuthTab('login')" style="flex: 1; border: none; background: transparent; padding: 8px; border-radius: 8px; cursor: pointer; color: #777;">
+                تسجيل الدخول
+            </button>
+            <button type="button" class="role-btn active" onclick="switchAuthTab('register')" style="flex: 1; border: none; background: white; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--primary-green);">
+                إنشاء حساب
+            </button>
+        </div>
+
+        <form id="register-form" onsubmit="window.app.register(event)">
+            <div class="input-group">
+                <label for="selected-role">نوع الحساب</label>
+                <select id="selected-role" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; font-size: 1rem;">
+                    <option value="followup_supervisor">مشرف متابعة (متابعة الطلاب والتحضير)</option>
+                    <option value="group_supervisor">مشرف مجموعة (إدارة المجموعة والمحاضرات)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="reg-name">الاسم الكامل</label>
+                <div class="input-wrapper">
+                    <input type="text" id="reg-name" placeholder="أدخل اسمك الكامل" required />
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="reg-email">البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                    <input type="email" id="reg-email" placeholder="أدخل البريد الإلكتروني" required autocomplete="username" />
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="reg-password">كلمة المرور</label>
+                <div class="input-wrapper">
+                    <input type="password" id="reg-password" placeholder="أدخل كلمة المرور (6 أحرف على الأقل)" required autocomplete="new-password" />
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login" style="background: var(--primary-green);">
+                إنشاء الحساب <i class="fa-solid fa-user-plus"></i>
+            </button>
+
+            <button type="button" class="btn-google" onclick="window.app.registerWithGoogle()" style="width:100%; margin-top:12px; background:white; color:#757575; border:1px solid #ddd; padding:10px; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-weight:bold;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google">
+                إنشاء الحساب عبر جوجل
+            </button>
+        </form>
+
+        <div class="copyright">
+            تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng.Hassan Rashid</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { handleLogin, handleRegister, handleGoogleLogin } from "{{ url_for('static', filename='js/auth.js') }}";
+    import { checkAlreadyLoggedIn } from "{{ url_for('static', filename='js/router.js') }}";
+
+    window.app = {
+        login: handleLogin,
+        register: handleRegister,
+        loginWithGoogle: () => handleGoogleLogin(false),
+        registerWithGoogle: () => handleGoogleLogin(true)
+    };
+
+    window.switchAuthTab = function(tab) {
+        document.getElementById('login-card').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('register-card').style.display = tab === 'register' ? 'block' : 'none';
+    };
+
+    checkAlreadyLoggedIn();
+</script>
+{% endblock %}

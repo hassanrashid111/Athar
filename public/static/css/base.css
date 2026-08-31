@@ -1,0 +1,419 @@
+/**
+ * منصة أثر - الأنماط الأساسية (Base CSS)
+ * المتغيرات، الخطوط، الوضع الليلي الفاخر، ومؤشر المزامنة
+ */
+
+:root {
+    --primary-green: #1A5D3A;
+    --dark-green: #0E3B24;
+    --accent-gold: #D4AF37;
+    --accent-red: #E74C3C;
+    --bg-light: #F4F7F6;
+    --card-white: #FFFFFF;
+    --text-dark: #2C3E50;
+    --text-light: #7F8C8D;
+    --border-color: #E2E8F0;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --radius-md: 12px;
+    --radius-lg: 16px;
+}
+
+/* ================= Dark Theme Variables (Sleek & High Contrast) ================= */
+body.dark-theme {
+    --primary-green: #25D366;
+    --dark-green: #10b981;
+    --accent-gold: #fbbf24;
+    --accent-red: #f87171;
+    --bg-light: #0b1311;
+    --card-white: #13221c;
+    --text-dark: #f1f5f9;
+    --text-light: #94a3b8;
+    --border-color: #1e3a2f;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    direction: rtl;
+    text-align: right;
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================= Code Snippets & Group Code Badge ================= */
+code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: var(--bg-light);
+    color: var(--primary-green);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    direction: ltr;
+    display: inline-block;
+    font-weight: 700;
+}
+
+body.dark-theme code {
+    background: #0b1311;
+    color: #25D366;
+    border-color: #1e3a2f;
+}
+
+.group-code-row {
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+.group-code-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    background: var(--bg-light);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+}
+
+body.dark-theme .group-code-badge {
+    background: #0b1311;
+    border-color: #1e3a2f;
+}
+
+.btn-copy-code {
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-copy-code:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+/* ================= Checkbox Styling (Large & Clear) ================= */
+.check-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.check-wrapper input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+    border-radius: 6px;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.check-wrapper input[type="checkbox"]:hover {
+    transform: scale(1.18);
+    filter: drop-shadow(0 2px 4px rgba(37, 211, 102, 0.3));
+}
+
+body.dark-theme .check-wrapper input[type="checkbox"] {
+    accent-color: #25D366;
+}
+
+/* ================= Logo Styling ================= */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-logo-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transition: transform 0.3s ease;
+}
+
+.logo-area:hover .header-logo-wrapper {
+    transform: scale(1.06);
+}
+
+.header-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.login-logo-wrapper {
+    width: 85px;
+    height: 85px;
+    margin: 0 auto 18px;
+    background: #f0fdf4;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(26, 93, 58, 0.1);
+    border: 1px solid rgba(37, 211, 102, 0.2);
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+.login-logo-wrapper:hover {
+    transform: scale(1.05);
+}
+
+.login-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+body.dark-theme .login-logo-wrapper {
+    background: #0d1a15;
+    border-color: #1e3a2f;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ================= Buttons ================= */
+.btn-action {
+    background: white;
+    color: var(--primary-green);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    background: #f0f7f3;
+    border-color: var(--primary-green);
+    transform: translateY(-1px);
+}
+
+.btn-logout {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.btn-save-notes {
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-save-notes:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+/* ================= Notifications (Toast) ================= */
+.athar-notification {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    background: white;
+    color: var(--text-dark);
+    padding: 14px 22px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 99999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-right: 5px solid var(--primary-green);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.athar-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.athar-notification.error {
+    border-right-color: var(--accent-red);
+}
+
+.athar-notification.warning {
+    border-right-color: #f39c12;
+}
+
+.athar-notification.info {
+    border-right-color: #3498db;
+}
+
+body.dark-theme .athar-notification {
+    background: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ================= Sync Indicator (Live UX Feedback) ================= */
+#sync-indicator {
+    position: fixed;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-60px);
+    background: rgba(14, 59, 36, 0.92);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 99999;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+}
+
+#sync-indicator.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+#sync-indicator.success {
+    background: rgba(39, 174, 96, 0.92);
+}
+
+#sync-indicator.error {
+    background: rgba(231, 76, 60, 0.92);
+}
+
+/* ================= Scroll To Top Button ================= */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+    z-index: 900;
+    transition: all 0.2s ease;
+}
+
+.scroll-top-btn:hover {
+    transform: scale(1.1);
+    background: var(--dark-green);
+}
+
+/* ================= Footer ================= */
+.main-footer {
+    text-align: center;
+    padding: 30px 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.main-footer h3 {
+    font-size: 1.1rem;
+    color: var(--primary-green);
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.developer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-gold) !important;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.developer-link:hover {
+    background: rgba(212, 175, 55, 0.15);
+    transform: translateY(-2px);
+}
+
+/* ================= Animations ================= */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

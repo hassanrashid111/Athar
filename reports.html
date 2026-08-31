@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}تقارير المشرفين - أثر{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="main-header">
+        <div class="header-right">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" class="logo-img" />
+                <div>
+                    <h2 id="header-title">أثر - لوحة المشرف</h2>
+                    <div class="user-info" style="display: flex; flex-direction: column; color: white;">
+                        <span id="user-display-name" style="font-weight: bold; font-size: 1.05rem; cursor: pointer;"
+                            onclick="window.app.openProfileModal()" title="فتح الملف الشخصي">جاري التحميل...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="hamburger-btn" onclick="window.app.toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="header-left" id="main-menu">
+            <div class="menu-header-mobile">
+                <h3>القائمة</h3>
+                <button class="close-menu-btn" onclick="window.app.toggleMenu()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <button class="btn-action" onclick="window.app.addLecture()">
+                <i class="fa-solid fa-plus-circle"></i> إضافة محاضرة
+            </button>
+
+            <div class="dropdown">
+                <button class="btn-action dropbtn">
+                    <i class="fa-solid fa-layer-group"></i> إدارة المجموعات
+                    <i class="fa-solid fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a onclick="window.app.openGroupInfoModal()"><i class="fa-solid fa-circle-info"></i> معلومات وإعدادات المجموعة</a>
+                    <a onclick="window.app.createNewGroup()"><i class="fa-solid fa-folder-plus"></i> إضافة مجموعة جديدة</a>
+                    <a onclick="window.app.switchGroup()"><i class="fa-solid fa-shuffle"></i> تغيير المجموعة النشطة</a>
+                    <a onclick="window.app.deleteCurrentGroup()" style="color: #e74c3c; border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 10px;">
+                        <i class="fa-solid fa-trash"></i> حذف المجموعة الحالية
+                    </a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn-action dropbtn">
+                    <i class="fa-solid fa-gear"></i> الأدوات
+                    <i class="fa-solid fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a onclick="window.app.getReport()"><i class="fa-solid fa-file-lines"></i> تقرير نصي شامل</a>
+                    <a onclick="window.app.openProfileModal()"><i class="fa-solid fa-user-gear"></i> الملف الشخصي</a>
+                    <a onclick="window.app.backupData()"><i class="fa-solid fa-download"></i> حفظ نسخة احتياطية</a>
+                    <a onclick="window.app.openCertSettings()" style="color: var(--accent-gold); border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 10px;">
+                        <i class="fa-solid fa-certificate"></i> إعدادات الشهادة
+                    </a>
+                    <a onclick="window.app.resetMessages()" style="color: #e67e22">
+                        <i class="fa-solid fa-rotate-left"></i> تصفير عداد الرسائل
+                    </a>
+                </div>
+            </div>
+
+            <button class="btn-action" onclick="window.app.toggleTheme()">
+                <i class="fa-solid fa-moon"></i> الوضع الليلي
+            </button>
+
+            <button class="btn-logout" onclick="window.app.logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+            </button>
+        </div>
+
+        <div class="menu-overlay" id="menu-overlay" onclick="window.app.toggleMenu()"></div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-title-area">
+            <h1>تقارير أداء مشرفي المتابعة</h1>
+            <p>منصة أثر لإدارة الدورات العلمية - متابعة إحصائيات الحضور ونسب الإنجاز والتواصل مع مشرفي الحلقات</p>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table id="reports-table">
+                    <thead>
+                        <tr id="table-header-row"></tr>
+                    </thead>
+                    <tbody id="students-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <span style="font-size: 0.85rem; color: var(--text-light);">
+                    <i class="fa-solid fa-circle-info"></i> انقر على اسم المشرف لعرض تقريره المفصل، أو على عدد الرسائل لعرض تفاصيل الفئات.
+                </span>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="card summary-card">
+                <div class="card-header">
+                    <h3>إحصائيات المجموعة</h3>
+                    <p class="date-display">--</p>
+                </div>
+                <div class="stats-list">
+                    <div class="stat-item total">
+                        <span>إجمالي الطلاب بالمجموعة</span><strong id="stat-total">0</strong>
+                    </div>
+                    <div class="stat-item absence">
+                        <span>إجمالي الغياب لآخر محاضرة</span><strong id="stat-absence">0</strong>
+                    </div>
+                    <div class="stat-item remaining">
+                        <span>المحاضرات المتبقية</span><strong id="stat-remaining">0</strong>
+                    </div>
+                </div>
+                <div class="quote-box">
+                    <i class="fa-solid fa-quote-right quote-icon"></i>
+                    <p>جاري تحميل الحديث الشريف...</p>
+                </div>
+            </div>
+
+            <div class="card messaging-card">
+                <div class="card-header-row">
+                    <div class="icon-sq">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 id="msg-card-title">رسالة التواصل مع المشرفين</h3>
+                        <p id="msg-card-desc">بإمكانك إرسال رسائل لمشرفي المتابعة حسب نسبة الإنجاز</p>
+                    </div>
+                </div>
+
+                <div class="message-body">
+                    <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+                        <button class="btn-action insert-var-btn" onclick="window.app.insertVariable('{الاسم}')">
+                            <i class="fa-solid fa-user-tag"></i> إدراج الاسم
+                        </button>
+                        <span class="hint-text" id="msg-hint-text">سيتم استبدال {الاسم} باسم المشرف.</span>
+                    </div>
+
+                    <textarea id="message-text" placeholder="مثال: السلام عليكم يا أستاذ {الاسم}، نود تذكيركم بمتابعة تقييم الطلاب..."></textarea>
+
+                    <div class="action-row">
+                        <button class="btn-whatsapp" onclick="window.app.sendMessages()">
+                            إرسال للمشرفين عبر واتساب
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <h3>وَقُل رَّبِّ زِدْنِي عِلْمًا</h3>
+        <p>© 2026 | منصة أثر لإدارة الدورات العلمية | تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng.Hassan Rashid</a></p>
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{{ url_for('static', filename='js/reports-page.js') }}"></script>
+{% endblock %}

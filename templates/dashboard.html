@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}لوحة التحكم - أثر{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="main-header">
+        <div class="header-right">
+            <div class="logo-area">
+                <div class="header-logo-wrapper">
+                    <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" />
+                </div>
+                <div>
+                    <h2 id="header-title">أثر</h2>
+                    <div class="user-info" style="display: flex; flex-direction: column; color: white;">
+                        <span id="user-display-name" style="font-weight: bold; font-size: 1.05rem; cursor: pointer;"
+                            onclick="window.app.openProfileModal()" title="فتح الملف الشخصي">جاري التحميل...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="hamburger-btn" onclick="window.app.toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="header-left" id="main-menu">
+            <div class="menu-header-mobile">
+                <h3>القائمة</h3>
+                <button class="close-menu-btn" onclick="window.app.toggleMenu()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <button class="btn-action" onclick="window.app.openAICleaner()" style="background: linear-gradient(135deg, rgba(26, 93, 58, 0.1) 0%, rgba(212, 175, 55, 0.15) 100%); border: 1px solid var(--accent-gold); color: var(--primary-green); font-weight: bold;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> المنظف الذكي
+            </button>
+
+            <button class="btn-action" onclick="window.app.openImport()">
+                <i class="fa-solid fa-paste"></i> استيراد
+            </button>
+
+            <button class="btn-action" onclick="window.app.addStudent()">
+                <i class="fa-solid fa-user-plus"></i> إضافة طالب
+            </button>
+
+            <div class="dropdown" id="tools-dropdown">
+                <button class="btn-action dropbtn" onclick="window.app.toggleToolsDropdown(event)">
+                    <i class="fa-solid fa-gear"></i> أدوات النظام
+                    <i class="fa-solid fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content" id="tools-dropdown-content">
+                    <a onclick="window.app.promptPWAInstall()" style="color: var(--primary-green); font-weight: bold;"><i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق 📲</a>
+                    <a onclick="window.app.exportData()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</a>
+                    <a onclick="window.app.getReport()"><i class="fa-solid fa-file-lines"></i> تقرير نصي</a>
+                    <a onclick="window.app.openGroupInfoModal()"><i class="fa-solid fa-circle-info"></i> معلومات المجموعة</a>
+                    <a onclick="window.app.openProfileModal()"><i class="fa-solid fa-user-gear"></i> الملف الشخصي</a>
+                    <a onclick="window.app.openAIInstructionsModal()" style="color: var(--accent-gold);"><i class="fa-solid fa-wand-magic-sparkles"></i> تعليمات الذكاء الاصطناعي</a>
+                    <a onclick="window.app.backupData()"><i class="fa-solid fa-download"></i> حفظ نسخة</a>
+                    <a onclick="document.getElementById('restore-input').click()">
+                        <i class="fa-solid fa-upload"></i> استرجاع نسخة
+                    </a>
+                    <a onclick="window.app.resetMessages()" style="color: #e67e22">
+                        <i class="fa-solid fa-rotate-left"></i> تصفير الرسائل
+                    </a>
+                    <a onclick="window.app.initiateStudentTransfer()" style="color: #3498db; border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 10px;">
+                        <i class="fa-solid fa-handshake"></i> تسليم الطلاب لمشرف آخر
+                    </a>
+                    <a onclick="window.app.openCertSettings()" style="color: var(--accent-gold); border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 10px;">
+                        <i class="fa-solid fa-certificate"></i> إعدادات الشهادة
+                    </a>
+                    <a onclick="window.app.clearAllData()" style="color: #e74c3c; border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 10px;">
+                        <i class="fa-solid fa-trash-can"></i> تصفير قائمة طلابي
+                    </a>
+                </div>
+            </div>
+
+            <input type="file" id="restore-input" style="display: none" onchange="window.app.restoreData(this)" accept=".json" />
+
+            <button class="btn-action" onclick="window.app.toggleTheme()">
+                <i class="fa-solid fa-moon"></i> الوضع الليلي
+            </button>
+
+            <button class="btn-logout" onclick="window.app.logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+            </button>
+        </div>
+
+        <div class="menu-overlay" id="menu-overlay" onclick="window.app.toggleMenu()"></div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-title-area">
+            <h1>سجل متابعة الطلاب</h1>
+            <p>منصة أثر لإدارة الدورات العلمية - إدارة الحضور والغياب والمراسلة الدورية</p>
+            <div class="filters-container">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" onkeyup="window.app.search()" placeholder="بحث بالاسم أو الهاتف..." />
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-responsive">
+                <table id="students-table">
+                    <thead>
+                        <tr id="table-header-row"></tr>
+                    </thead>
+                    <tbody id="students-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <span>جاري التحميل...</span>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="card summary-card">
+                <div class="card-header">
+                    <h3>ملخص اليوم</h3>
+                    <p class="date-display" id="current-date">--</p>
+                </div>
+                <div class="stats-list">
+                    <div class="stat-item total">
+                        <span>العدد الكلي</span><strong id="stat-total">0</strong>
+                    </div>
+                    <div class="stat-item absence">
+                        <span>الغياب اليوم</span><strong id="stat-absence">0</strong>
+                    </div>
+                    <div class="stat-item remaining">
+                        <span>المحاضرات المتبقية</span><strong id="stat-remaining">0</strong>
+                    </div>
+                </div>
+                <div class="quote-box">
+                    <i class="fa-solid fa-quote-right quote-icon"></i>
+                    <p id="hadith-text">جاري تحميل الحديث الشريف...</p>
+                    <small id="hadith-source" style="display:block; margin-top:5px; color:var(--accent-gold); font-weight:bold;"></small>
+                </div>
+            </div>
+
+            <div class="card messaging-card">
+                <div class="card-header-row">
+                    <div class="icon-sq">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <div>
+                        <h3 id="msg-card-title">رسالة المتابعة</h3>
+                        <p id="msg-card-desc">قم بصياغة الرسالة التي سيتم إرسالها للطلاب المستهدفين</p>
+                    </div>
+                </div>
+
+                <div class="message-body">
+                    <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+                        <button class="btn-action insert-var-btn" onclick="window.app.insertVariable('{الاسم}')">
+                            <i class="fa-solid fa-user-tag"></i> إدراج الاسم
+                        </button>
+                        <span class="hint-text" id="msg-hint-text">سيتم الاستبدال باسم الطالب تلقائياً.</span>
+                    </div>
+
+                    <textarea id="message-text" placeholder="مثال: أهلاً بك يا {الاسم}، نود تذكيرك بموعد المحاضرة ..."></textarea>
+
+                    <div class="action-row">
+                        <div id="mobile-send-status" class="mobile-only-status"
+                            style="display: none; width: 100%; text-align: center; margin-bottom: 10px; background: #f0f7f3; padding: 8px; border-radius: 6px; border: 1px solid #d4edda; color: #155724; font-size: 0.9rem; font-weight: bold;">
+                            <i class="fa-solid fa-circle-info"></i> تم إرسال <span id="mobile-sent-count">0</span> من أصل
+                            <span id="mobile-total-count">0</span>
+                        </div>
+                        <button class="btn-whatsapp" onclick="window.app.sendMessages()">
+                            إرسال الرسالة عبر واتساب
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <h3>وَقُل رَّبِّ زِدْنِي عِلْمًا</h3>
+        <p>© 2026 | منصة أثر لإدارة الدورات العلمية | تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng. Hassan Rashed</a></p>
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
