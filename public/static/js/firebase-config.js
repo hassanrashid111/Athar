@@ -5,7 +5,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-    getDatabase, ref, set, get, update, remove, push, child, onValue
+    getDatabase, ref, set, get, update, remove, push, child, onValue, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
     getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -29,7 +29,7 @@ const googleProvider = new GoogleAuthProvider();
 
 export {
     db, auth, googleProvider,
-    ref, set, get, update, remove, push, child, onValue,
+    ref, set, get, update, remove, push, child, onValue, increment,
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     signOut, onAuthStateChanged, signInWithPopup
 };

@@ -12,12 +12,13 @@
     ],
     "cleanUrls": true,
     "rewrites": [
-      { "source": "/login", "destination": "/login.html" },
-      { "source": "/setup", "destination": "/setup.html" },
-      { "source": "/dashboard", "destination": "/dashboard.html" },
-      { "source": "/reports", "destination": "/reports.html" },
-      { "source": "/presentation", "destination": "/presentation.html" },
-      { "source": "/guide", "destination": "/presentation.html" }
+      { "source": "/login",       "destination": "/login.html" },
+      { "source": "/setup",       "destination": "/setup.html" },
+      { "source": "/dashboard",   "destination": "/dashboard.html" },
+      { "source": "/reports",     "destination": "/reports.html" },
+      { "source": "/presentation","destination": "/presentation.html" },
+      { "source": "/guide",       "destination": "/presentation.html" },
+      { "source": "/super-admin", "destination": "/super_admin.html" }
     ]
   }
 }

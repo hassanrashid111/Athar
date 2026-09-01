@@ -5,6 +5,7 @@
 
 import { state, saveData } from "./state.js";
 import { showAtharNotification, showAtharConfirm } from "./utils.js";
+import { db, ref, update, increment } from "./firebase-config.js";
 
 let certNaturalWidth = 2000;
 let certNaturalHeight = 1414;
@@ -70,6 +71,11 @@ export function downloadCertificate(studentName, lectureCount) {
         link.download = `شهادة_تقدير_${studentName}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
+
+        // تتبع تصدير الشهادة الفردية (بدون تعطيل العملية)
+        if (navigator.onLine) {
+            update(ref(db), { 'system_analytics/certificates_exported': increment(1) }).catch(() => {});
+        }
     };
 
     img.onerror = function () {
@@ -160,6 +166,11 @@ export async function downloadLecturePDF(lecId, lecTitle) {
 
         doc.save(`شهادات_حضور_${lecTitle}.pdf`);
         showAtharNotification("تم إنشاء ملف PDF بنجاح ✓", "success");
+
+        // تتبع تصدير شهادات الدفعة (attendees.length شهادة دفعة واحدة)
+        if (navigator.onLine) {
+            update(ref(db), { 'system_analytics/certificates_exported': increment(attendees.length) }).catch(() => {});
+        }
     };
 
     img.onerror = function () {

@@ -2,7 +2,7 @@
  * منصة أثر التعليمية - المراسلة الجماعية الذكية عبر واتساب والذكاء الاصطناعي (WhatsApp & AI Messaging System)
  */
 
-import { state, currentUser, saveData } from "./state.js";
+import { state, currentUser, saveData, trackGeminiCall } from "./state.js";
 import {
     showAtharNotification, showAtharChoice, showAtharPrompt, showAtharConfirm,
     cleanPhone, getInitials, isMobileDevice, getStudentTotalScore
@@ -155,6 +155,7 @@ ${customInstructionsBlock}
                 generatedText = generatedText.replace(/\*\*/g, '').replace(/###/g, '').replace(/---/g, '').trim();
 
                 if (generatedText) {
+                    trackGeminiCall('messaging'); // تتبع نجاح صياغة رسالة ذكية
                     return generatedText;
                 }
             }

@@ -160,6 +160,10 @@ export async function redirectAfterAuth(uid) {
     }
 
     state.userInfo = userData;
+
+    // تسجيل وقت آخر تسجيل دخول (لحساب DAU/WAU في لوحة Super Admin)
+    update(ref(db, `users/${uid}`), { lastLoginAt: Date.now() }).catch(() => {});
+
     const activeGroupId = userData.activeGroupId || userData.groupId;
 
     if (!activeGroupId) {

@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لوحة التحكم العليا - أثر</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/static/css/super_admin.css" />
+</head>
+<body>
+<div id="sa-loader"><div class="spinner"></div><p>جاري التحقق من الصلاحيات...</p></div>
+<div id="sa-toast" class="sa-toast"></div>
+<header class="sa-header" id="sa-header" style="display:none;">
+    <div class="sa-header-brand">
+        <div class="brand-icon">&#x1F451;</div>
+        <div><h1>لوحة التحكم العليا</h1><small>Athar Super Admin</small></div>
+    </div>
+    <div class="sa-header-actions">
+        <button class="status-toggle-btn paused" id="system-toggle-btn" onclick="toggleSystemStatus()">
+            <span class="status-pulse"></span>
+            <span id="system-toggle-label">النظام: موقوف</span>
+        </button>
+        <button class="btn-sa-logout" onclick="saLogout()">خروج</button>
+    </div>
+</header>
+<main class="sa-container" id="sa-main" style="display:none;">
+    <div class="sa-section-title">مقاييس النظام</div>
+    <div class="sa-metrics-grid">
+        <div class="sa-metric-card gold"><div class="metric-icon gold"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="metric-value" id="m-gemini-total">0</div><div class="metric-label">استدعاءات Gemini الكلية</div></div>
+        <div class="sa-metric-card green"><div class="metric-icon green"><i class="fa-solid fa-robot"></i></div><div class="metric-value" id="m-gemini-msg">0</div><div class="metric-label">رسائل ذكية أنشئت</div></div>
+        <div class="sa-metric-card cyan"><div class="metric-icon cyan"><i class="fa-solid fa-broom"></i></div><div class="metric-value" id="m-gemini-clean">0</div><div class="metric-label">تنظيفات ذكية</div></div>
+        <div class="sa-metric-card red"><div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="metric-value" id="m-gemini-err">0</div><div class="metric-label">أخطاء Gemini</div></div>
+        <div class="sa-metric-card purple"><div class="metric-icon purple"><i class="fa-solid fa-certificate"></i></div><div class="metric-value" id="m-certs">0</div><div class="metric-label">شهادات صدرت</div></div>
+        <div class="sa-metric-card gold"><div class="metric-icon gold"><i class="fa-solid fa-wifi-slash"></i></div><div class="metric-value" id="m-offline">0</div><div class="metric-label">عمليات أوفلاين</div></div>
+    </div>
+    <div class="sa-section-title">إدارة الطلبات والدورات</div>
+    <div class="sa-main-grid">
+        <div class="sa-panel">
+            <div class="sa-panel-header">
+                <h3><i class="fa-solid fa-inbox"></i> طلبات الانضمام <span id="demo-count-badge"></span></h3>
+                <button class="btn-sa-secondary" onclick="loadDemoRequests()"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div class="sa-panel-body" id="demo-requests-list"><div class="sa-empty"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات</p></div></div>
+        </div>
+        <div class="sa-panel">
+            <div class="sa-panel-header"><h3><i class="fa-solid fa-calendar-days"></i> إدارة الدورات (Epochs)</h3></div>
+            <div class="sa-panel-body">
+                <div class="epoch-form" style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--sa-border);">
+                    <div><label class="sa-input-label">اسم الدورة الجديدة</label><input type="text" class="sa-input" id="epoch-name-input" placeholder="مثال: دورة الحفظ الصيفية 1447" /></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div><label class="sa-input-label">تاريخ البدء</label><input type="date" class="sa-input" id="epoch-start-input" /></div>
+                        <div><label class="sa-input-label">تاريخ النهاية</label><input type="date" class="sa-input" id="epoch-end-input" /></div>
+                    </div>
+                    <button class="btn-sa-primary" id="btn-create-epoch" onclick="createEpoch()"><i class="fa-solid fa-plus"></i> إنشاء دورة جديدة</button>
+                </div>
+                <div id="epochs-list"><div class="sa-empty"><i class="fa-solid fa-calendar-xmark"></i><p>لا توجد دورات مسجلة بعد</p></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="sa-section-title">أسباب الانسحاب المسجلة</div>
+    <div class="sa-panel" style="margin-bottom:28px;">
+        <div class="sa-panel-header">
+            <h3><i class="fa-solid fa-tags"></i> بيانات ML — أسباب الانسحاب</h3>
+            <span id="reasons-count" style="font-size:0.75rem;color:var(--sa-muted);"></span>
+        </div>
+        <div class="sa-panel-body"><div id="withdrawal-reasons-list"><div class="sa-empty"><i class="fa-solid fa-database"></i><p>لا توجد أسباب مسجلة بعد</p></div></div></div>
+    </div>
+</main>
+<script type="module" src="/static/js/super_admin.js"></script>
+</body>
+</html>

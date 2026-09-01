@@ -3,7 +3,7 @@
  * الكائن المركزي للحالة مع التخزين المحلي والمزامنة التلقائية فور عودة الاتصال مع الحفاظ على التوقيت الدقيق
  */
 
-import { db, ref, update } from "./firebase-config.js";
+import { db, ref, update, increment } from "./firebase-config.js";
 import { showAtharNotification } from "./utils.js";
 
 // الحالة المركزية للتطبيق
@@ -351,6 +351,47 @@ export async function saveData(silent = false) {
             hideSyncIndicator("تم الحفظ محلياً (سيتم المزامنة لاحقاً) 📴");
         }
         return true;
+    }
+}
+
+/* ==========================================================================
+   📊 تتبع مقاييس النظام (System Analytics Tracking)
+   يستخدم Firebase increment() للتحديث الذري بدون قراءة-تعديل-كتابة
+   كل الدوال تفشل بصمت (silent fail) لضمان عدم تعطيل التدفق الرئيسي
+   ========================================================================== */
+
+/**
+ * تسجيل استدعاء Gemini API في مقاييس النظام
+ * @param {'cleaner'|'messaging'} type - نوع الاستخدام
+ * @param {boolean} isError - هل كان الاستدعاء فاشلاً؟
+ */
+export async function trackGeminiCall(type = 'cleaner', isError = false) {
+    if (!navigator.onLine) return; // لا نتتبع في وضع أوفلاين
+    try {
+        const updates = {};
+        updates[`system_analytics/gemini_calls/total`] = increment(1);
+        updates[`system_analytics/gemini_calls/${type}`] = increment(1);
+        if (isError) {
+            updates[`system_analytics/gemini_calls/errors`] = increment(1);
+        }
+        await update(ref(db), updates);
+    } catch (e) {
+        // silent fail — التتبع لا يجب أن يعطّل العملية الأساسية
+        console.warn('[Analytics] trackGeminiCall failed silently:', e?.code || e?.message);
+    }
+}
+
+/**
+ * تسجيل عملية أوفلاين في مقاييس النظام
+ * يُستدعى عند إضافة عملية لطابور الأوفلاين
+ */
+export async function trackOfflineOp() {
+    try {
+        await update(ref(db), {
+            'system_analytics/offline_ops_count': increment(1)
+        });
+    } catch (e) {
+        console.warn('[Analytics] trackOfflineOp failed silently:', e?.code || e?.message);
     }
 }
 

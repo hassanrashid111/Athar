@@ -64,9 +64,14 @@ export async function createGroupFlow() {
         return;
     }
 
-    const cleanName = name.replace(/\s+/g, '-').substring(0, 10);
-    const randomCode = Math.random().toString(36).substr(2, 4).toUpperCase();
-    const groupId = `${cleanName}-${number}-${randomCode}`;
+    // توليد كود مجموعة احترافي: 5 أرقام + رمز + حرف كبير
+    // مثال: 83741#K — بدون حروف عربية، قصير، سهل المشاركة
+    const SYMBOLS = ['#', '-', '@', '!', '.'];
+    const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // بدون I و O لتجنب التشابه مع 1 و 0
+    const digits = String(Math.floor(10000 + Math.random() * 90000)); // 5 أرقام دائماً (10000-99999)
+    const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    const letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    const groupId = `${digits}${symbol}${letter}`;
 
     try {
         showLoader("جاري إنشاء المجموعة وحفظ الصلاحيات...");

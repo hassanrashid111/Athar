@@ -3,11 +3,15 @@
  */
 
 import { db, ref, set, get, update, push } from "./firebase-config.js";
-import { state, currentUser, currentGroup, saveData } from "./state.js";
+import { state, currentUser, currentGroup, saveData, trackGeminiCall } from "./state.js";
 import {
     showAtharNotification, showAtharPrompt, showAtharChoice, showAtharConfirm,
     cleanPhone, getInitials, calculateScore, escapeHTML
 } from "./utils.js";
+
+// متغير داخلي لتخزين الأسباب الديناميكية من Firebase بعد تحميلها
+// (null-safe: يبدأ بقائمة فارغة حتى لو كانت قاعدة البيانات فارغة تماماً)
+let _cachedWithdrawalReasons = null;
 
 let performanceChart = null;
 let currentEditingStudentId = null;
@@ -45,40 +49,242 @@ export async function addStudentFlow(onSuccess) {
 }
 
 /**
- * حذف طالب (مؤقت أو نهائي)
+ * حساب نسبة حضور الطالب لحظة الانسحاب (Feature Engineering)
+ * @returns {number} النسبة بين 0 و 1
+ */
+export function calcAttendanceRatio(student) {
+    const totalLectures = (state.lectures || []).length;
+    if (totalLectures === 0) return 0;
+    let attended = 0;
+    if (student.progress) {
+        for (const lec of state.lectures) {
+            const p = student.progress[lec.id];
+            if (p && p !== 'replied') attended++;
+        }
+    }
+    return Math.round((attended / totalLectures) * 100) / 100; // e.g. 0.75
+}
+
+/* ==========================================================================
+   🔍 تحميل أسباب الانسحاب من Firebase (Blank-Slate Safe)
+   ========================================================================== */
+
+/**
+ * جلب أسباب الانسحاب العالمية من Firebase مع cache محلي
+ * إذا كان المسار غير موجود (قاعدة بيانات فارغة)، يُرجع كائن فارغ بدون خطأ
+ */
+async function loadWithdrawalReasons() {
+    if (_cachedWithdrawalReasons !== null) return _cachedWithdrawalReasons;
+    try {
+        const snap = await get(ref(db, 'global_settings/withdrawal_reasons'));
+        _cachedWithdrawalReasons = snap.exists() ? (snap.val() || {}) : {};
+    } catch (e) {
+        console.warn('[WithdrawalReasons] Could not load from Firebase:', e?.message);
+        _cachedWithdrawalReasons = {};
+    }
+    return _cachedWithdrawalReasons;
+}
+
+/**
+ * حفظ سبب مخصص جديد في Firebase وتحديث الكاش المحلي
+ */
+async function saveCustomReason(text) {
+    if (!text || !text.trim()) return null;
+    try {
+        const newReasonRef = push(ref(db, 'global_settings/withdrawal_reasons'));
+        const reasonObj = { text: text.trim(), createdAt: Date.now() };
+        await set(newReasonRef, reasonObj);
+        // تحديث الكاش فوراً
+        if (_cachedWithdrawalReasons === null) _cachedWithdrawalReasons = {};
+        _cachedWithdrawalReasons[newReasonRef.key] = reasonObj;
+        return text.trim();
+    } catch (e) {
+        console.error('[WithdrawalReasons] Save failed:', e);
+        return null;
+    }
+}
+
+/* ==========================================================================
+   🔴 نافذة أسباب الانسحاب الذكية (Withdrawal Reason Modal)
+   ========================================================================== */
+
+/**
+ * فتح نافذة أسباب الانسحاب وتحميل الأسباب من Firebase
+ * @returns {Promise<string|null>} السبب المختار أو null عند الإلغاء
+ */
+async function showWithdrawalReasonModal() {
+    const modal = document.getElementById('withdrawal-reason-modal');
+    if (!modal) return null;
+
+    // الأسباب الافتراضية الثابتة
+    const staticReasons = [
+        'امتحانات / ضغط دراسي',
+        'تجنيد عسكري',
+        'ظروف عمل وضغط مهني',
+        'فتور همة وعدم متابعة',
+        'ظروف شخصية / عائلية',
+        'تعارض مواعيد',
+        'انقطاع اتصال وعدم الرد'
+    ];
+
+    // تحميل الأسباب الديناميكية من Firebase (آمنة لقاعدة فارغة)
+    const dynamicReasons = await loadWithdrawalReasons();
+    const dynamicList = Object.values(dynamicReasons).map(r => r.text || r).filter(Boolean);
+
+    // بناء القائمة المنسدلة
+    const select = document.getElementById('withdrawal-reason-select');
+    const customGroup = document.getElementById('withdrawal-custom-group');
+    const customInput = document.getElementById('withdrawal-custom-input');
+
+    if (!select) return null;
+
+    select.innerHTML = '<option value="">— اختر سبب الانسحاب —</option>';
+
+    staticReasons.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        select.appendChild(opt);
+    });
+
+    if (dynamicList.length > 0) {
+        const sep = document.createElement('option');
+        sep.disabled = true;
+        sep.textContent = '─── أسباب مضافة من المشرفين ───';
+        select.appendChild(sep);
+        dynamicList.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            select.appendChild(opt);
+        });
+    }
+
+    const addOpt = document.createElement('option');
+    addOpt.value = '__custom__';
+    addOpt.textContent = '➕ إضافة سبب جديد...';
+    select.appendChild(addOpt);
+
+    if (customGroup) customGroup.style.display = 'none';
+    if (customInput) customInput.value = '';
+
+    // إظهار حقل السبب المخصص عند الاختيار
+    select.onchange = () => {
+        if (customGroup) {
+            customGroup.style.display = select.value === '__custom__' ? 'block' : 'none';
+        }
+    };
+
+    modal.style.display = 'flex';
+
+    return new Promise((resolve) => {
+        const confirmBtn = document.getElementById('withdrawal-confirm-btn');
+        const cancelBtn = document.getElementById('withdrawal-cancel-btn');
+        const closeBtn = document.getElementById('withdrawal-modal-close');
+
+        const cleanup = () => {
+            modal.style.display = 'none';
+            if (confirmBtn) confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+            if (cancelBtn) cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+            if (closeBtn) closeBtn.replaceWith(closeBtn.cloneNode(true));
+        };
+
+        const handleConfirm = async () => {
+            let reason = select.value;
+            if (!reason) {
+                showAtharNotification('يرجى اختيار سبب الانسحاب أولاً', 'warning');
+                return;
+            }
+            if (reason === '__custom__') {
+                const customText = customInput ? customInput.value.trim() : '';
+                if (!customText) {
+                    showAtharNotification('يرجى كتابة السبب المخصص', 'warning');
+                    return;
+                }
+                reason = await saveCustomReason(customText) || customText;
+            }
+            cleanup();
+            resolve(reason);
+        };
+
+        const handleCancel = () => { cleanup(); resolve(null); };
+
+        // إعادة ربط المستمعين لتجنب التكرار (cloneNode trick)
+        const newConfirmBtn = document.getElementById('withdrawal-confirm-btn');
+        const newCancelBtn = document.getElementById('withdrawal-cancel-btn');
+        const newCloseBtn = document.getElementById('withdrawal-modal-close');
+        if (newConfirmBtn) newConfirmBtn.addEventListener('click', handleConfirm);
+        if (newCancelBtn) newCancelBtn.addEventListener('click', handleCancel);
+        if (newCloseBtn) newCloseBtn.addEventListener('click', handleCancel);
+    });
+}
+
+/**
+ * حذف طالب — نظام ذكي ثنائي الخطوات (Smart Soft Delete + ML Labeling)
+ * الخطوة 1: نوع الحذف (انسحاب حقيقي أم خطأ بيانات)
+ * الخطوة 2: سبب الانسحاب (للتدريب على نماذج ML)
  */
 export async function deleteStudentFlow(id, onSuccess) {
-    const choice = await showAtharChoice(
-        "حذف طالب",
-        "حدد طريقة الحذف لهذا الطالب:",
+    const studentIndex = state.students.findIndex(s => s.id === id);
+    if (studentIndex === -1) return;
+    const student = state.students[studentIndex];
+
+    // الخطوة 1: اختيار نوع الحذف
+    const deleteType = await showAtharChoice(
+        'حذف طالب',
+        `اختر سبب حذف الطالب (${escapeHTML(student.name || 'بدون اسم')}):`,
         [
-            { id: 'soft', text: "🗑️ حذف مؤقت (إخفاء فقط)" },
-            { id: 'hard', text: "❌ حذف نهائي (مسح البيانات للأبد)" }
+            { id: 'withdrawal', text: '🚶 خروج من المجموعة / تسرب' },
+            { id: 'data_error', text: '⚠️ خطأ في البيانات / نقل' }
         ]
     );
 
-    if (!choice) return;
+    if (!deleteType) return;
 
-    const studentIndex = state.students.findIndex(s => s.id === id);
-    if (studentIndex !== -1) {
-        if (choice === 'soft') {
-            state.students[studentIndex].deleted = true;
-            showAtharNotification("تم إخفاء الطالب بنجاح");
-        } else if (choice === 'hard') {
-            state.students[studentIndex] = {
-                id: id,
-                isHardDeleted: true,
-                deleted: true,
-                name: "محذوف",
-                phone: "",
-                progress: {}
-            };
-            showAtharNotification("تم حذف بيانات الطالب نهائياً");
-        }
+    // الخيار 2: خطأ في البيانات — حذف عادي بدون تسجيل ML
+    if (deleteType === 'data_error') {
+        const confirm = await showAtharConfirm(
+            'تأكيد الحذف',
+            `سيتم حذف بيانات (${escapeHTML(student.name || 'هذا الطالب')}) بسبب خطأ في البيانات. لن يتم تسجيله في بيانات التدريب. هل أنت متأكد؟`
+        );
+        if (!confirm) return;
 
+        state.students[studentIndex] = {
+            id: id,
+            isHardDeleted: true,
+            deleted: true,
+            status: 'data_error',
+            name: 'محذوف',
+            phone: '',
+            progress: {}
+        };
         await saveData();
+        showAtharNotification('تم حذف بيانات الطالب (خطأ بيانات)');
         if (onSuccess) onSuccess();
+        return;
     }
+
+    // الخيار 1: انسحاب حقيقي — الخطوة 2: اختيار السبب
+    const reason = await showWithdrawalReasonModal();
+    if (!reason) return;
+
+    // حساب الخصائص للتدريب (Feature Engineering)
+    const attendanceRatio = calcAttendanceRatio(student);
+    const withdrawalTimestamp = Date.now();
+
+    // تحديث عقدة الطالب بالتصنيف الكامل (Soft Delete with ML Features)
+    state.students[studentIndex] = {
+        ...student,
+        deleted: true,
+        status: 'withdrawn',
+        withdrawal_reason: reason,
+        withdrawal_timestamp: withdrawalTimestamp,
+        attendance_ratio: attendanceRatio
+    };
+
+    await saveData();
+    showAtharNotification(`تم تسجيل انسحاب الطالب بسبب: ${reason} ✓`);
+    if (onSuccess) onSuccess();
 }
 
 /**
@@ -816,6 +1022,7 @@ ${rawText}`;
                     const list = JSON.parse(jsonStr);
                     if (Array.isArray(list) && list.length > 0) {
                         parsedList = list;
+                        trackGeminiCall('cleaner'); // تتبع نجاح المنظّف الذكي
                         break;
                     }
                 }
@@ -831,6 +1038,7 @@ ${rawText}`;
     }
 
     if (!parsedList || parsedList.length === 0) {
+        trackGeminiCall('cleaner', true); // تتبع فشل جميع النماذج
         showAtharNotification("تعذر استخراج بيانات واضحة من النص المدخل. تأكد من وجود أرقام وأسماء.", "error");
         return;
     }
