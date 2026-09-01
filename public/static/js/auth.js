@@ -150,6 +150,12 @@ export async function handleLogout() {
  * التوجيه بعد تسجيل الدخول حسب دور المستخدم ومجموعته
  */
 export async function redirectAfterAuth(uid) {
+    const userEmail = auth.currentUser?.email || '';
+    if (userEmail === 'hrhalsharif@gmail.com') {
+        window.location.replace('/super-admin');
+        return;
+    }
+
     const userRef = ref(db, `users/${uid}`);
     const snapshot = await get(userRef);
     const userData = snapshot.val();

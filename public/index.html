@@ -282,12 +282,9 @@
 
 </head>
 <body>
-    
-    
-<div class="login-container">
 
 <!-- ===== Phase 4: شاشة انتظار النظام (System Paused / Rest Screen) ===== -->
-<div id="system-paused-screen">
+<div id="system-paused-screen" style="display:none;">
     <div class="paused-glass-card">
         <div class="paused-logo">
             <img src="/static/assets/logo_transparent.png" alt="أثر" />
@@ -306,7 +303,7 @@
 
         <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.8;margin-bottom:1.75rem;">
             الدورة الحالية في استراحة مؤقتة. سيتم إطلاق الدورة القادمة قريباً.
-            إذا كنت مشرفاً جديداً وتريد الانضمام، يمكنك تقديم طلبك الآن.
+            إذا كنت مشرفاً وتريد الانضمام، يمكنك تقديم طلبك الآن.
         </p>
 
         <button class="btn-demo-request" onclick="openDemoModal()" id="btn-request-demo">
@@ -352,6 +349,7 @@
     </div>
 </div>
 
+<div class="login-container">
     <!-- Login Card -->
     <div id="login-card" class="login-card">
         <div class="login-logo-wrapper">

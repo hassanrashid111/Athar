@@ -34,11 +34,321 @@
 
     
 <link rel="stylesheet" href="/static/css/login.css" />
+<style>
+/* ===== Phase 4: System Paused / Waiting Screen ===== */
+#system-paused-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 30px 20px;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: linear-gradient(135deg, #0a2618 0%, #1A5D3A 45%, #0f3d26 100%);
+    overflow: hidden;
+    text-align: center;
+}
+
+/* شبكة نجوم متحركة */
+#system-paused-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 20% 30%, rgba(212,175,55,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 20%, rgba(212,175,55,0.3) 0%, transparent 100%),
+        radial-gradient(2px 2px at 40% 80%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 60%, rgba(212,175,55,0.2) 0%, transparent 100%);
+    background-size: 300px 300px, 200px 200px, 250px 250px, 180px 180px, 220px 220px;
+    animation: twinkle 8s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes twinkle {
+    0%   { opacity: 0.6; transform: scale(1);    }
+    100% { opacity: 1;   transform: scale(1.02); }
+}
+
+.paused-glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 28px;
+    padding: 3rem 2.5rem;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: cardFadeIn 0.8s ease forwards;
+}
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
+.paused-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.12);
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.3); }
+    50%       { box-shadow: 0 0 0 16px rgba(212,175,55,0); }
+}
+
+.paused-logo img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    filter: brightness(1.1);
+}
+
+.paused-title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #D4AF37;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.paused-tagline {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+}
+
+.paused-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    color: #D4AF37;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 1.8rem;
+    animation: badge-blink 2.5s ease-in-out infinite;
+}
+
+@keyframes badge-blink {
+    0%, 100% { opacity: 1;   }
+    50%       { opacity: 0.6; }
+}
+
+.btn-demo-request {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #D4AF37 0%, #f0d060 50%, #D4AF37 100%);
+    background-size: 200% 200%;
+    animation: shimmer 3s ease infinite;
+    color: #0a2618;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 900;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 6px 20px rgba(212,175,55,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-demo-request:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(212,175,55,0.55);
+}
+
+@keyframes shimmer {
+    0%   { background-position: 0% 50%;   }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%;   }
+}
+
+.paused-footer {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.35);
+    margin-top: 0.5rem;
+}
+
+/* Demo Request Modal overlay inside paused screen */
+#demo-request-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.demo-modal-card {
+    background: var(--card-white, #fff);
+    border-radius: 22px;
+    padding: 2rem 1.75rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    text-align: right;
+    animation: cardFadeIn 0.4s ease;
+}
+
+.demo-modal-card h3 {
+    font-size: 1.3rem;
+    color: #1A5D3A;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.demo-modal-card p {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+}
+
+.demo-field {
+    margin-bottom: 12px;
+}
+
+.demo-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1A5D3A;
+    margin-bottom: 5px;
+}
+
+.demo-field input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.demo-field input:focus {
+    outline: none;
+    border-color: #D4AF37;
+}
+
+.btn-submit-demo {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #1A5D3A 0%, #2d8a5a 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s;
+}
+
+.btn-submit-demo:hover { opacity: 0.9; }
+.btn-submit-demo:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>
 
 </head>
 <body>
-    
-    
+
+<!-- ===== Phase 4: شاشة انتظار النظام (System Paused / Rest Screen) ===== -->
+<div id="system-paused-screen" style="display:none;">
+    <div class="paused-glass-card">
+        <div class="paused-logo">
+            <img src="/static/assets/logo_transparent.png" alt="أثر" />
+        </div>
+
+        <div class="paused-title">أثـر</div>
+        <p class="paused-tagline">
+            منصة أثر لإدارة الدورات العلمية<br />
+            <span style="color:rgba(255,255,255,0.5);font-size:0.88rem;">إدارة الحضور · الرسائل الذكية · الشهادات</span>
+        </p>
+
+        <div class="paused-badge">
+            <i class="fa-solid fa-circle" style="font-size:0.5rem;animation:badge-blink 1.5s ease-in-out infinite;"></i>
+            في مرحلة الراحة بين الدورات
+        </div>
+
+        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.8;margin-bottom:1.75rem;">
+            الدورة الحالية في استراحة مؤقتة. سيتم إطلاق الدورة القادمة قريباً.
+            إذا كنت مشرفاً وتريد الانضمام، يمكنك تقديم طلبك الآن.
+        </p>
+
+        <button class="btn-demo-request" onclick="openDemoModal()" id="btn-request-demo">
+            <i class="fa-solid fa-paper-plane"></i>
+            طلب الانضمام للدورة القادمة
+        </button>
+
+        <p class="paused-footer">
+            <i class="fa-solid fa-lock" style="font-size:0.7rem;"></i>
+            للمشرفين المسجلين: <a href="#" onclick="showLoginFromPaused()" style="color:#D4AF37;text-decoration:none;font-weight:700;">تسجيل الدخول</a>
+        </p>
+    </div>
+</div>
+
+<!-- ===== Demo Request Modal ===== -->
+<div id="demo-request-modal" style="display:none;">
+    <div class="demo-modal-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3>
+                <i class="fa-solid fa-envelope-open-text" style="color:#1A5D3A;"></i>
+                طلب الانضمام
+            </h3>
+            <button onclick="closeDemoModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999;line-height:1;">×</button>
+        </div>
+        <p>أدخل بياناتك وسنتواصل معك عند انطلاق الدورة القادمة بإذن الله.</p>
+
+        <div class="demo-field">
+            <label><i class="fa-solid fa-user"></i> الاسم الكامل</label>
+            <input type="text" id="demo-name" placeholder="مثال: أحمد محمد علي" />
+        </div>
+        <div class="demo-field">
+            <label><i class="fa-brands fa-whatsapp"></i> رقم واتساب</label>
+            <input type="tel" id="demo-phone" placeholder="مثال: 05xxxxxxxx" dir="ltr" />
+        </div>
+        <div class="demo-field">
+            <label><i class="fa-solid fa-users"></i> اسم الدورة / المجموعة المستهدفة</label>
+            <input type="text" id="demo-group" placeholder="مثال: دورة الحفظ الصيفية" />
+        </div>
+
+        <button class="btn-submit-demo" id="btn-submit-demo" onclick="submitDemoRequest()">
+            <i class="fa-solid fa-paper-plane"></i> إرسال الطلب
+        </button>
+    </div>
+</div>
+
 <div class="login-container">
     <!-- Login Card -->
     <div id="login-card" class="login-card">
@@ -813,7 +1123,8 @@
     
 <script type="module">
     import { handleLogin, handleRegister, handleGoogleLogin } from "/static/js/auth.js";
-    import { checkAlreadyLoggedIn } from "/static/js/router.js";
+    import { checkAlreadyLoggedIn, checkSystemStatus } from "/static/js/router.js";
+    import { db, ref, push, set } from "/static/js/firebase-config.js";
 
     window.app = {
         login: handleLogin,
@@ -827,7 +1138,88 @@
         document.getElementById('register-card').style.display = tab === 'register' ? 'block' : 'none';
     };
 
-    checkAlreadyLoggedIn();
+    // ── Phase 4: System Status Gate ──────────────────────────────────────────
+    // يُشغَّل قبل أي شيء آخر — يحدد ماذا يُعرَض للزائر
+    // Blank-Slate Safe: null → 'paused' → شاشة الانتظار
+    async function initLoginPage() {
+        try {
+            if (navigator.onLine) {
+                const status = await checkSystemStatus();
+                if (status === 'paused') {
+                    // إخفاء نماذج الدخول وعرض شاشة الانتظار
+                    document.querySelector('.login-container').style.display = 'none';
+                    const pausedScreen = document.getElementById('system-paused-screen');
+                    if (pausedScreen) pausedScreen.style.display = 'flex';
+                    return; // لا نكمل — لا نستدعي checkAlreadyLoggedIn
+                }
+            }
+        } catch (e) {
+            console.warn('[LoginPage] Status check failed, showing login form:', e);
+        }
+        // النظام نشط → تدفق الدخول العادي
+        checkAlreadyLoggedIn();
+    }
+
+    initLoginPage();
+
+    // ── Demo Request Modal Controls ──────────────────────────────────────────
+    window.openDemoModal = function() {
+        const modal = document.getElementById('demo-request-modal');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.closeDemoModal = function() {
+        const modal = document.getElementById('demo-request-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.showLoginFromPaused = function() {
+        // إخفاء شاشة الانتظار وعرض نموذج الدخول للمشرفين المسجلين
+        const pausedScreen = document.getElementById('system-paused-screen');
+        const loginContainer = document.querySelector('.login-container');
+        if (pausedScreen) pausedScreen.style.display = 'none';
+        if (loginContainer) loginContainer.style.display = 'flex';
+        checkAlreadyLoggedIn();
+    };
+
+    window.submitDemoRequest = async function() {
+        const name  = document.getElementById('demo-name')?.value?.trim();
+        const phone = document.getElementById('demo-phone')?.value?.trim();
+        const group = document.getElementById('demo-group')?.value?.trim();
+
+        if (!name || !phone) {
+            alert('يرجى إدخال الاسم ورقم الواتساب على الأقل.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-submit-demo');
+        if (btn) { btn.disabled = true; btn.textContent = 'جاري الإرسال...'; }
+
+        try {
+            const newRef = push(ref(db, 'demo_requests'));
+            await set(newRef, {
+                name,
+                phone,
+                group: group || '',
+                requestedAt: Date.now(),
+                status: 'pending'
+            });
+
+            window.closeDemoModal();
+
+            // رسالة نجاح مؤقتة مدمجة في شاشة الانتظار
+            const successEl = document.createElement('div');
+            successEl.style.cssText = 'margin-top:12px;padding:12px 16px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:10px;color:#2ecc71;font-weight:700;font-size:0.9rem;';
+            successEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إرسال طلبك بنجاح! سنتواصل معك قريباً.';
+            document.querySelector('.paused-glass-card')?.appendChild(successEl);
+            setTimeout(() => successEl.remove(), 6000);
+        } catch (e) {
+            alert('حدث خطأ أثناء الإرسال. تأكد من اتصالك بالإنترنت.');
+            console.error('[DemoRequest]', e);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الطلب'; }
+        }
+    };
 </script>
 
 </body>
