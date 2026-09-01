@@ -155,7 +155,7 @@ export function initPageAuth(requiredRole = null) {
             const activeUser = user || cachedUser;
 
             if (!activeUser) {
-                window.location.replace('/');
+                window.location.replace('/?login=true');
                 return;
             }
 
@@ -303,8 +303,8 @@ export function initSuperAdminRoute() {
     return new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // غير مسجل → صفحة تسجيل الدخول
-                window.location.replace('/');
+                // غير مسجل → صفحة تسجيل الدخول مع بارامتر دخول
+                window.location.replace('/?login=super_admin');
                 reject(new Error('Not authenticated'));
                 return;
             }

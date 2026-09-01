@@ -301,20 +301,22 @@
             في مرحلة الراحة بين الدورات
         </div>
 
-        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.8;margin-bottom:1.75rem;">
+        <p style="color:rgba(255,255,255,0.7);font-size:0.92rem;line-height:1.8;margin-bottom:1.75rem;">
             الدورة الحالية في استراحة مؤقتة. سيتم إطلاق الدورة القادمة قريباً.
-            إذا كنت مشرفاً وتريد الانضمام، يمكنك تقديم طلبك الآن.
+            إذا كنت مشرفاً وتريد الانضمام أو الدخول للوحة التحكم، يرجى الاختيار:
         </p>
 
-        <button class="btn-demo-request" onclick="openDemoModal()" id="btn-request-demo">
-            <i class="fa-solid fa-paper-plane"></i>
-            طلب الانضمام للدورة القادمة
-        </button>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem;">
+            <button class="btn-demo-request" onclick="openDemoModal()" id="btn-request-demo" style="margin-bottom:0;">
+                <i class="fa-solid fa-paper-plane"></i>
+                طلب الانضمام للدورة القادمة
+            </button>
 
-        <p class="paused-footer">
-            <i class="fa-solid fa-lock" style="font-size:0.7rem;"></i>
-            للمشرفين المسجلين: <a href="#" onclick="showLoginFromPaused()" style="color:#D4AF37;text-decoration:none;font-weight:700;">تسجيل الدخول</a>
-        </p>
+            <button onclick="showLoginFromPaused()" class="btn-supervisor-login" style="width:100%;padding:13px 20px;background:rgba(255,255,255,0.08);border:1.5px solid rgba(212,175,55,0.5);border-radius:14px;color:#D4AF37;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                دخول المشرفين / الإدارة العليا
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1144,6 +1146,19 @@
         onAuthStateChanged(auth, async (user) => {
             if (user && (user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
                 window.location.replace('/super-admin');
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const isLoginRequested = urlParams.has('login') || window.location.pathname.includes('login');
+
+            if (isLoginRequested) {
+                // المستخدم طلب تسجيل الدخول مباشرة → عرض نموذج الدخول فوراً
+                const loginContainer = document.querySelector('.login-container');
+                if (loginContainer) loginContainer.style.display = 'flex';
+                const pausedScreen = document.getElementById('system-paused-screen');
+                if (pausedScreen) pausedScreen.style.display = 'none';
+                checkAlreadyLoggedIn();
                 return;
             }
 
