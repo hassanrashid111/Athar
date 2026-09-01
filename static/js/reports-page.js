@@ -3,7 +3,11 @@
  */
 
 import { db, ref, onValue, get, set, update, remove, child } from "./firebase-config.js";
-import { state, currentUser, currentGroup, setCurrentGroup, saveData, showLoader, removeLoader } from "./state.js";
+import {
+    state, currentUser, currentGroup, setCurrentGroup, saveData,
+    showLoader, removeLoader, saveStateToLocalStorage, loadStateFromLocalStorage,
+    flushOfflineSyncQueue
+} from "./state.js";
 import { showAtharNotification, formatHijriDate, showAtharPrompt, showAtharConfirm, showAtharChoice } from "./utils.js";
 import { hadithList } from "./hadith.js";
 import { initPageAuth } from "./router.js";
@@ -32,7 +36,7 @@ import {
 } from "./pwa.js";
 
 /**
- * تهيئة صفحة التقارير
+ * تهيئة صفحة التقارير مع دعم فوري للعمل بدون إنترنت
  */
 export async function initReportsPage() {
     loadTheme();
@@ -40,11 +44,21 @@ export async function initReportsPage() {
     renderHadith();
     setupDropdownListeners();
 
-    showLoader("جاري الاتصال وتحميل بيانات المجموعة...");
     const { user, userData, activeGroupId } = await initPageAuth('group_supervisor');
 
     if (activeGroupId) {
+        const hasLocalData = loadStateFromLocalStorage(activeGroupId);
+        if (hasLocalData && Object.keys(state.allSupervisorsData || {}).length > 0) {
+            renderReports(state.allSupervisorsData);
+            renderGroupStats();
+            removeLoader();
+        } else {
+            showLoader("جاري الاتصال وتحميل بيانات المجموعة...");
+        }
+
         listenToGroupReports(activeGroupId, user.uid);
+    } else {
+        removeLoader();
     }
 
     setupMessageButtonListener();
@@ -160,6 +174,9 @@ function listenToGroupReports(groupId, uid) {
             renderReports(state.allSupervisorsData);
             renderGroupStats();
             removeLoader();
+
+            // حفظ نسخة محلية احتياطية للمشرف العام
+            saveStateToLocalStorage(groupId);
         }
     });
 }
@@ -549,6 +566,7 @@ window.app = {
     openAIInstructionsModal: () => openAIInstructionsModal(),
     saveAIInstructions: () => saveAIInstructions(),
     requestNotificationPermission: () => requestNotificationPermission(),
+    flushOfflineSyncQueue: () => flushOfflineSyncQueue(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
     toggleTheme: () => toggleTheme(),
     toggleMenu: () => toggleMenuFlow()

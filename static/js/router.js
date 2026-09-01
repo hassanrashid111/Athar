@@ -1,9 +1,13 @@
 /**
- * منصة أثر التعليمية - التوجيه وحماية الصفحات (Route Guards & Back Button Interceptor)
+ * منصة أثر التعليمية - التوجيه وحماية الصفحات والعمل بدون إنترنت (Route Guards & Offline Auth)
  */
 
 import { auth, db, ref, get, onAuthStateChanged } from "./firebase-config.js";
-import { state, setCurrentUser, setCurrentGroup } from "./state.js";
+import {
+    state, setCurrentUser, setCurrentGroup, getCachedUser,
+    getCachedUserData, setCachedUserData, loadStateFromLocalStorage,
+    initOfflineSyncEngine
+} from "./state.js";
 import { showAtharNotification } from "./utils.js";
 
 let lastBackPressTime = 0;
@@ -16,45 +20,42 @@ let isBackGuardActive = false;
  * 3. لا يتم تسجيل خروج المستخدم نهائياً إلا إذا ضغط على زر تسجيل الخروج عمداً.
  */
 export function setupDoubleBackToExit() {
+    // تفعيل محرك مزامنة الأوفلاين
+    initOfflineSyncEngine();
+
     if (isBackGuardActive) return;
     isBackGuardActive = true;
 
     try {
-        history.replaceState({ atharPage: 'app_root' }, '', window.location.href);
-        history.pushState({ atharPage: 'app_root' }, '', window.location.href);
+        if (history.state?.atharPage !== 'app_root') {
+            history.replaceState({ atharPage: 'app_root' }, '', window.location.href);
+            history.pushState({ atharPage: 'app_root' }, '', window.location.href);
+        }
     } catch (e) {
         console.warn("History pushState warning:", e);
     }
 
-    window.addEventListener('popstate', (event) => {
-        // 1. فحص ما إذا كانت هناك أي نافذة منبثقة مفتوحة لإغلاقها أولاً
-        const openModals = document.querySelectorAll('.modal-overlay');
-        let modalClosed = false;
-        openModals.forEach(modal => {
-            if (modal && modal.style.display !== 'none' && modal.style.display !== '') {
-                modal.style.display = 'none';
-                modalClosed = true;
-            }
-        });
-
-        // فحص القائمة الجانبية (Mobile Sidebar Menu)
-        const mainMenu = document.getElementById('main-menu');
-        const menuOverlay = document.getElementById('menu-overlay');
-        if (mainMenu && mainMenu.classList.contains('active')) {
-            mainMenu.classList.remove('active');
-            if (menuOverlay) menuOverlay.classList.remove('active');
-            modalClosed = true;
-        }
-
-        if (modalClosed) {
+    window.addEventListener('popstate', (e) => {
+        // 1. إذا كانت هناك نافذة منبثقة مفتوحة، نقوم بإغلاقها أولاً ومنع الخروج
+        const openModal = document.querySelector('.modal-overlay[style*="display: flex"], .modal-overlay[style*="display: block"]');
+        if (openModal) {
+            openModal.style.display = 'none';
             history.pushState({ atharPage: 'app_root' }, '', window.location.href);
             return;
         }
 
-        // 2. فحص النقر المزدوج للخروج
+        // 2. إذا كانت القائمة الجانبية أو المنظف مفتوحاً
+        const openMenu = document.querySelector('#main-menu.active, #menu-overlay.active');
+        if (openMenu) {
+            document.querySelectorAll('#main-menu, #menu-overlay').forEach(el => el.classList.remove('active'));
+            history.pushState({ atharPage: 'app_root' }, '', window.location.href);
+            return;
+        }
+
+        // 3. التحقق من الضغط المزدوج على زر الرجوع (خلال ثانيتين)
         const now = Date.now();
         if (now - lastBackPressTime < 2000) {
-            // نقر مرتين متتاليتين -> نسمح بالخروج
+            // ضغط مرتين سريعاً -> السماح بالخروج
             return;
         }
 
@@ -66,64 +67,84 @@ export function setupDoubleBackToExit() {
 }
 
 /**
- * حماية الصفحات: تتأكد من أن المستخدم مسجل ولديه دور ومجموعة
+ * حماية الصفحات: تتأكد من أن المستخدم مسجل ولديه دور ومجموعة مع دعم كامل للعمل بدون إنترنت (Offline-First)
  * تُستخدم في dashboard.html و reports.html و setup.html
  */
 export function initPageAuth(requiredRole = null) {
-    // تفعيل حماية زر الرجوع المزدوج فوراً
+    // تفعيل حماية زر الرجوع المزدوج ومحرك المزامنة فوراً
     setupDoubleBackToExit();
 
     return new Promise((resolve) => {
+        const cachedUser = getCachedUser();
+        const cachedUserData = getCachedUserData();
+
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                // ليس مسجل دخول -> توجيه لصفحة الدخول
+            const activeUser = user || cachedUser;
+
+            if (!activeUser) {
+                // ليس مسجل دخول وليس هناك كاش -> توجيه لصفحة الدخول
                 window.location.replace('/');
                 return;
             }
 
-            setCurrentUser(user);
+            setCurrentUser(activeUser);
 
-            // جلب بيانات المستخدم
+            // 1. محاولة جلب بيانات المستخدم من Firebase أو الكاش
+            let userData = null;
             try {
-                const userSnapshot = await get(ref(db, `users/${user.uid}`));
-                if (!userSnapshot.exists()) {
-                    window.location.replace('/');
-                    return;
-                }
-
-                const userData = userSnapshot.val();
-                state.userInfo = userData;
-
-                const activeGroupId = userData.activeGroupId || userData.groupId;
-
-                // إذا كانت الصفحة الحالية ليست setup.html والمستخدم ليس لديه مجموعة
-                const currentPath = window.location.pathname;
-                if (!activeGroupId && !currentPath.includes('setup')) {
-                    window.location.replace('/setup');
-                    return;
-                }
-
-                // التحقق من الصلاحيات
-                if (requiredRole && userData.role !== requiredRole) {
-                    if (userData.role === 'group_supervisor') {
-                        window.location.replace('/reports');
-                    } else {
-                        window.location.replace('/dashboard');
+                if (navigator.onLine && user) {
+                    const userSnapshot = await get(ref(db, `users/${user.uid}`));
+                    if (userSnapshot.exists()) {
+                        userData = userSnapshot.val();
+                        setCachedUserData(userData);
                     }
-                    return;
                 }
-
-                // تحديث اسم المستخدم في الهيدر إن وجد
-                const displayNameElem = document.getElementById('user-display-name');
-                if (displayNameElem && userData.name) {
-                    displayNameElem.innerText = userData.name;
-                }
-
-                resolve({ user, userData, activeGroupId });
             } catch (err) {
-                console.error("Auth Guard Error:", err);
-                window.location.replace('/');
+                console.warn("Could not fetch user data online, falling back to cache:", err);
             }
+
+            // استخدام البيانات المخزنة محلياً عند عدم الاتصال أو الفشل
+            if (!userData) {
+                userData = cachedUserData;
+            }
+
+            if (!userData) {
+                window.location.replace('/');
+                return;
+            }
+
+            state.userInfo = userData;
+            const activeGroupId = userData.activeGroupId || userData.groupId;
+
+            // إذا كانت الصفحة الحالية ليست setup.html والمستخدم ليس لديه مجموعة
+            const currentPath = window.location.pathname;
+            if (!activeGroupId && !currentPath.includes('setup')) {
+                window.location.replace('/setup');
+                return;
+            }
+
+            // تحميل بيانات المجموعة محلياً لتسريع العرض
+            if (activeGroupId) {
+                loadStateFromLocalStorage(activeGroupId);
+            }
+
+            // التحقق من الصلاحيات
+            if (requiredRole && userData.role !== requiredRole) {
+                if (userData.role === 'group_supervisor') {
+                    window.location.replace('/reports');
+                } else {
+                    window.location.replace('/dashboard');
+                }
+                return;
+            }
+
+            // تحديث اسم المستخدم في الهيدر إن وجد
+            const displayNameElem = document.getElementById('user-display-name');
+            if (displayNameElem && userData.name) {
+                displayNameElem.innerText = userData.name;
+            }
+
+            resolve({ user: activeUser, userData, activeGroupId });
         });
     });
 }
@@ -133,22 +154,35 @@ export function initPageAuth(requiredRole = null) {
  */
 export function checkAlreadyLoggedIn() {
     onAuthStateChanged(auth, async (user) => {
-        if (user) {
+        const cachedUser = getCachedUser();
+        const cachedUserData = getCachedUserData();
+        const activeUser = user || cachedUser;
+
+        if (activeUser) {
+            let userData = null;
             try {
-                const userSnapshot = await get(ref(db, `users/${user.uid}`));
-                if (userSnapshot.exists()) {
-                    const userData = userSnapshot.val();
-                    const activeGroupId = userData.activeGroupId || userData.groupId;
-                    if (!activeGroupId) {
-                        window.location.replace('/setup');
-                    } else if (userData.role === 'group_supervisor') {
-                        window.location.replace('/reports');
-                    } else {
-                        window.location.replace('/dashboard');
+                if (navigator.onLine && user) {
+                    const userSnapshot = await get(ref(db, `users/${user.uid}`));
+                    if (userSnapshot.exists()) {
+                        userData = userSnapshot.val();
+                        setCachedUserData(userData);
                     }
                 }
             } catch (e) {
-                console.error("Error checking login state:", e);
+                console.warn("Offline fallback on login check:", e);
+            }
+
+            if (!userData) userData = cachedUserData;
+
+            if (userData) {
+                const activeGroupId = userData.activeGroupId || userData.groupId;
+                if (!activeGroupId) {
+                    window.location.replace('/setup');
+                } else if (userData.role === 'group_supervisor') {
+                    window.location.replace('/reports');
+                } else {
+                    window.location.replace('/dashboard');
+                }
             }
         }
     });

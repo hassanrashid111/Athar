@@ -1,10 +1,15 @@
-const CACHE_NAME = 'athar-pwa-v1.0.2';
+const CACHE_NAME = 'athar-pwa-v1.0.3';
 const STATIC_ASSETS = [
     '/',
+    '/index.html',
     '/login.html',
     '/dashboard.html',
     '/reports.html',
     '/setup.html',
+    '/dashboard',
+    '/reports',
+    '/setup',
+    '/login',
     '/static/css/base.css',
     '/static/css/components.css',
     '/static/css/dashboard.css',
@@ -18,6 +23,7 @@ const STATIC_ASSETS = [
     '/static/js/hadith.js',
     '/static/js/lectures.js',
     '/static/js/messaging.js',
+    '/static/js/pwa.js',
     '/static/js/reports-page.js',
     '/static/js/reports.js',
     '/static/js/router.js',
@@ -26,6 +32,7 @@ const STATIC_ASSETS = [
     '/static/js/students.js',
     '/static/js/utils.js',
     '/static/manifest.json',
+    '/static/assets/logo_transparent.png',
     '/static/assets/icon-192.png',
     '/static/assets/icon-512.png',
     '/static/assets/icon-maskable-192.png',
@@ -61,34 +68,46 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // استثناء طلبات Firebase و APIs الخارجية (Gemini, Google Fonts CDN)
+    // استثناء طلبات قواعد بيانات Firebase التفاعلية والـ Gemini API
     if (
         request.method !== 'GET' ||
         url.hostname.includes('firebaseio.com') ||
-        url.hostname.includes('googleapis.com') ||
-        url.hostname.includes('generativelanguage') ||
+        url.hostname.includes('generativelanguage.googleapis.com') ||
         url.hostname.includes('identitytoolkit')
     ) {
         return;
     }
 
-    // لطلبات صفحات التنقل (HTML) - Network first ثم Cache
-    if (request.mode === 'navigate') {
+    // لطلبات صفحات التنقل (HTML) - Cache First with Network Fallback
+    if (request.mode === 'navigate' || request.destination === 'document') {
         event.respondWith(
-            fetch(request).catch(() => {
-                return caches.match(request).then((res) => {
-                    return res || caches.match('/dashboard.html') || caches.match('/login.html');
+            caches.match(request).then((cachedResponse) => {
+                if (cachedResponse) {
+                    // جلب النسخة الأحدث في الخلفية إن أمكن
+                    fetch(request).then((networkResponse) => {
+                        if (networkResponse && networkResponse.status === 200) {
+                            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
+                        }
+                    }).catch(() => {});
+                    return cachedResponse;
+                }
+                return fetch(request).catch(() => {
+                    const pathname = url.pathname;
+                    if (pathname.includes('reports')) return caches.match('/reports.html');
+                    if (pathname.includes('setup')) return caches.match('/setup.html');
+                    if (pathname.includes('dashboard')) return caches.match('/dashboard.html');
+                    return caches.match('/login.html') || caches.match('/');
                 });
             })
         );
         return;
     }
 
-    // لملفات الـ CSS و JS و الصور الثابتة - Stale-While-Revalidate
+    // لملفات الـ CSS و JS والمكتبات الثابتة والصور - Stale-While-Revalidate
     event.respondWith(
         caches.match(request).then((cachedResponse) => {
             const fetchPromise = fetch(request).then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                if (networkResponse && networkResponse.status === 200) {
                     const responseClone = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
                 }

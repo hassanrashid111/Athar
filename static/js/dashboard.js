@@ -3,7 +3,11 @@
  */
 
 import { db, ref, onValue, get, update } from "./firebase-config.js";
-import { state, currentUser, currentGroup, setCurrentGroup, saveData, showLoader, removeLoader } from "./state.js";
+import {
+    state, currentUser, currentGroup, setCurrentGroup, saveData,
+    showLoader, removeLoader, saveStateToLocalStorage, loadStateFromLocalStorage,
+    flushOfflineSyncQueue
+} from "./state.js";
 import {
     showAtharNotification, formatHijriDate, calculateScore,
     getStudentTotalScore, getInitials, escapeHTML
@@ -50,7 +54,7 @@ let sortDirection = 1;
 let contextTarget = { sId: null, lId: null };
 
 /**
- * تهيئة لوحة التحكم
+ * تهيئة لوحة التحكم مع دعم فوري للعمل بدون إنترنت
  */
 export async function initDashboard() {
     loadTheme();
@@ -58,11 +62,22 @@ export async function initDashboard() {
     renderHadith();
     setupDropdownListeners();
 
-    showLoader("جاري الاتصال والتحقق من الصلاحيات...");
+    // التحقق من الصلاحيات واسترجاع المستخدم والمجموعة
     const { user, userData, activeGroupId } = await initPageAuth();
 
+    // إذا وُجدت بيانات مخزنة محلياً، نعرضها فوراً بدون انتظار تحميل الشبكة
     if (activeGroupId) {
+        const hasLocalData = loadStateFromLocalStorage(activeGroupId);
+        if (hasLocalData && (state.students?.length > 0 || state.lectures?.length > 0)) {
+            renderDashboard();
+            removeLoader();
+        } else {
+            showLoader("جاري تحميل البيانات...");
+        }
+
         listenToGroup(activeGroupId, user.uid);
+    } else {
+        removeLoader();
     }
 
     setupMessageButtonListener();
@@ -207,6 +222,9 @@ function listenToGroup(groupId, uid) {
 
             renderDashboard();
             removeLoader();
+
+            // حفظ نسخة احتياطية محلية محدثة دائماً لاستخدامها بدون إنترنت
+            saveStateToLocalStorage(groupId);
 
             // 1. فحص إشعارات إضافة المحاضرات الجديدة
             checkNewLectureNotifications(groupId, state.lectures, state.userInfo?.role);
@@ -886,6 +904,7 @@ window.app = {
     openAIInstructionsModal: () => openAIInstructionsModal(),
     saveAIInstructions: () => saveAIInstructions(),
     requestNotificationPermission: () => requestNotificationPermission(),
+    flushOfflineSyncQueue: () => flushOfflineSyncQueue(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
     toggleMenu: () => toggleMenuFlow()
 };
