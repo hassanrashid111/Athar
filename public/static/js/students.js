@@ -645,19 +645,21 @@ export function renderCustomTransferTable(filterText = '') {
         if (percent >= 75) badgeColor = '#27ae60';
         else if (percent >= 50) badgeColor = '#f39c12';
 
+        const rowBg = isChecked ? 'rgba(26, 93, 58, 0.12)' : 'var(--bg-card, #ffffff)';
+
         rowsHTML += `
-            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s; ${isChecked ? 'background: rgba(26, 93, 58, 0.08);' : ''}">
-                <td style="text-align: center; padding: 8px 6px;">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.app.toggleTransferStudentSelection(${s.id}, this.checked)" style="cursor: pointer; transform: scale(1.15);">
+            <tr style="border-bottom: 1px solid var(--border-color); background: ${rowBg}; transition: background 0.15s;">
+                <td style="text-align: center; padding: 10px 8px; width: 48px; min-width: 48px; position: sticky; right: 0; background: ${rowBg}; z-index: 1; box-shadow: -2px 0 4px rgba(0,0,0,0.06);">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.app.toggleTransferStudentSelection(${s.id}, this.checked)" style="cursor: pointer; transform: scale(1.2);">
                 </td>
-                <td style="padding: 8px;">
-                    <strong>${safeName}</strong>
+                <td style="padding: 10px 10px; white-space: nowrap; min-width: 150px;">
+                    <strong style="color: var(--text-dark);">${safeName}</strong>
                 </td>
-                <td style="padding: 8px; direction: ltr; font-family: monospace;">
+                <td style="padding: 10px 10px; direction: ltr; font-family: monospace; white-space: nowrap; min-width: 130px; color: var(--text-light);">
                     ${safePhone}
                 </td>
-                <td style="padding: 8px; text-align: center;">
-                    <span style="background: ${badgeColor}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">
+                <td style="padding: 10px 10px; text-align: center; white-space: nowrap; min-width: 140px;">
+                    <span style="background: ${badgeColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; display: inline-block;">
                         ${testedCount} / ${totalLectures} (${percent}%)
                     </span>
                 </td>
