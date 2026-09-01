@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أثر | العرض التعريفي والدليل الشامل للمشرفين</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png">
+
+    <style>
+        :root {
+            --primary: #1A5D3A;
+            --primary-dark: #0f3d24;
+            --primary-light: #27ae60;
+            --accent-gold: #D4AF37;
+            --accent-gold-light: #fef08a;
+            --bg-dark: #0b1510;
+            --surface-dark: #12231b;
+            --surface-card: rgba(18, 35, 27, 0.75);
+            --border-color: rgba(212, 175, 55, 0.25);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #e74c3c;
+            --warning: #f59e0b;
+            --info: #38bdf8;
+            --success: #22c55e;
+            --transition-smooth: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Top Navigation Header */
+        header.pres-header {
+            height: 64px;
+            background: rgba(11, 21, 16, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .header-brand img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3));
+        }
+
+        .header-brand h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+            text-decoration: none;
+        }
+
+        .btn-nav:hover {
+            background: var(--primary);
+            border-color: var(--accent-gold);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav.active {
+            background: var(--primary);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 100%;
+            position: relative;
+            z-index: 99;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--accent-gold));
+            width: 8.33%;
+            transition: width 0.35s ease;
+            box-shadow: 0 0 10px var(--accent-gold);
+        }
+
+        /* Presentation Stage / Viewport */
+        .presentation-stage {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* Background Animated Elements */
+        .bg-glow-1 {
+            position: absolute;
+            top: -10%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(26, 93, 58, 0.35) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            filter: blur(40px);
+            animation: pulseGlow 8s infinite alternate;
+        }
+
+        .bg-glow-2 {
+            position: absolute;
+            bottom: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            filter: blur(50px);
+            animation: pulseGlow 10s infinite alternate-reverse;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.9) translate(0, 0); opacity: 0.6; }
+            100% { transform: scale(1.15) translate(20px, -20px); opacity: 0.9; }
+        }
+
+        /* Slides Container */
+        .slide {
+            position: absolute;
+            width: calc(100% - 48px);
+            max-width: 1150px;
+            height: calc(100% - 48px);
+            max-height: 680px;
+            background: var(--surface-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            z-index: 10;
+        }
+
+        .slide.prev-slide {
+            transform: scale(0.95) translateY(-20px);
+        }
+
+        /* Slide Typography & Elements */
+        .slide-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold-light);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            width: fit-content;
+            margin-bottom: 12px;
+        }
+
+        .slide-title {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slide-subtitle {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        /* Grid Layouts inside slides */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 20px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gold);
+            opacity: 0.7;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            background: rgba(26, 93, 58, 0.2);
+            border-color: var(--accent-gold);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 1.8rem;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Interactive Demo Windows inside Slides */
+        .demo-window {
+            background: #09120e;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        .demo-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #22c55e; }
+
+        /* Step by Step Flow Items */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 18px;
+            transition: var(--transition-smooth);
+        }
+
+        .step-item:hover {
+            border-color: var(--primary-light);
+            background: rgba(39, 174, 96, 0.08);
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            color: white;
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        /* Controls Footer */
+        footer.pres-footer {
+            height: 70px;
+            background: rgba(11, 21, 16, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            z-index: 100;
+        }
+
+        .slide-counter {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-ctrl {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: 1px solid var(--accent-gold);
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .btn-ctrl:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+        }
+
+        .btn-ctrl:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        /* Keyboard shortcuts tip */
+        .key-tip {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kbd {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: white;
+        }
+
+        /* Responsive Mobile Styles */
+        @media (max-width: 768px) {
+            header.pres-header { padding: 0 16px; }
+            .header-brand h1 { font-size: 1.05rem; }
+            .slide { padding: 22px 18px; max-height: calc(100vh - 150px); }
+            .slide-title { font-size: 1.4rem; }
+            .slide-subtitle { font-size: 0.9rem; margin-bottom: 16px; }
+            .feature-grid { grid-template-columns: 1fr; gap: 12px; }
+            footer.pres-footer { padding: 0 16px; }
+            .btn-ctrl { padding: 8px 14px; font-size: 0.85rem; }
+            .key-tip { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header class="pres-header">
+        <a href="/dashboard" class="header-brand">
+            <img src="/static/assets/logo_transparent.png" alt="أثر">
+            <div>
+                <h1>منصة أثر التعليمية</h1>
+            </div>
+        </a>
+
+        <div class="header-tools">
+            <a href="/dashboard" class="btn-nav">
+                <i class="fa-solid fa-gauge-high"></i> اللوحة
+            </a>
+            <a href="/reports" class="btn-nav">
+                <i class="fa-solid fa-chart-pie"></i> التقارير
+            </a>
+            <button id="toggle-fullscreen" class="btn-nav" onclick="toggleFullScreen()" title="ملء الشاشة">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Progress Indicator -->
+    <div class="progress-container">
+        <div class="progress-bar" id="pres-progress"></div>
+    </div>
+
+    <!-- Presentation Viewport -->
+    <main class="presentation-stage">
+        <div class="bg-glow-1"></div>
+        <div class="bg-glow-2"></div>
+
+        <!-- ========================================================
+             SLIDE 1: غلاف العرض التقديمي
+             ======================================================== -->
+        <section class="slide active" data-index="1">
+            <span class="slide-tag"><i class="fa-solid fa-sparkles"></i> العرض التعريفي الشامل</span>
+            <div style="text-align: center; margin: auto 0;">
+                <img src="/static/assets/logo_transparent.png" alt="أثر" style="width: 110px; height: 110px; margin-bottom: 16px; filter: drop-shadow(0 4px 20px rgba(212, 175, 55, 0.4));">
+                <h2 style="font-size: 2.8rem; font-weight: 900; color: white; margin-bottom: 12px; line-height: 1.2;">
+                    منظومة <span style="background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">أثَـــر</span> الذكية
+                </h2>
+                <p style="font-size: 1.25rem; color: #cbd5e1; max-width: 720px; margin: 0 auto 28px auto; line-height: 1.6;">
+                    الجيل الجديد لإدارة ومتابعة المجموعات الدعوية والتربوية، مدعوماً بالذكاء الاصطناعي (Gemini AI)، والعمل الكامل بدون إنترنت (Offline-First).
+                </p>
+                
+                <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 8px 18px; border-radius: 30px; font-size: 0.88rem;">
+                        <i class="fa-solid fa-brain" style="color: var(--accent-gold);"></i> ذكاء اصطناعي مخصص
+                    </div>
+                    <div style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 8px 18px; border-radius: 30px; font-size: 0.88rem;">
+                        <i class="fa-solid fa-wifi" style="color: #22c55e;"></i> عمل 100% بدون إنترنت
+                    </div>
+                    <div style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 8px 18px; border-radius: 30px; font-size: 0.88rem;">
+                        <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> تكامل فوري مع واتساب
+                    </div>
+                    <div style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 8px 18px; border-radius: 30px; font-size: 0.88rem;">
+                        <i class="fa-solid fa-certificate" style="color: var(--accent-gold);"></i> محرر شهادات تفاعلي
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 2: الرؤية والأهداف
+             ======================================================== -->
+        <section class="slide" data-index="2">
+            <span class="slide-tag"><i class="fa-solid fa-bullseye"></i> الرؤية والرسالة</span>
+            <h2 class="slide-title">لماذا بنينا منصة "أثـــر"؟</h2>
+            <p class="slide-subtitle">تحويل العمل الإداري المرهق في متابعة الطلاب إلى تجربة رقمية فائقة السرعة والدقة.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-stopwatch-20 card-icon"></i>
+                    <h3 class="card-title">توفير 90% من وقت المشرف</h3>
+                    <p class="card-desc">استبدال الشيتات الورقية المعقدة برصد فوري بضغطة واحدة، وتوليد رسائل واتساب جاهزة باسم كل طالب وحالته دون أي كتابة يدوية.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-shield-halved card-icon"></i>
+                    <h3 class="card-title">حماية الطلاب من الانقطاع</h3>
+                    <p class="card-desc">رصد مبكر وتنبيه لحظي عند غياب أي طالب متميز عن المحاضرة الأخيرة، مما يتيح تداركه برسالة تشجيعية فورية قبل تسربه.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-chart-line-up card-icon"></i>
+                    <h3 class="card-title">مؤشرات أداء شفافة وعادلة</h3>
+                    <p class="card-desc">حساب دقيق لسرعة استجابة الطلاب ونسب التزامهم بالمللي ثانية، مع إمكانية تصدير تقارير Excel وتقارير تفصيلية شاملة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 3: هيكل الصلاحيات والأدوار
+             ======================================================== -->
+        <section class="slide" data-index="3">
+            <span class="slide-tag"><i class="fa-solid fa-users-gear"></i> الصلاحيات والأدوار</span>
+            <h2 class="slide-title">الهيكل الإداري للمنصة</h2>
+            <p class="slide-subtitle">نظام صلاحيات صارم يضمن الخصوصية ويفصل بين القيادة المركزية والمتابعة الميدانية.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: auto 0;">
+                <div style="background: linear-gradient(135deg, rgba(26, 93, 58, 0.25) 0%, rgba(18, 35, 27, 0.8) 100%); border: 1.5px solid var(--accent-gold); border-radius: 16px; padding: 24px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <i class="fa-solid fa-crown" style="color: var(--accent-gold); font-size: 1.6rem;"></i>
+                        <h3 style="color: white; font-size: 1.3rem;">المشرف العام (Group Supervisor)</h3>
+                    </div>
+                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; color: #cbd5e1; font-size: 0.92rem;">
+                        <li><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> إضافة وإلغاء وتعديل المحاضرات وروابط الاختبارات.</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> الاطلاع على إحصائيات وتقارير كافة مشرفي المتابعة.</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> رفع قوالب الشهادات وضبط إحداثيات الطباعة بالسحب والإفلات.</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> تصدير تقارير Excel عامة وإرسال التنبيهات المباشرة.</li>
+                    </ul>
+                </div>
+
+                <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(18, 35, 27, 0.8) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 24px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                        <i class="fa-solid fa-user-check" style="color: #38bdf8; font-size: 1.6rem;"></i>
+                        <h3 style="color: white; font-size: 1.3rem;">مشرف المتابعة (Follow-up Supervisor)</h3>
+                    </div>
+                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; color: #cbd5e1; font-size: 0.92rem;">
+                        <li><i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i> رصد حضور واختبارات طلابه بنقرة واحدة (Check / Replied).</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i> تشغيل طوابير المراسلة الذكية عبر الواتساب.</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i> تنظيف قوائم الطلاب عبر المنظف الذكي (AI).</li>
+                        <li><i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i> تسليم واستلام الطلاب من وإلى المشرفين الآخرين بسلاسة.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 4: لوحة التحكم والرصد الفوري
+             ======================================================== -->
+        <section class="slide" data-index="4">
+            <span class="slide-tag"><i class="fa-solid fa-table-columns"></i> لوحة التحكم</span>
+            <h2 class="slide-title">لوحة الرصد والمتابعة الفورية</h2>
+            <p class="slide-subtitle">جدول ديناميكي متطور مصمم خصيصاً للسرعة القصوى على الهواتف والشاشات الكبيرة.</p>
+
+            <div class="demo-window">
+                <div class="demo-bar">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                    <span style="font-size: 0.8rem; color: #94a3b8; margin-right: 8px;">معاينة جدول الرصد الذكي</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 8px; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: bold;">
+                    <div>اسم الطالب</div>
+                    <div style="text-align: center;">م.1 (تفسير)</div>
+                    <div style="text-align: center;">م.2 (حديث)</div>
+                    <div style="text-align: center;">م.3 (عقيدة)</div>
+                    <div style="text-align: center;">النقاط</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.88rem;">
+                    <div><strong>عبد الرحمن محمد</strong> <span style="font-size: 0.75rem; color: #22c55e;">(ممتاز)</span></div>
+                    <div style="text-align: center;"><i class="fa-solid fa-square-check" style="color: #22c55e; font-size: 1.2rem;"></i></div>
+                    <div style="text-align: center;"><i class="fa-solid fa-square-check" style="color: #22c55e; font-size: 1.2rem;"></i></div>
+                    <div style="text-align: center;"><i class="fa-solid fa-square-check" style="color: #22c55e; font-size: 1.2rem;"></i></div>
+                    <div style="text-align: center; font-weight: bold; color: var(--accent-gold);">15 / 15</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 12px 14px; font-size: 0.88rem;">
+                    <div><strong>أحمد خالد</strong> <span style="font-size: 0.75rem; color: #f59e0b;">(معلق)</span></div>
+                    <div style="text-align: center;"><i class="fa-solid fa-square-check" style="color: #22c55e; font-size: 1.2rem;"></i></div>
+                    <div style="text-align: center;"><i class="fa-solid fa-square-check" style="color: #22c55e; font-size: 1.2rem;"></i></div>
+                    <div style="text-align: center;"><span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">رد ⏳</span></div>
+                    <div style="text-align: center; font-weight: bold; color: var(--accent-gold);">10 / 15</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                <div style="font-size: 0.85rem; color: #cbd5e1;"><i class="fa-solid fa-hand-pointer" style="color: var(--accent-gold);"></i> <strong>نقرة واحدة:</strong> تسجيل اختبار وحضور فوري.</div>
+                <div style="font-size: 0.85rem; color: #cbd5e1;"><i class="fa-solid fa-clock" style="color: #f59e0b;"></i> <strong>ضغطة طويلة:</strong> قائمة الحالات المتقدمة (رد ولم يختبر / تحديد تاريخ مخصص).</div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 5: محرك الذكاء الاصطناعي (Gemini AI)
+             ======================================================== -->
+        <section class="slide" data-index="5">
+            <span class="slide-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> الذكاء الاصطناعي</span>
+            <h2 class="slide-title">محرك الذكاء الاصطناعي (Gemini AI Engine)</h2>
+            <p class="slide-subtitle">تقنيات ذكية مدمجة لمعالجة النصوص وصياغة رسائل المتابعة باحترافية وتخصيص كامل.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-broom card-icon"></i>
+                    <h3 class="card-title">المنظف الذكي لقوائم الطلاب</h3>
+                    <p class="card-desc">الصق أي قائمة عشوائية من الواتساب أو التيليجرام؛ يقوم الذكاء الاصطناعي بفصل الأسماء وتنسيق أرقام الهواتف وإزالة التكرارات فوراً.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-comment-dots card-icon"></i>
+                    <h3 class="card-title">صياغة الرسائل المخصصة</h3>
+                    <p class="card-desc">يحلل الذكاء الاصطناعي أداء الطالب الفعلي ويصوغ رسالة دافئة تحثه على إكمال الاختبار وتثني على التزامه السابق بأسلوب تربوي لطيف.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-sliders card-icon"></i>
+                    <h3 class="card-title">توجيهات مخصصة للمشرف</h3>
+                    <p class="card-desc">يمكن لكل مشرف وضع بصمته وأسلوبه في خانة "تعليمات الذكاء الاصطناعي"، ليلتزم بها المحرك عند كتابة أي رسالة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 6: رادار التسرب والمتابعة المبكرة
+             ======================================================== -->
+        <section class="slide" data-index="6">
+            <span class="slide-tag"><i class="fa-solid fa-crosshairs"></i> رادار المتابعة والتسرب</span>
+            <h2 class="slide-title">رادار التسرب المبكر (At-Risk Radar)</h2>
+            <p class="slide-subtitle">خوارزمية ذكية تقارن أداء الطالب في المحاضرة الأخيرة مع كل المحاضرات السابقة مجتمعة.</p>
+
+            <div style="background: rgba(231, 76, 60, 0.1); border: 1.5px solid rgba(231, 76, 60, 0.4); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+                <h4 style="color: #e74c3c; font-size: 1.1rem; margin-bottom: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> كيف يكتشف الرادار الطلاب المعرضين للانقطاع؟
+                </h4>
+                <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.6;">
+                    إذا كان الطالب متميزاً في المحاضرات السابقة (حضور $\ge 50\%$ أو $100\%$ في كل ما مضى) ثم <strong>تغيب عن المحاضرة الأخيرة</strong> أو كانت حالته معلقة، يصنفه الرادار كحالة حرجة 🔴، ويقترح فورياً طابور مراسلة مخصص لإنقاذه وتشجيعه على العودة.
+                </p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>الرصد التلقائي اللحظي</h4>
+                        <p>يعمل الرادار في الخلفية ويظهر شارة حمراء على زر الرادار في الهيدر فور وجود حالات حرجة.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>بدء طابور المراسلة الذكية بضغطة زر (1-Click AI Queue)</h4>
+                        <p>ينقر المشرف على "مراسلة الحالات الحرجة"، فيفتح طابور الواتساب التفاعلي مع رسائل مخصصة مولدة بالذكاء الاصطناعي لكل طالب برابط المحاضرة.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 7: نظام تسليم واستلام الطلاب
+             ======================================================== -->
+        <section class="slide" data-index="7">
+            <span class="slide-tag"><i class="fa-solid fa-handshake"></i> تسليم واستلام الطلاب</span>
+            <h2 class="slide-title">المرونة في نقل الطلاب بين المشرفين</h2>
+            <p class="slide-subtitle">إمكانية تسليم مجموعات الطلاب بين المشرفين مع إشعار فوري وتحديث تلقائي للقوائم.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-users card-icon"></i>
+                    <h3 class="card-title">تسليم كلي أو حسب الفئة</h3>
+                    <p class="card-desc">يمكن للمشرف تسليم جميع طلابه، أو اختيار فئة معينة (مثل الطلاب المختبرين فقط، أو الغائبين فقط، أو المعلقين).</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-list-check card-icon"></i>
+                    <h3 class="card-title">التحديد المخصص (طالب بطالب)</h3>
+                    <p class="card-desc">نافذة منبثقة تتيح للمشرف البحث وتحديد طلاب محددين بالاسم ورقم الهاتف وتسليمهم بنقرة واحدة.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-bell card-icon"></i>
+                    <h3 class="card-title">إشعار شاشة القفل والقبول</h3>
+                    <p class="card-desc">يصل إشعار فوري للمشرف المستلم على شاشة قفل هاتفه، وبمجرد قبوله تضاف الأسماء لقائمته وتُحذف فوراً من المشرف السابق.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 8: محرر الشهادات التفاعلي بالسحب والإفلات
+             ======================================================== -->
+        <section class="slide" data-index="8">
+            <span class="slide-tag"><i class="fa-solid fa-certificate"></i> الشهادات التقديرية</span>
+            <h2 class="slide-title">محرر الشهادات التفاعلي (Drag & Drop)</h2>
+            <p class="slide-subtitle">توليد شهادات تقدير احترافية لكل طالب بجودة عالية وتصميم قابل للتخصيص الكامل.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; margin: auto 0;">
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-num"><i class="fa-solid fa-upload"></i></div>
+                        <div class="step-content">
+                            <h4>رفع أي قالب شهادة</h4>
+                            <p>ارفع أي تصميم للشهادة بصيغة JPG أو PNG من جهازك أو هاتفك بكل بساطة.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num"><i class="fa-solid fa-up-down-left-right"></i></div>
+                        <div class="step-content">
+                            <h4>التحريك المباشر بالسحب والإفلات</h4>
+                            <p>امسك بادج اسم الطالب أو التاريخ أو اسم المحاضرة بإصبعك على شاشة اللمس أو بالماوس وضعه في المكان المناسب تماماً.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num"><i class="fa-solid fa-file-pdf"></i></div>
+                        <div class="step-content">
+                            <h4>تصدير فوري بضغطة زر</h4>
+                            <p>توليد وتنزيل الشهادة المكتملة كملف PDF عالي الجودة باسم الطالب مع التكريم المستحق.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.04); border: 1.5px dashed var(--accent-gold); border-radius: 14px; padding: 24px; text-align: center;">
+                    <i class="fa-solid fa-award" style="font-size: 3.5rem; color: var(--accent-gold); margin-bottom: 12px;"></i>
+                    <h4 style="color: white; font-size: 1.2rem; margin-bottom: 6px;">معاينة حية ومزامنة لحظية</h4>
+                    <p style="color: var(--text-muted); font-size: 0.88rem;">يتم حفظ الإحداثيات فورياً على سحابة المجموعة لتكون جاهزة لجميع المشرفين.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 9: العمل بدون إنترنت (Offline-First PWA)
+             ======================================================== -->
+        <section class="slide" data-index="9">
+            <span class="slide-tag"><i class="fa-solid fa-wifi"></i> العمل بدون إنترنت</span>
+            <h2 class="slide-title">تقنية العمل بدون إنترنت (Offline-First)</h2>
+            <p class="slide-subtitle">لن يتوقف عمل المشرف حتى في حال انقطاع الشبكة أو ضعف التغطية في أي مكان.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-stopwatch card-icon"></i>
+                    <h3 class="card-title">حفظ التوقيت الفعلي بالمللي ثانية</h3>
+                    <p class="card-desc">عند رصد حضور طالب بدون إنترنت، يسجل النظام اللحظة الدقيقة للرصد، ويحفظها حتى تتم المزامنة بنفس التوقيت الأصلي لضمان عدالة التقييم.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-bolt card-icon"></i>
+                    <h3 class="card-title">فتح فوري في 0 ثانية</h3>
+                    <p class="card-desc">تفتح لوحة التحكم وقائمة الطلاب لحظياً من ذاكرة المتصفح دون انتظار تحميل الشبكة، حتى في وضع الطيران ✈️.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-rotate card-icon"></i>
+                    <h3 class="card-title">مزامنة تلقائية فور عودة الشبكة</h3>
+                    <p class="card-desc">طابور مزامنة ذكي يرسل كافة العمليات المحفوظة إلى الفايربيز فور توفر الإنترنت بدون أي تدخل يدوي من المشرف.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 10: مركز التنبيهات والأمان
+             ======================================================== -->
+        <section class="slide" data-index="10">
+            <span class="slide-tag"><i class="fa-solid fa-bell"></i> التنبيهات والأمان</span>
+            <h2 class="slide-title">التنبيهات الفورية والنسخ الاحتياطي</h2>
+            <p class="slide-subtitle">إشعارات ذكية تبقيك على اطلاع دائم، مع حماية تامة لبياناتك وتصديرها بمرونة.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fa-solid fa-tower-broadcast card-icon"></i>
+                    <h3 class="card-title">تنبيهات شاشة القفل</h3>
+                    <p class="card-desc">إشعار للمشرفين عند إضافة محاضرة جديدة، أو استلام طلاب جدد، أو تذكير بالطلاب المعلقين الذين ردوا ولم يختبروا منذ 24 ساعة.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-file-excel card-icon"></i>
+                    <h3 class="card-title">تصدير Excel وتقارير نصية</h3>
+                    <p class="card-desc">تصدير شامل لكامل بيانات الطلاب ودرجاتهم وتواريخ استجابتهم بنقرة واحدة لملف Excel احترافي.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fa-solid fa-database card-icon"></i>
+                    <h3 class="card-title">حفظ واسترجاع النسخ الاحتياطية</h3>
+                    <p class="card-desc">تنزيل نسخة احتياطية من قاعدة البيانات مشفرة بصيغة JSON واسترجاعها في ثوانٍ معدودة عند الحاجة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 11: دليل البدء السريع للمشرف
+             ======================================================== -->
+        <section class="slide" data-index="11">
+            <span class="slide-tag"><i class="fa-solid fa-list-ol"></i> دليل البدء السريع</span>
+            <h2 class="slide-title">كيف تبدأ استخدام المنصة في 5 خطوات؟</h2>
+            <p class="slide-subtitle">خطوات بسيطة وسريعة للانطلاق ومتابعة طلابك بكل احترافية.</p>
+
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>تسجيل الدخول أو الانضمام للمجموعة</h4>
+                        <p>سجل حسابك وادخل كود المجموعة الذي يزودك به المشرف العام للبدء فوراً.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>تثبيت التطبيق على هاتفك (PWA Install)</h4>
+                        <p>اضغط على "تثبيت التطبيق" من القائمة لتثبيته كأيقونة تطبيق رسمي على شاشة هاتفك.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>استيراد الطلاب أو تنظيفهم بالـ AI</h4>
+                        <p>اضغط على "المنظف الذكي"، والصق أسماء وأرقام طلابك ليتم ترتيبهم وإضافتهم في ثوانٍ.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h4>رصد الحضور والاختبارات</h4>
+                        <p>انقر على المربع أمام اسم الطالب فور اختباره ليتم حفظ التوقيت وتحديث النقاط لحظياً.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">5</div>
+                    <div class="step-content">
+                        <h4>إرسال رسائل المتابعة عبر الواتساب</h4>
+                        <p>اختر الفئة المستهدفة، واستخدم الذكاء الاصطناعي لصياغة الرسائل وبدء طابور الإرسال المباشر.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+             SLIDE 12: معلومات المطور والتواصل
+             ======================================================== -->
+        <section class="slide" data-index="12">
+            <span class="slide-tag"><i class="fa-solid fa-code"></i> التطوير والدعم الفني</span>
+            <div style="text-align: center; margin: auto 0;">
+                <div style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--accent-gold) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; font-size: 2.2rem; color: white; box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);">
+                    <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <h2 style="font-size: 2.2rem; font-weight: 900; color: white; margin-bottom: 6px;">م. حسن راشد</h2>
+                <p style="font-size: 1.1rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 20px;">مطور ومصمم منظومة أثــر التعليمية</p>
+                
+                <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 28px;">
+                    <a href="tel:+201092640962" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); color: white; padding: 10px 22px; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; transition: var(--transition-smooth);">
+                        <i class="fa-solid fa-phone" style="color: #22c55e;"></i> +201092640962
+                    </a>
+                    <a href="https://wa.me/201092640962" target="_blank" style="background: #25D366; color: white; padding: 10px 22px; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; transition: var(--transition-smooth); box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);">
+                        <i class="fa-brands fa-whatsapp"></i> تواصل عبر واتساب
+                    </a>
+                    <a href="https://github.com/hassanrashid111/Athar" target="_blank" style="background: #24292e; color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 22px; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; transition: var(--transition-smooth);">
+                        <i class="fa-brands fa-github"></i> مستودع GitHub
+                    </a>
+                </div>
+
+                <div style="background: rgba(26, 93, 58, 0.25); border: 1px solid var(--border-color); padding: 14px 24px; border-radius: 12px; max-width: 650px; margin: 0 auto; color: #cbd5e1; font-size: 0.92rem;">
+                    نسأل الله أن يجعل هذا العمل خالصاً لوجهه الكريم ونافعاً لجميع الحلقات والمجموعات التعليمية والتربوية 🤲
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Controls Footer -->
+    <footer class="pres-footer">
+        <div class="slide-counter" id="slide-counter">
+            شريحة <span id="current-slide-num">1</span> من <span id="total-slides-num">12</span>
+        </div>
+
+        <div class="key-tip">
+            استخدم الأسهم <span class="kbd">→</span> <span class="kbd">←</span> أو المسافة <span class="kbd">Space</span> للتنقل
+        </div>
+
+        <div class="controls-group">
+            <button class="btn-ctrl" id="btn-prev" onclick="prevSlide()" disabled>
+                <i class="fa-solid fa-arrow-right"></i> السابق
+            </button>
+            <button class="btn-ctrl" id="btn-next" onclick="nextSlide()">
+                التالي <i class="fa-solid fa-arrow-left"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Interactive Script -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 1;
+
+        const currentSlideElem = document.getElementById('current-slide-num');
+        const totalSlidesElem = document.getElementById('total-slides-num');
+        const progressBar = document.getElementById('pres-progress');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        if (totalSlidesElem) totalSlidesElem.innerText = totalSlides;
+
+        function updateSlideUI() {
+            slides.forEach((s, idx) => {
+                const sIdx = idx + 1;
+                s.classList.remove('active', 'prev-slide');
+                if (sIdx === currentSlide) {
+                    s.classList.add('active');
+                } else if (sIdx < currentSlide) {
+                    s.classList.add('prev-slide');
+                }
+            });
+
+            if (currentSlideElem) currentSlideElem.innerText = currentSlide;
+            if (progressBar) {
+                const progressPercent = (currentSlide / totalSlides) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+            }
+
+            if (btnPrev) btnPrev.disabled = (currentSlide === 1);
+            if (btnNext) {
+                if (currentSlide === totalSlides) {
+                    btnNext.innerHTML = 'العودة للوحة <i class="fa-solid fa-house"></i>';
+                } else {
+                    btnNext.innerHTML = 'التالي <i class="fa-solid fa-arrow-left"></i>';
+                }
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlideUI();
+            } else {
+                window.location.href = '/dashboard';
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlideUI();
+            }
+        }
+
+        function goToSlide(num) {
+            if (num >= 1 && num <= totalSlides) {
+                currentSlide = num;
+                updateSlideUI();
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'PageDown') {
+                nextSlide();
+            } else if (e.key === 'ArrowRight' || e.key === 'PageUp') {
+                prevSlide();
+            } else if (e.key === 'Home') {
+                goToSlide(1);
+            } else if (e.key === 'End') {
+                goToSlide(totalSlides);
+            }
+        });
+
+        // Touch Swipe Navigation for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) {
+                    // Swipe Left (Next in RTL)
+                    nextSlide();
+                } else {
+                    // Swipe Right (Prev in RTL)
+                    prevSlide();
+                }
+            }
+        }
+
+        // Fullscreen Toggle
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Initial setup
+        updateSlideUI();
+    </script>
+</body>
+</html>

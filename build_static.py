@@ -9,7 +9,9 @@ pages = [
     ('login.html', 'index.html'),
     ('setup.html', 'setup.html'),
     ('dashboard.html', 'dashboard.html'),
-    ('reports.html', 'reports.html')
+    ('reports.html', 'reports.html'),
+    ('presentation.html', 'presentation.html'),
+    ('presentation.html', 'guide.html')
 ]
 
 os.makedirs('public', exist_ok=True)
