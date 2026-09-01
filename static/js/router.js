@@ -243,6 +243,14 @@ export function checkAlreadyLoggedIn() {
         const activeUser = user || cachedUser;
 
         if (activeUser) {
+            const isSuperAdmin = (activeUser?.email || cachedUserData?.email || '').toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+
+            // Super Admin → دائماً يُحوَّل للوحة التحكم العليا فورياً
+            if (isSuperAdmin) {
+                window.location.replace('/super-admin');
+                return;
+            }
+
             let userData = null;
             try {
                 if (navigator.onLine && user) {
@@ -259,14 +267,6 @@ export function checkAlreadyLoggedIn() {
             if (!userData) userData = cachedUserData;
 
             if (userData) {
-                const isSuperAdmin = (user?.email || userData?.email || '') === SUPER_ADMIN_EMAIL;
-
-                // Super Admin → دائماً يُحوَّل للوحة التحكم
-                if (isSuperAdmin) {
-                    window.location.replace('/super-admin');
-                    return;
-                }
-
                 // المستخدمون العاديون → فحص حالة النظام أولاً
                 if (navigator.onLine) {
                     const systemStatus = await checkSystemStatus();
@@ -309,7 +309,7 @@ export function initSuperAdminRoute() {
                 return;
             }
 
-            if (user.email !== SUPER_ADMIN_EMAIL) {
+            if ((user.email || '').toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
                 // مسجل لكن ليس Super Admin → لوحة التحكم العادية
                 showAtharNotification('⛔ هذه الصفحة للإدارة العليا فقط.', 'error');
                 setTimeout(() => {

@@ -1120,11 +1120,10 @@
     <!-- PWA Registration Module -->
     <script type="module" src="/static/js/pwa.js"></script>
 
-    
 <script type="module">
     import { handleLogin, handleRegister, handleGoogleLogin } from "/static/js/auth.js";
     import { checkAlreadyLoggedIn, checkSystemStatus } from "/static/js/router.js";
-    import { db, ref, push, set } from "/static/js/firebase-config.js";
+    import { auth, onAuthStateChanged, db, ref, push, set } from "/static/js/firebase-config.js";
 
     window.app = {
         login: handleLogin,
@@ -1142,22 +1141,31 @@
     // يُشغَّل قبل أي شيء آخر — يحدد ماذا يُعرَض للزائر
     // Blank-Slate Safe: null → 'paused' → شاشة الانتظار
     async function initLoginPage() {
-        try {
-            if (navigator.onLine) {
-                const status = await checkSystemStatus();
-                if (status === 'paused') {
-                    // إخفاء نماذج الدخول وعرض شاشة الانتظار
-                    document.querySelector('.login-container').style.display = 'none';
-                    const pausedScreen = document.getElementById('system-paused-screen');
-                    if (pausedScreen) pausedScreen.style.display = 'flex';
-                    return; // لا نكمل — لا نستدعي checkAlreadyLoggedIn
-                }
+        onAuthStateChanged(auth, async (user) => {
+            if (user && (user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
+                window.location.replace('/super-admin');
+                return;
             }
-        } catch (e) {
-            console.warn('[LoginPage] Status check failed, showing login form:', e);
-        }
-        // النظام نشط → تدفق الدخول العادي
-        checkAlreadyLoggedIn();
+
+            try {
+                if (navigator.onLine) {
+                    const status = await checkSystemStatus();
+                    if (status === 'paused') {
+                        // إخفاء نماذج الدخول وعرض شاشة الانتظار
+                        const loginContainer = document.querySelector('.login-container');
+                        if (loginContainer) loginContainer.style.display = 'none';
+                        const pausedScreen = document.getElementById('system-paused-screen');
+                        if (pausedScreen) pausedScreen.style.display = 'flex';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('[LoginPage] Status check failed, showing login form:', e);
+            }
+
+            // النظام نشط → تدفق الدخول العادي
+            checkAlreadyLoggedIn();
+        });
     }
 
     initLoginPage();

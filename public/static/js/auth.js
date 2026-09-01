@@ -33,6 +33,10 @@ export async function handleLogin(e) {
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         setCurrentUser(userCredential.user);
         showAtharNotification("تم تسجيل الدخول بنجاح!");
+        if (email.toLowerCase() === 'hrhalsharif@gmail.com') {
+            window.location.replace('/super-admin');
+            return;
+        }
         await redirectAfterAuth(userCredential.user.uid);
     } catch (error) {
         let msg = "خطأ في تسجيل الدخول: " + error.message;
@@ -84,7 +88,11 @@ export async function handleRegister(e) {
         });
 
         showAtharNotification("تم إنشاء الحساب بنجاح!");
-        window.location.href = '/setup';
+        if (email.toLowerCase() === 'hrhalsharif@gmail.com') {
+            window.location.replace('/super-admin');
+        } else {
+            window.location.replace('/setup');
+        }
     } catch (error) {
         let msg = "خطأ في إنشاء الحساب: " + error.message;
         if (error.code === 'auth/email-already-in-use') {
@@ -123,10 +131,18 @@ export async function handleGoogleLogin(isRegistration = false) {
             });
 
             showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! تم إنشاء حسابك بنجاح.`);
-            window.location.href = '/setup';
+            if ((user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
+                window.location.replace('/super-admin');
+            } else {
+                window.location.href = '/setup';
+            }
         } else {
             await update(userRef, { name: user.displayName || "مشرف أثر" });
             showAtharNotification("تم تسجيل الدخول بنجاح!");
+            if ((user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
+                window.location.replace('/super-admin');
+                return;
+            }
             await redirectAfterAuth(user.uid);
         }
     } catch (error) {
