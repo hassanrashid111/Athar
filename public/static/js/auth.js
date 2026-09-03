@@ -214,7 +214,9 @@ export function openProfileModal() {
             phoneInput.iti = window.intlTelInput(phoneInput, {
                 initialCountry: "eg",
                 preferredCountries: ["eg", "sa", "ae", "kw", "qa"],
+                countryOrder: ["eg", "sa", "ae", "kw", "qa"],
                 separateDialCode: true,
+                dropdownContainer: document.body,
                 utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/js/utils.js"
             });
         }

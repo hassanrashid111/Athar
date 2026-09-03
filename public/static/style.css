@@ -2536,6 +2536,13 @@ body.dark-theme #prompt-choice-wrapper .btn-action:hover {
 .iti__country-list {
     text-align: left;
     direction: ltr;
+    z-index: 99999999 !important;
+}
+.iti__dropdown-content {
+    z-index: 99999999 !important;
+}
+.iti--container {
+    z-index: 99999999 !important;
 }
 .iti__flag-container {
     direction: ltr;
