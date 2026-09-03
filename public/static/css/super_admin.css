@@ -396,3 +396,206 @@ body {
     .sa-metrics-grid { grid-template-columns: 1fr 1fr; }
     .status-toggle-btn span:last-child { display: none; }
 }
+
+/* ── User Management Styles ───────────────────────────────── */
+.user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--sa-border);
+    margin-bottom: 10px;
+    background: var(--sa-surface);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.user-item:hover {
+    border-color: rgba(212,175,55,0.3);
+}
+
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--sa-gold-dim);
+    border: 1.5px solid var(--sa-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sa-gold);
+    flex-shrink: 0;
+}
+
+.user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--sa-text);
+}
+
+.user-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.75rem;
+    color: var(--sa-muted);
+}
+
+.user-meta-row i { font-size: 0.7rem; }
+
+.user-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.badge-status.pending {
+    background: rgba(251,191,36,0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(251,191,36,0.3);
+}
+
+.badge-status.active {
+    background: rgba(74,222,128,0.12);
+    color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3);
+}
+
+.badge-status.suspended {
+    background: rgba(248,113,113,0.12);
+    color: #f87171;
+    border: 1px solid rgba(248,113,113,0.3);
+}
+
+.badge-status.expired {
+    background: rgba(148,163,184,0.12);
+    color: #94a3b8;
+    border: 1px solid rgba(148,163,184,0.3);
+}
+
+.badge-time {
+    font-size: 0.7rem;
+    color: var(--sa-cyan);
+    background: rgba(34,211,238,0.08);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(34,211,238,0.2);
+}
+
+.btn-activate-duration {
+    background: rgba(74,222,128,0.08);
+    color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-activate-duration:hover {
+    background: #166534;
+    color: white;
+}
+
+.btn-suspend-user {
+    background: rgba(239,68,68,0.08);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-suspend-user:hover {
+    background: #7f1d1d;
+    color: white;
+}
+
+.btn-delete-user {
+    background: transparent;
+    color: var(--sa-muted);
+    border: 1px solid var(--sa-border);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.btn-delete-user:hover {
+    color: #f87171;
+    border-color: #f87171;
+}
+
+/* Direct Super Admin Login Card */
+.sa-login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: var(--sa-bg);
+}
+
+.sa-login-box {
+    background: var(--sa-card);
+    border: 1.5px solid var(--sa-gold);
+    border-radius: 24px;
+    padding: 40px 30px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.sa-login-box::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%);
+}
+

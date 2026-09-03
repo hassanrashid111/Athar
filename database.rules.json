@@ -2,12 +2,16 @@
   "rules": {
 
     /* ========================================================
-       👤 بيانات المستخدمين
+       👤 بيانات المستخدمين وإدارة الصلاحيات
+       - القراءة: أي مستخدم مسجل (لقراءة الملف الشخصي وقوائم المشرفين)
+       - الكتابة: المستخدم نفسه لملفه، أو Super Admin للتحكم بكافة الحسابات
        ======================================================== */
     "users": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email === 'hrhalsharif@gmail.com'",
       "$uid": {
         ".read": "auth != null",
-        ".write": "auth != null && ($uid === auth.uid || root.child('users/'+auth.uid+'/role').val() === 'group_supervisor')"
+        ".write": "auth != null && ($uid === auth.uid || auth.token.email === 'hrhalsharif@gmail.com' || root.child('users/'+auth.uid+'/role').val() === 'group_supervisor')"
       }
     },
 

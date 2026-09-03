@@ -317,37 +317,61 @@
                 دخول المشرفين / الإدارة العليا
             </button>
         </div>
+
+        <!-- Status Notification Banner (e.g. for pending/suspended/expired) -->
+        <div id="status-alert-banner" style="display:none; margin-bottom:1.5rem; padding:14px 18px; border-radius:14px; text-align:right; font-size:0.9rem; line-height:1.7;"></div>
     </div>
 </div>
 
-<!-- ===== Demo Request Modal ===== -->
+<!-- ===== Demo Request & Registration Modal ===== -->
 <div id="demo-request-modal" style="display:none;">
-    <div class="demo-modal-card">
+    <div class="demo-modal-card" style="max-height: 90vh; overflow-y: auto;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
             <h3>
-                <i class="fa-solid fa-envelope-open-text" style="color:#1A5D3A;"></i>
-                طلب الانضمام
+                <i class="fa-solid fa-bolt" style="color:#1A5D3A;"></i>
+                حجز ديمو وتجربة المنصة
             </h3>
             <button onclick="closeDemoModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#999;line-height:1;">×</button>
         </div>
-        <p>أدخل بياناتك وسنتواصل معك عند انطلاق الدورة القادمة بإذن الله.</p>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:15px;">سجّل بياناتك وسيتم اعتماد وتفعيل صلاحية حسابك التجريبي من قِبل الإدارة العليا.</p>
 
-        <div class="demo-field">
-            <label><i class="fa-solid fa-user"></i> الاسم الكامل</label>
-            <input type="text" id="demo-name" placeholder="مثال: أحمد محمد علي" />
-        </div>
-        <div class="demo-field">
-            <label><i class="fa-brands fa-whatsapp"></i> رقم واتساب</label>
-            <input type="tel" id="demo-phone" placeholder="مثال: 05xxxxxxxx" dir="ltr" />
-        </div>
-        <div class="demo-field">
-            <label><i class="fa-solid fa-users"></i> اسم الدورة / المجموعة المستهدفة</label>
-            <input type="text" id="demo-group" placeholder="مثال: دورة الحفظ الصيفية" />
-        </div>
+        <form id="demo-form" onsubmit="window.submitDemoRegister(event)">
+            <div class="demo-field">
+                <label><i class="fa-solid fa-user"></i> الاسم الكامل</label>
+                <input type="text" id="demo-name" placeholder="مثال: أحمد محمد علي" required />
+            </div>
+            <div class="demo-field">
+                <label><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
+                <input type="email" id="demo-email" placeholder="example@domain.com" required dir="ltr" />
+            </div>
+            <div class="demo-field">
+                <label><i class="fa-solid fa-lock"></i> كلمة المرور (لحسابك)</label>
+                <input type="password" id="demo-password" placeholder="أدخل كلمة مرور قوية (6 خانات فأكثر)" required minlength="6" />
+            </div>
+            <div class="demo-field">
+                <label><i class="fa-brands fa-whatsapp"></i> رقم واتساب للتواصل</label>
+                <input type="tel" id="demo-phone" placeholder="مثال: 05xxxxxxxx" dir="ltr" />
+            </div>
+            <div class="demo-field">
+                <label><i class="fa-solid fa-users"></i> اسم الدورة / المجموعة المستهدفة</label>
+                <input type="text" id="demo-group" placeholder="مثال: دورة الحفظ الصيفية 1447" />
+            </div>
 
-        <button class="btn-submit-demo" id="btn-submit-demo" onclick="submitDemoRequest()">
-            <i class="fa-solid fa-paper-plane"></i> إرسال الطلب
-        </button>
+            <button type="submit" class="btn-submit-demo" id="btn-submit-demo">
+                <i class="fa-solid fa-paper-plane"></i> إرسال طلب الديمو وإنشاء الحساب
+            </button>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:15px 0;color:#aaa;font-size:0.8rem;">
+                <span style="flex:1;height:1px;background:#eee;"></span>
+                <span>أو التسجيل السريع</span>
+                <span style="flex:1;height:1px;background:#eee;"></span>
+            </div>
+
+            <button type="button" onclick="window.app.registerWithGoogle()" style="width:100%;background:#fff;color:#555;border:1.5px solid #ddd;padding:11px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit;font-size:0.9rem;font-weight:700;cursor:pointer;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
+                طلب ديمو فوري عبر حساب Google
+            </button>
+        </form>
     </div>
 </div>
 
@@ -1150,7 +1174,30 @@
             }
 
             const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status');
             const isLoginRequested = urlParams.has('login') || window.location.pathname.includes('login');
+            const alertBanner = document.getElementById('status-alert-banner');
+
+            // عرض بنرات التنبيه حسب حالة الحساب (قيد المراجعة / موقوف / منتهي)
+            if (statusParam && alertBanner) {
+                alertBanner.style.display = 'block';
+                if (statusParam === 'pending') {
+                    alertBanner.style.background = 'rgba(251,191,36,0.15)';
+                    alertBanner.style.border = '1.5px solid rgba(251,191,36,0.4)';
+                    alertBanner.style.color = '#fbbf24';
+                    alertBanner.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> <b>طلبك قيد المراجعة والاعتماد:</b><br/>تم استلام بياناتك بنجاح. حسابك مسجل وبانتظار تفعيل الصلاحية من قِبل الإدارة العليا. سيتم إشعارك فور اعتماد الحساب.';
+                } else if (statusParam === 'suspended') {
+                    alertBanner.style.background = 'rgba(239,68,68,0.15)';
+                    alertBanner.style.border = '1.5px solid rgba(239,68,68,0.4)';
+                    alertBanner.style.color = '#f87171';
+                    alertBanner.innerHTML = '<i class="fa-solid fa-ban"></i> <b>الحساب موقوف حالياً:</b><br/>تم إيقاف هذا الحساب من قِبل الإدارة العليا. يرجى التواصل مع إدارة المنصة للمراجعة.';
+                } else if (statusParam === 'expired') {
+                    alertBanner.style.background = 'rgba(148,163,184,0.15)';
+                    alertBanner.style.border = '1.5px solid rgba(148,163,184,0.4)';
+                    alertBanner.style.color = '#94a3b8';
+                    alertBanner.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> <b>انتهت فترة الصلاحية:</b><br/>انتهت مدة الصلاحية المصرح بها لحسابك التجريبي. يرجى التواصل مع الإدارة العليا لتجديد التفعيل.';
+                }
+            }
 
             if (isLoginRequested) {
                 // المستخدم طلب تسجيل الدخول مباشرة → عرض نموذج الدخول فوراً
@@ -1205,44 +1252,7 @@
         checkAlreadyLoggedIn();
     };
 
-    window.submitDemoRequest = async function() {
-        const name  = document.getElementById('demo-name')?.value?.trim();
-        const phone = document.getElementById('demo-phone')?.value?.trim();
-        const group = document.getElementById('demo-group')?.value?.trim();
-
-        if (!name || !phone) {
-            alert('يرجى إدخال الاسم ورقم الواتساب على الأقل.');
-            return;
-        }
-
-        const btn = document.getElementById('btn-submit-demo');
-        if (btn) { btn.disabled = true; btn.textContent = 'جاري الإرسال...'; }
-
-        try {
-            const newRef = push(ref(db, 'demo_requests'));
-            await set(newRef, {
-                name,
-                phone,
-                group: group || '',
-                requestedAt: Date.now(),
-                status: 'pending'
-            });
-
-            window.closeDemoModal();
-
-            // رسالة نجاح مؤقتة مدمجة في شاشة الانتظار
-            const successEl = document.createElement('div');
-            successEl.style.cssText = 'margin-top:12px;padding:12px 16px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:10px;color:#2ecc71;font-weight:700;font-size:0.9rem;';
-            successEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إرسال طلبك بنجاح! سنتواصل معك قريباً.';
-            document.querySelector('.paused-glass-card')?.appendChild(successEl);
-            setTimeout(() => successEl.remove(), 6000);
-        } catch (e) {
-            alert('حدث خطأ أثناء الإرسال. تأكد من اتصالك بالإنترنت.');
-            console.error('[DemoRequest]', e);
-        } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> إرسال الطلب'; }
-        }
-    };
+    window.submitDemoRegister = handleRegister;
 </script>
 
 </body>
