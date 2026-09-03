@@ -34,12 +34,6 @@ export async function handleLogin(e) {
         const user = userCredential.user;
         setCurrentUser(user);
 
-        if (email.toLowerCase() === 'hrhalsharif@gmail.com') {
-            showAtharNotification("مرحباً بك في لوحة الإدارة العليا!");
-            window.location.replace('/super-admin');
-            return;
-        }
-
         showAtharNotification("تم تسجيل الدخول بنجاح!");
         await redirectAfterAuth(user.uid);
     } catch (error) {
@@ -56,16 +50,14 @@ export async function handleLogin(e) {
 }
 
 /**
- * إنشاء حساب جديد / طلب ديمو
+ * إنشاء حساب جديد
  */
 export async function handleRegister(e) {
     if (e && e.preventDefault) e.preventDefault();
 
-    const nameElem = document.getElementById('reg-name') || document.getElementById('demo-name');
-    const emailElem = document.getElementById('reg-email') || document.getElementById('demo-email');
-    const passElem = document.getElementById('reg-password') || document.getElementById('demo-password');
-    const phoneElem = document.getElementById('reg-phone') || document.getElementById('demo-phone');
-    const groupElem = document.getElementById('reg-group') || document.getElementById('demo-group');
+    const nameElem = document.getElementById('reg-name');
+    const emailElem = document.getElementById('reg-email');
+    const passElem = document.getElementById('reg-password');
     const roleElem = document.getElementById('selected-role');
 
     if (!nameElem || !emailElem || !passElem) return;
@@ -73,8 +65,6 @@ export async function handleRegister(e) {
     const name = nameElem.value.trim();
     const email = emailElem.value.trim();
     const pass = passElem.value;
-    const phone = phoneElem ? phoneElem.value.trim() : '';
-    const group = groupElem ? groupElem.value.trim() : '';
     const role = roleElem ? roleElem.value : 'followup_supervisor';
 
     if (!name || !email || !pass) {
@@ -87,40 +77,16 @@ export async function handleRegister(e) {
         const user = userCredential.user;
         setCurrentUser(user);
 
-        const isSuper = email.toLowerCase() === 'hrhalsharif@gmail.com';
-
         // حفظ بيانات المستخدم في قاعدة البيانات
         await set(ref(db, `users/${user.uid}`), {
             name: name,
             email: email,
-            phone: phone,
-            groupTarget: group,
             role: role,
-            status: isSuper ? 'active' : 'pending',
-            createdAt: Date.now(),
-            accessExpiresAt: null
+            createdAt: Date.now()
         });
 
-        // نسخة في demo_requests للإحصائيات
-        if (!isSuper) {
-            push(ref(db, 'demo_requests'), {
-                uid: user.uid,
-                name: name,
-                email: email,
-                phone: phone,
-                group: group,
-                requestedAt: Date.now(),
-                status: 'pending'
-            }).catch(() => {});
-        }
-
-        if (isSuper) {
-            showAtharNotification("مرحباً بك في لوحة الإدارة العليا!");
-            window.location.replace('/super-admin');
-        } else {
-            showAtharNotification("تم تسجيل حسابك بنجاح وهو قيد اعتماد الإدارة العليا.", "info");
-            window.location.replace('/?status=pending');
-        }
+        showAtharNotification("تم إنشاء الحساب بنجاح!");
+        window.location.replace('/setup');
     } catch (error) {
         let msg = "خطأ في إنشاء الحساب: " + error.message;
         if (error.code === 'auth/email-already-in-use') {
@@ -141,44 +107,28 @@ export async function handleGoogleLogin(isRegistration = false) {
         const user = result.user;
         setCurrentUser(user);
 
-        const isSuper = (user.email || '').toLowerCase() === 'hrhalsharif@gmail.com';
-
-        if (isSuper) {
-            showAtharNotification("مرحباً بك يا مدير المنظومة!");
-            window.location.replace('/super-admin');
-            return;
-        }
-
         const userRef = ref(db, `users/${user.uid}`);
         const snapshot = await get(userRef);
 
         if (!snapshot.exists()) {
-            // مستخدم جديد يسجل عبر جوجل لأول مرة -> يدخل في قائمة الانتظار
+            let role = 'followup_supervisor';
+            if (isRegistration) {
+                const roleElem = document.getElementById('selected-role');
+                role = roleElem ? roleElem.value : 'followup_supervisor';
+            }
+
             await set(userRef, {
                 email: user.email,
                 name: user.displayName || "مشرف جديد",
-                phone: "",
-                role: 'followup_supervisor',
-                status: 'pending',
-                createdAt: Date.now(),
-                accessExpiresAt: null
+                role: role,
+                createdAt: Date.now()
             });
 
-            push(ref(db, 'demo_requests'), {
-                uid: user.uid,
-                name: user.displayName || "مشرف جديد",
-                email: user.email,
-                phone: "",
-                group: "",
-                requestedAt: Date.now(),
-                status: 'pending'
-            }).catch(() => {});
-
-            showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! حسابك قيد اعتماد الإدارة العليا.`, "info");
-            window.location.replace('/?status=pending');
+            showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! تم إنشاء حسابك بنجاح.`);
+            window.location.replace('/setup');
         } else {
-            // مستخدم موجود -> فحص الصلاحيات
             await update(userRef, { name: user.displayName || "مشرف أثر" });
+            showAtharNotification("تم تسجيل الدخول بنجاح!");
             await redirectAfterAuth(user.uid);
         }
     } catch (error) {
@@ -199,40 +149,15 @@ export async function handleLogout() {
 }
 
 /**
- * التوجيه بعد تسجيل الدخول حسب دور المستخدم ومجموعته وحالة تفعيله
+ * التوجيه بعد تسجيل الدخول حسب دور المستخدم ومجموعته
  */
 export async function redirectAfterAuth(uid) {
-    const userEmail = (auth.currentUser?.email || '').toLowerCase();
-    if (userEmail === 'hrhalsharif@gmail.com') {
-        window.location.replace('/super-admin');
-        return;
-    }
-
     const userRef = ref(db, `users/${uid}`);
     const snapshot = await get(userRef);
     const userData = snapshot.val();
 
     if (!userData) {
-        window.location.replace('/?status=pending');
-        return;
-    }
-
-    // ── فحص حالة تفعيل الحساب من الإدارة العليا ──
-    if (userData.status === 'pending') {
-        showAtharNotification('⏳ حسابك قيد المراجعة والاعتماد من الإدارة العليا.', 'info');
-        window.location.replace('/?status=pending');
-        return;
-    }
-
-    if (userData.status === 'suspended') {
-        showAtharNotification('🚫 تم إيقاف هذا الحساب من قِبل الإدارة العليا.', 'error');
-        window.location.replace('/?status=suspended');
-        return;
-    }
-
-    if (userData.accessExpiresAt && Date.now() > userData.accessExpiresAt) {
-        showAtharNotification('⌛ انتهت مدة الصلاحية المصرح بها لحسابك.', 'warning');
-        window.location.replace('/?status=expired');
+        window.location.replace('/setup');
         return;
     }
 

@@ -24,7 +24,7 @@
         <form id="sa-login-form" onsubmit="window.handleSaLogin(event)">
             <div style="margin-bottom: 14px; text-align: right;">
                 <label class="sa-input-label"><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
-                <input type="email" id="sa-input-email" class="sa-input" value="hrhalsharif@gmail.com" required dir="ltr" />
+                <input type="email" id="sa-input-email" class="sa-input" placeholder="أدخل البريد الإلكتروني" required dir="ltr" />
             </div>
             <div style="margin-bottom: 20px; text-align: right;">
                 <label class="sa-input-label"><i class="fa-solid fa-lock"></i> كلمة المرور</label>
@@ -32,7 +32,7 @@
             </div>
 
             <button type="submit" id="sa-login-submit" class="btn-sa-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; margin-bottom: 10px;">
-                <i class="fa-solid fa-right-to-bracket"></i> دخول لوحة الإدارة العليا
+                <i class="fa-solid fa-right-to-bracket"></i> دخول لوحة الإحصائيات
             </button>
 
             <button type="button" onclick="window.handleSaGoogleLogin()" class="btn-sa-secondary" style="width: 100%; justify-content: center; padding: 10px; display: flex; align-items: center; gap: 8px;">
@@ -47,46 +47,15 @@
 
 <header class="sa-header" id="sa-header" style="display:none;">
     <div class="sa-header-brand">
-        <div class="brand-icon">&#x1F451;</div>
-        <div><h1>لوحة التحكم العليا</h1><small>Athar Super Admin — hrhalsharif@gmail.com</small></div>
+        <div class="brand-icon">&#x1F4CA;</div>
+        <div><h1>لوحة التحكم العليا</h1><small>Athar Admin — متابعة إحصائيات النظام ومقاييس الأداء</small></div>
     </div>
     <div class="sa-header-actions">
-        <button class="status-toggle-btn paused" id="system-toggle-btn" onclick="toggleSystemStatus()">
-            <span class="status-pulse"></span>
-            <span id="system-toggle-label">النظام: موقوف</span>
-        </button>
         <button class="btn-sa-logout" onclick="saLogout()">خروج</button>
     </div>
 </header>
 
 <main class="sa-container" id="sa-main" style="display:none;">
-    <!-- ── Users & Demo Management Panel ── -->
-    <div class="sa-section-title">
-        <i class="fa-solid fa-users-gear"></i> إدارة المستخدمين وصلاحيات الديمو
-    </div>
-    <div class="sa-panel" style="margin-bottom: 28px;">
-        <div class="sa-panel-header">
-            <h3>
-                <i class="fa-solid fa-user-shield" style="color:var(--sa-gold);"></i>
-                المشرفون المسجلون وتفعيل الحسابات
-                <span id="users-count-badge" style="background:var(--sa-gold-dim);color:var(--sa-gold);font-size:0.7rem;padding:2px 8px;border-radius:12px;font-weight:700;">0</span>
-            </h3>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <select id="users-filter-select" onchange="window.filterUsers(this.value)" class="sa-input" style="padding:5px 10px;font-size:0.75rem;width:auto;">
-                    <option value="all">كافة الحسابات</option>
-                    <option value="pending">قيد المراجعة ⏳</option>
-                    <option value="active">مفعّلون نشطون 🟢</option>
-                    <option value="suspended">موقوفون 🔴</option>
-                </select>
-                <button class="btn-sa-secondary" onclick="window.loadUsersList()"><i class="fa-solid fa-rotate"></i></button>
-            </div>
-        </div>
-        <div class="sa-panel-body" id="users-management-list">
-            <div class="sa-empty"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto;"></div></div>
-        </div>
-    </div>
-
-    <div class="sa-section-title">مقاييس النظام</div>
     <div class="sa-metrics-grid">
         <div class="sa-metric-card gold"><div class="metric-icon gold"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="metric-value" id="m-gemini-total">0</div><div class="metric-label">استدعاءات Gemini الكلية</div></div>
         <div class="sa-metric-card green"><div class="metric-icon green"><i class="fa-solid fa-robot"></i></div><div class="metric-value" id="m-gemini-msg">0</div><div class="metric-label">رسائل ذكية أنشئت</div></div>

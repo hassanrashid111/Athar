@@ -161,19 +161,7 @@ export function initPageAuth(requiredRole = null) {
 
             setCurrentUser(activeUser);
 
-            // ── التحقق من حالة النظام أولاً (Phase 4) ──────────────────────────
-            // Super Admin يتجاوز هذا الفحص دائماً
-            const userEmail = user?.email || cachedUserData?.email || '';
-            if (userEmail !== SUPER_ADMIN_EMAIL && navigator.onLine) {
-                const systemStatus = await checkSystemStatus();
-                if (systemStatus === 'paused') {
-                    // النظام موقوف → الصفحة الرئيسية ستعرض شاشة الانتظار
-                    window.location.replace('/');
-                    return;
-                }
-            }
-
-            // 1. محاولة جلب بيانات المستخدم من Firebase أو الكاش
+            // محاولة جلب بيانات المستخدم من Firebase أو الكاش
             let userData = null;
             try {
                 if (navigator.onLine && user) {
@@ -190,28 +178,8 @@ export function initPageAuth(requiredRole = null) {
             if (!userData) userData = cachedUserData;
 
             if (!userData) {
-                window.location.replace('/?status=pending');
+                window.location.replace('/');
                 return;
-            }
-
-            // ── التحقق من حالة تفعيل وصلاحية الحساب من الإدارة العليا ──────────
-            const normalizedEmail = (user?.email || userData?.email || '').toLowerCase();
-            if (normalizedEmail !== SUPER_ADMIN_EMAIL.toLowerCase()) {
-                if (userData.status === 'pending') {
-                    showAtharNotification('⏳ حسابك قيد المراجعة والاعتماد من الإدارة العليا.', 'info');
-                    window.location.replace('/?status=pending');
-                    return;
-                }
-                if (userData.status === 'suspended') {
-                    showAtharNotification('🚫 تم إيقاف هذا الحساب من قِبل الإدارة العليا.', 'error');
-                    window.location.replace('/?status=suspended');
-                    return;
-                }
-                if (userData.accessExpiresAt && Date.now() > userData.accessExpiresAt) {
-                    showAtharNotification('⌛ انتهت مدة الصلاحية المصرح بها لحسابك.', 'warning');
-                    window.location.replace('/?status=expired');
-                    return;
-                }
             }
 
             state.userInfo = userData;
@@ -241,9 +209,6 @@ export function initPageAuth(requiredRole = null) {
                 displayNameElem.innerText = userData.name;
             }
 
-            // ── تفعيل الاستماع الفوري لتغييرات حالة النظام بعد النجاح ──────────
-            subscribeSystemStatus(user?.email || '');
-
             resolve({ user: activeUser, userData, activeGroupId });
         });
     });
@@ -251,10 +216,6 @@ export function initPageAuth(requiredRole = null) {
 
 /**
  * حماية صفحة الدخول: إذا كان المستخدم مسجل بالفعل، يتم تحويله للوحة التحكم
- *
- * Phase 4 Update: إذا كان النظام موقوفاً (paused)، لا يتم تحويل المستخدمين العاديين —
- * يبقون في صفحة الانتظار. فقط Super Admin يُحوَّل.
- * Blank-Slate Safe: null status → 'paused' → المستخدم يرى شاشة الانتظار
  */
 export function checkAlreadyLoggedIn() {
     onAuthStateChanged(auth, async (user) => {
@@ -263,14 +224,6 @@ export function checkAlreadyLoggedIn() {
         const activeUser = user || cachedUser;
 
         if (activeUser) {
-            const isSuperAdmin = (activeUser?.email || cachedUserData?.email || '').toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-
-            // Super Admin → دائماً يُحوَّل للوحة التحكم العليا فورياً
-            if (isSuperAdmin) {
-                window.location.replace('/super-admin');
-                return;
-            }
-
             let userData = null;
             try {
                 if (navigator.onLine && user) {
@@ -287,25 +240,6 @@ export function checkAlreadyLoggedIn() {
             if (!userData) userData = cachedUserData;
 
             if (userData) {
-                // المستخدمون العاديون → فحص حالة تفعيل الحساب أولاً
-                if (userData.status === 'pending' || userData.status === 'suspended') {
-                    // الحساب قيد المراجعة أو موقوف → لا يُحوَّل للوحة التحكم
-                    return;
-                }
-                if (userData.accessExpiresAt && Date.now() > userData.accessExpiresAt) {
-                    // منتهي الصلاحية → لا يُحوَّل
-                    return;
-                }
-
-                // فحص حالة النظام
-                if (navigator.onLine) {
-                    const systemStatus = await checkSystemStatus();
-                    if (systemStatus === 'paused') {
-                        // النظام موقوف → لا توجيه، يبقى في صفحة الانتظار
-                        return;
-                    }
-                }
-
                 const activeGroupId = userData.activeGroupId || userData.groupId;
                 if (!activeGroupId) {
                     window.location.replace('/setup');
@@ -325,19 +259,18 @@ export function checkAlreadyLoggedIn() {
 
 /**
  * حارس صفحة /super-admin
- * يتحقق من صلاحية المشرف الأعلى بأمان ودون أي تكرار أو Loops
- * @returns {Promise<{user, email, isSuperAdmin}>}
+ * يتيح متابعة الإحصائيات بأمان وسهولة
+ * @returns {Promise<{user, email}>}
  */
 export function initSuperAdminRoute() {
     return new Promise((resolve) => {
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                resolve({ user: null, email: null, isSuperAdmin: false });
+                resolve({ user: null, email: null });
                 return;
             }
 
-            const isSuper = (user.email || '').toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-            resolve({ user, email: user.email, isSuperAdmin: isSuper });
+            resolve({ user, email: user.email });
         });
     });
 }
