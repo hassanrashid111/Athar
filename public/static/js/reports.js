@@ -307,12 +307,12 @@ export function exportToExcel() {
 }
 
 /**
- * استخراج تقرير نصي شامل
+ * استخراج تقرير نصي شامل وفتحه داخل نافذة منبثقة في التطبيق
  */
 export function getReportFile() {
     const activeStudents = state.students.filter(s => !s.deleted);
     const totalActive = activeStudents.length;
-    const noWelcomeReplyCount = activeStudents.filter(s => s.name.trim().length === 0).length;
+    const noWelcomeReplyCount = activeStudents.filter(s => s.name && s.name.trim().length === 0).length;
 
     const supervisorName = state.userInfo?.name || "غير معروف";
     const groupName = state.groupInfo?.name || "غير محدد";
@@ -324,7 +324,9 @@ export function getReportFile() {
     reportText += `اسم المشرف: ${supervisorName}\n`;
     reportText += `تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
     reportText += `عدد الطلاب النشطين (العدد الفعلي): ${totalActive}\n\n`;
-    reportText += `⚠️ طلبة لم ترد على رسالة الترحيب (بدون اسم): ${noWelcomeReplyCount}\n\n`;
+    if (noWelcomeReplyCount > 0) {
+        reportText += `⚠️ طلبة لم ترد على رسالة الترحيب (بدون اسم): ${noWelcomeReplyCount}\n\n`;
+    }
     reportText += `----------------------------------------\n`;
     reportText += `📊 تفاصيل المحاضرات:\n----------------------------------------\n`;
 
@@ -344,13 +346,33 @@ export function getReportFile() {
 
     reportText += `\n\n📈 ملخص عام:\n----------------------------------------\n• إجمالي المحاضرات: ${state.lectures.length}\n\nتم استخراج هذا التقرير آلياً.`;
 
-    const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Athar_Report_${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const reportContentElem = document.getElementById('text-report-content');
+    const modalElem = document.getElementById('text-report-modal');
+
+    if (reportContentElem && modalElem) {
+        reportContentElem.value = reportText;
+        modalElem.style.display = 'flex';
+    } else {
+        navigator.clipboard.writeText(reportText).then(() => {
+            showAtharNotification("تم نسخ التقرير النصي بنجاح ✓", "success");
+        });
+    }
+}
+
+/**
+ * نسخ التقرير النصي إلى الحافظة
+ */
+export function copyTextReport() {
+    const textElem = document.getElementById('text-report-content');
+    if (!textElem || !textElem.value) return;
+
+    navigator.clipboard.writeText(textElem.value).then(() => {
+        showAtharNotification("تم نسخ التقرير النصي الشامل بنجاح ✓", "success");
+    }).catch(() => {
+        textElem.select();
+        document.execCommand("copy");
+        showAtharNotification("تم نسخ التقرير النصي الشامل بنجاح ✓", "success");
+    });
 }
 
 /**

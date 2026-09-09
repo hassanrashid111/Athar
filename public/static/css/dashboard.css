@@ -747,3 +747,165 @@ input:checked + .slider:before {
     transform: translate(-50%, -50%) scale(1.08) !important;
     box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
 }
+
+/* ================= Accordion Sidebar Styling ================= */
+.sidebar-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.sidebar-group {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-white);
+    transition: all 0.2s ease;
+}
+
+.sidebar-group-btn {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-light);
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: #000000;
+    transition: background 0.15s ease;
+}
+
+.sidebar-group-btn span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #000000;
+}
+
+.sidebar-group-btn .arrow-icon {
+    font-size: 0.85rem;
+    color: #000000;
+    transition: transform 0.25s ease;
+}
+
+.sidebar-group.open .sidebar-group-btn .arrow-icon {
+    transform: rotate(180deg);
+}
+
+.sidebar-group-content {
+    display: none;
+    flex-direction: column;
+    padding: 6px 8px;
+    gap: 4px;
+    background: var(--card-white);
+    border-top: 1px solid var(--border-color);
+}
+
+.sidebar-group.open .sidebar-group-content {
+    display: flex;
+}
+
+.sidebar-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #000000;
+    border-radius: 6px;
+    text-align: right;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-sub-item i {
+    color: #000000;
+}
+
+.sidebar-sub-item:hover {
+    background: var(--bg-light);
+    color: var(--primary-green);
+}
+
+.sidebar-sub-item:hover i {
+    color: var(--primary-green);
+}
+
+.sidebar-sub-item.btn-sidebar-logout {
+    color: #e74c3c !important;
+}
+
+.sidebar-sub-item.btn-sidebar-logout i {
+    color: #e74c3c !important;
+}
+
+/* Dark Mode Overrides for Accordion Sidebar & Inputs */
+body.dark-theme .sidebar-group {
+    background: #13221c;
+    border-color: #1e3a2f;
+}
+
+body.dark-theme .sidebar-group-btn {
+    background: #0b1311;
+    color: #ffffff !important;
+}
+
+body.dark-theme .sidebar-group-btn span,
+body.dark-theme .sidebar-group-btn .arrow-icon {
+    color: #ffffff !important;
+}
+
+body.dark-theme .sidebar-group-content {
+    background: #13221c;
+    border-top-color: #1e3a2f;
+}
+
+body.dark-theme .sidebar-sub-item {
+    color: #ffffff !important;
+}
+
+body.dark-theme .sidebar-sub-item i {
+    color: #ffffff !important;
+}
+
+body.dark-theme .sidebar-sub-item:hover {
+    background: #1e3a2f;
+    color: #25D366 !important;
+}
+
+body.dark-theme .sidebar-sub-item:hover i {
+    color: #25D366 !important;
+}
+
+/* Ensure Lecture Header Names in Dark Mode are White */
+body.dark-theme thead th,
+body.dark-theme thead th span,
+body.dark-theme .lecture-header span {
+    color: #ffffff !important;
+}
+
+/* Ensure Text Inputs in Dark Mode Have Dark Background */
+body.dark-theme input[type="text"],
+body.dark-theme input[type="number"],
+body.dark-theme input[type="email"],
+body.dark-theme input[type="tel"],
+body.dark-theme input[type="url"],
+body.dark-theme textarea,
+body.dark-theme select,
+body.dark-theme .modal-card input,
+body.dark-theme .modal-card textarea,
+body.dark-theme .modal-card select {
+    background-color: #0b1311 !important;
+    color: #f1f5f9 !important;
+    border-color: #1e3a2f !important;
+}

@@ -11,6 +11,31 @@ import {
 import { showAtharNotification } from "./utils.js";
 import { state, currentUser, setCurrentUser } from "./state.js";
 
+/** مفاتيح التخزين المحلي */
+const CACHE_USER_KEY        = 'athar_cached_user';
+const CACHE_USER_DATA_KEY   = 'athar_cached_user_data';
+const EXPLICIT_LOGOUT_KEY   = 'athar_explicitly_logged_out';
+
+/** مسح كاش المستخدم بالكامل عند تسجيل الخروج */
+function clearAuthCache() {
+    try {
+        localStorage.removeItem(CACHE_USER_KEY);
+        localStorage.removeItem(CACHE_USER_DATA_KEY);
+        localStorage.setItem(EXPLICIT_LOGOUT_KEY, '1');
+        // مسح كل مفاتيح الحالة المحلية
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('athar_offline_state_') || k.startsWith('athar_offline_queue')) {
+                localStorage.removeItem(k);
+            }
+        });
+    } catch (e) {
+        console.warn('[Auth] Failed to clear cache:', e);
+    }
+}
+
+/** mutex لمنع تعدد استدعاءات Google Login */
+let _googleLoginInProgress = false;
+
 /**
  * تسجيل الدخول بالبريد وكلمة المرور
  */
@@ -30,6 +55,9 @@ export async function handleLogin(e) {
     }
 
     try {
+        // مسح علامة الخروج عند تسجيل دخول جديد
+        try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
+
         const userCredential = await signInWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
         setCurrentUser(user);
@@ -73,6 +101,9 @@ export async function handleRegister(e) {
     }
 
     try {
+        // مسح علامة الخروج عند إنشاء حساب جديد
+        try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
         setCurrentUser(user);
@@ -99,10 +130,24 @@ export async function handleRegister(e) {
 }
 
 /**
- * تسجيل الدخول / إنشاء حساب عبر جوجل
+ * تسجيل الدخول / إنشاء حساب عبر جوجل — مع mutex لمنع الاستدعاء المزدوج
  */
 export async function handleGoogleLogin(isRegistration = false) {
+    if (_googleLoginInProgress) {
+        showAtharNotification("جاري معالجة الطلب، يرجى الانتظار...", 'info');
+        return;
+    }
+    _googleLoginInProgress = true;
+
+    // timeout تلقائي 30 ثانية
+    const timeoutId = setTimeout(() => {
+        _googleLoginInProgress = false;
+    }, 30000);
+
     try {
+        // مسح علامة الخروج الصريح قبل الدخول الجديد
+        try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
+
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         setCurrentUser(user);
@@ -132,19 +177,28 @@ export async function handleGoogleLogin(isRegistration = false) {
             await redirectAfterAuth(user.uid);
         }
     } catch (error) {
-        showAtharNotification("خطأ في العملية عبر جوجل: " + error.message, 'error');
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            showAtharNotification("خطأ في العملية عبر جوجل: " + error.message, 'error');
+        }
+    } finally {
+        clearTimeout(timeoutId);
+        _googleLoginInProgress = false;
     }
 }
 
 /**
- * تسجيل الخروج
+ * تسجيل الخروج — مع مسح كامل للكاش لمنع إعادة الدخول التلقائي
  */
 export async function handleLogout() {
     try {
+        clearAuthCache(); // مسح الكاش أولاً قبل signOut
         await signOut(auth);
-        window.location.href = '/';
+        window.location.replace('/');
     } catch (error) {
+        // حتى لو فشل signOut، نمسح الكاش ونوجّه للصفحة الرئيسية
+        clearAuthCache();
         showAtharNotification("خطأ في تسجيل الخروج", "error");
+        setTimeout(() => { window.location.replace('/'); }, 1000);
     }
 }
 

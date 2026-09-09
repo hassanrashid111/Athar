@@ -142,3 +142,256 @@ body.dark-theme .input-wrapper input {
         padding: 2rem 1.25rem;
     }
 }
+
+/* ================= Stepper System ================= */
+.stepper-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 28px;
+    padding: 0 10px;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.step-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-light);
+    font-weight: 700;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 2px solid var(--border-color);
+}
+
+.step-item.active .step-circle {
+    background: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 4px rgba(26, 93, 58, 0.2);
+}
+
+.step-item.done .step-circle {
+    background: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+}
+
+.step-item span {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.step-item.active span,
+.step-item.done span {
+    color: var(--primary-green);
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border-color);
+    margin: 0 6px;
+    margin-bottom: 18px;
+    transition: background 0.3s;
+    min-width: 30px;
+}
+
+.step-line.done {
+    background: var(--primary-green);
+}
+
+.setup-step {
+    animation: fadeSlide 0.3s ease;
+}
+
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ================= Role Choice Cards ================= */
+.role-choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.role-choice-btn {
+    background: var(--bg-light);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    padding: 18px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.role-choice-btn:hover {
+    border-color: var(--primary-green);
+    background: rgba(26, 93, 58, 0.05);
+    transform: translateY(-2px);
+}
+
+.role-choice-btn.selected {
+    border-color: var(--primary-green);
+    background: rgba(26, 93, 58, 0.1);
+    box-shadow: 0 0 0 3px rgba(26, 93, 58, 0.15);
+}
+
+.role-choice-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1A5D3A 0%, #D4AF37 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+}
+
+.role-choice-title {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-dark);
+}
+
+.role-choice-desc {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+/* ================= Stepper Footer Buttons ================= */
+.stepper-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-step-next {
+    background: linear-gradient(135deg, var(--primary-green) 0%, #2d8a5a 100%);
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-step-next:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(26, 93, 58, 0.3);
+}
+
+.btn-step-next:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn-step-back {
+    background: transparent;
+    color: var(--text-light);
+    border: 1.5px solid var(--border-color);
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-step-back:hover {
+    border-color: var(--primary-green);
+    color: var(--primary-green);
+}
+
+/* ================= Step 3 Summary ================= */
+.step3-success-icon {
+    font-size: 3rem;
+    color: var(--primary-green);
+    margin-bottom: 8px;
+    animation: bounceIn 0.4s ease;
+}
+
+@keyframes bounceIn {
+    0%   { transform: scale(0.3); opacity: 0; }
+    60%  { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.step3-summary {
+    background: var(--bg-light);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 16px 0;
+    text-align: right;
+}
+
+.summary-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.summary-row:last-child { border-bottom: none; }
+
+.summary-row i {
+    color: var(--primary-green);
+    width: 18px;
+    text-align: center;
+}
+
+.summary-label {
+    color: var(--text-light);
+    font-size: 0.82rem;
+    min-width: 80px;
+}
+
+.summary-value {
+    font-weight: 700;
+    color: var(--text-dark);
+    flex: 1;
+}
+
+@media (max-width: 480px) {
+    .role-choice-grid { grid-template-columns: 1fr; }
+    .role-choice-desc { display: none; }
+}

@@ -18,7 +18,8 @@ import { handleLogout, openProfileModal, saveProfileChanges } from "./auth.js";
 import {
     addStudentFlow, deleteStudentFlow, openEditStudentModal,
     saveStudentDataEdit, processBulkImport, openNotesModal,
-    closeNotesModal, saveStudentNotes, wipeAllData,
+    closeNotesModal, saveStudentNotes, downloadChartOnlyImage,
+    copyAttendanceHistory, wipeAllData,
     initiateStudentTransfer, checkPendingTransfers,
     openAICleaner, closeAICleaner, runAICleaner,
     importCleanedStudents, copyCleanedStudents,
@@ -41,7 +42,7 @@ import {
     closeCertSettings, saveCertSettings, handleCertTemplateUpload,
     updateVisualMarkersPositions
 } from "./certificates.js";
-import { exportToExcel, getReportFile, backupData, restoreData } from "./reports.js";
+import { exportToExcel, getReportFile, copyTextReport, backupData, restoreData } from "./reports.js";
 import {
     checkTransferNotifications, checkNewLectureNotifications,
     checkPendingRepliedReminder, requestNotificationPermission,
@@ -61,6 +62,7 @@ export async function initDashboard() {
     renderDate();
     renderHadith();
     setupDropdownListeners();
+    checkPWAInstallVisibility();
 
     // التحقق من الصلاحيات واسترجاع المستخدم والمجموعة
     const { user, userData, activeGroupId } = await initPageAuth();
@@ -409,7 +411,11 @@ export function renderTable(studentsList = null) {
                 const cellClass = progressValue === 'replied' ? 'status-replied' : '';
 
                 rowHTML += `
-                    <td data-lec-id="${lec.id}" class="${cellClass}" oncontextmenu="window.app.showContext(event, ${student.id}, '${lec.id}')">
+                    <td data-lec-id="${lec.id}" class="${cellClass}" 
+                        oncontextmenu="window.app.showContext(event, ${student.id}, '${lec.id}')"
+                        ontouchstart="window.app.touchStart(event, ${student.id}, '${lec.id}')"
+                        ontouchend="window.app.touchEnd(event)"
+                        ontouchmove="window.app.touchMove(event)">
                         <div class="check-wrapper" style="justify-content: center;">                        
                             <input type="checkbox" ${isChecked ? 'checked' : ''} 
                             onchange="window.app.toggleCheck(${student.id}, '${lec.id}')"
@@ -670,6 +676,28 @@ export function renderHadith() {
 }
 
 /**
+ * نسخ الحديث الشريف إلى الحافظة
+ */
+export function copyHadith() {
+    const text = document.getElementById('hadith-text')?.innerText || '';
+    const source = document.getElementById('hadith-source')?.innerText || '';
+    if (!text) return;
+
+    const fullHadith = `${text}\n${source}`.trim();
+    navigator.clipboard.writeText(fullHadith).then(() => {
+        showAtharNotification("تم نسخ الحديث الشريف بنجاح ✓", "success");
+    }).catch(() => {
+        const dummy = document.createElement("textarea");
+        dummy.value = fullHadith;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        showAtharNotification("تم نسخ الحديث الشريف بنجاح ✓", "success");
+    });
+}
+
+/**
  * تبديل المظهر (Dark / Light)
  */
 export function toggleTheme() {
@@ -684,18 +712,61 @@ export function loadTheme() {
     }
 }
 
+let touchTimer = null;
+let touchMoved = false;
+
+export function handleCellTouchStart(e, sId, lId) {
+    touchMoved = false;
+    if (touchTimer) clearTimeout(touchTimer);
+    
+    touchTimer = setTimeout(() => {
+        if (!touchMoved) {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(40); } catch (err) {}
+            }
+            const touch = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
+            showContextMenu(touch, sId, lId);
+        }
+    }, 400);
+}
+
+export function handleCellTouchEnd() {
+    if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+    }
+}
+
+export function handleCellTouchMove() {
+    touchMoved = true;
+    if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+    }
+}
+
 /**
- * قائمة السياق بالزر الأيمن
+ * قائمة السياق بالزر الأيمن أو الضغط المطول
  */
 export function showContextMenu(e, sId, lId) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     contextTarget = { sId, lId };
 
     const menu = document.getElementById('context-menu');
     if (menu) {
         menu.style.display = 'block';
-        menu.style.left = `${e.pageX}px`;
-        menu.style.top = `${e.pageY}px`;
+        const pageX = e.pageX !== undefined ? e.pageX : (e.clientX || 0);
+        const pageY = e.pageY !== undefined ? e.pageY : (e.clientY || 0);
+        
+        const menuWidth = 220;
+        const screenWidth = window.innerWidth;
+        let leftPos = pageX;
+        if (leftPos + menuWidth > screenWidth) {
+            leftPos = Math.max(10, screenWidth - menuWidth - 10);
+        }
+
+        menu.style.left = `${leftPos}px`;
+        menu.style.top = `${pageY}px`;
     }
 }
 
@@ -815,6 +886,36 @@ export function toggleMenuFlow() {
     }
 }
 
+/**
+ * تبديل فتح وإغلاق مجموعات القائمة الجانبية (Accordion Groups)
+ */
+export function toggleSidebarGroup(btn) {
+    if (!btn) return;
+    const group = btn.closest('.sidebar-group');
+    if (!group) return;
+    
+    const isOpen = group.classList.contains('open');
+    if (!isOpen) {
+        group.classList.add('open');
+    } else {
+        group.classList.remove('open');
+    }
+}
+
+/**
+ * إخفاء زر تثبيت التطبيق إذا كان المستخدم يعمل بالفعل داخل الـ PWA (standalone mode)
+ */
+export function checkPWAInstallVisibility() {
+    const installBtn = document.getElementById('pwa-install-sidebar-btn');
+    if (!installBtn) return;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+        installBtn.style.display = 'none';
+    } else {
+        installBtn.style.display = 'flex';
+    }
+}
+
 // تجميع كل دوال التطبيق وإتاحتها للـ UI
 window.app = {
     logout: () => handleLogout(),
@@ -841,6 +942,8 @@ window.app = {
     openNotes: (id) => openNotesModal(id),
     closeNotes: () => closeNotesModal(),
     saveNotes: () => saveStudentNotes(() => renderDashboard()),
+    downloadChartOnlyImage: () => downloadChartOnlyImage(),
+    copyAttendanceHistory: () => copyAttendanceHistory(),
     clearAllData: () => wipeAllData(() => renderDashboard()),
     initiateStudentTransfer: () => initiateStudentTransfer(() => renderDashboard()),
     openCustomTransferModal: (cb) => openCustomTransferModal(cb),
@@ -865,14 +968,19 @@ window.app = {
     insertVariable: (text) => insertVariable(text),
 
     showContext: (e, sId, lId) => showContextMenu(e, sId, lId),
+    touchStart: (e, sId, lId) => handleCellTouchStart(e, sId, lId),
+    touchEnd: (e) => handleCellTouchEnd(e),
+    touchMove: (e) => handleCellTouchMove(e),
     manualStatus: (days) => manualStatus(days),
 
     search: () => handleSearch(),
     sort: (criteria, id) => sortStudents(criteria, id),
     toggleTheme: () => toggleTheme(),
+    copyHadith: () => copyHadith(),
 
     exportData: () => exportToExcel(),
     getReport: () => getReportFile(),
+    copyTextReport: () => copyTextReport(),
     backupData: () => backupData(),
     restoreData: (e) => restoreData(e, () => renderDashboard()),
 
@@ -906,6 +1014,7 @@ window.app = {
     requestNotificationPermission: () => requestNotificationPermission(),
     flushOfflineSyncQueue: () => flushOfflineSyncQueue(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
+    toggleSidebarGroup: (btn) => toggleSidebarGroup(btn),
     toggleMenu: () => toggleMenuFlow()
 };
 

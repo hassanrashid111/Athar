@@ -9,35 +9,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     <link rel="stylesheet" href="/static/css/super_admin.css" />
 </head>
-<body>
+<body class="dark-mode">
+
+<!-- ══ Loader ══════════════════════════════════════════════ -->
 <div id="sa-loader"><div class="spinner"></div><p>جاري التحقق من الصلاحيات...</p></div>
+
+<!-- ══ Toast ═══════════════════════════════════════════════ -->
 <div id="sa-toast" class="sa-toast"></div>
-<!-- Direct Super Admin Login View (Rendered if not signed in) -->
+
+<!-- ══ Step 1: Firebase Auth ════════════════════════════════ -->
 <div id="sa-auth-view" class="sa-login-container" style="display:none;">
     <div class="sa-login-box">
-        <div style="font-size: 2.5rem; margin-bottom: 8px;">👑</div>
-        <h2 style="color: var(--sa-gold); font-size: 1.45rem; font-weight: 900; margin-bottom: 4px;">الإدارة العليا لمنصة أثر</h2>
-        <p style="color: var(--sa-muted); font-size: 0.85rem; margin-bottom: 24px;">تسجيل الدخول المباشر لحساب Super Admin</p>
+        <div class="sa-login-crown">👑</div>
+        <h2>الإدارة العليا — أثر</h2>
+        <p class="sa-login-sub">تسجيل الدخول بحساب Firebase الخاص بك</p>
 
         <form id="sa-login-form" onsubmit="window.handleSaLogin(event)">
-            <div style="margin-bottom: 14px; text-align: right;">
+            <div class="sa-field">
                 <label class="sa-input-label"><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
                 <input type="email" id="sa-input-email" class="sa-input" placeholder="أدخل البريد الإلكتروني" required dir="ltr" />
             </div>
-            <div style="margin-bottom: 20px; text-align: right;">
+            <div class="sa-field">
                 <label class="sa-input-label"><i class="fa-solid fa-lock"></i> كلمة المرور</label>
                 <input type="password" id="sa-input-password" class="sa-input" placeholder="أدخل كلمة المرور" required />
             </div>
 
-            <button type="submit" id="sa-login-submit" class="btn-sa-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; margin-bottom: 10px;">
-                <i class="fa-solid fa-right-to-bracket"></i> دخول لوحة الإحصائيات
+            <button type="submit" id="sa-login-submit" class="btn-sa-primary" style="width:100%; justify-content:center; margin-top:8px;">
+                <i class="fa-solid fa-right-to-bracket"></i> دخول
             </button>
-
-            <button type="button" onclick="window.handleSaGoogleLogin()" class="btn-sa-secondary" style="width: 100%; justify-content: center; padding: 10px; display: flex; align-items: center; gap: 8px;">
+            <button type="button" onclick="window.handleSaGoogleLogin()" class="btn-sa-secondary" style="width:100%; justify-content:center; margin-top:10px; display:flex; align-items:center; gap:8px;">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
-                الدخول عبر حساب Google
+                الدخول عبر Google
             </button>
         </form>
 
@@ -45,58 +50,197 @@
     </div>
 </div>
 
+<!-- ══ Step 2: Second Password Verification ═════════════════ -->
+<div id="sa-password-view" class="sa-login-container" style="display:none;">
+    <div class="sa-login-box">
+        <div class="sa-login-crown">🔐</div>
+        <h2>التحقق الثاني</h2>
+        <p class="sa-login-sub">أدخل كلمة مرور الإدارة العليا للمتابعة</p>
+
+        <div class="sa-field">
+            <label class="sa-input-label"><i class="fa-solid fa-shield-halved"></i> كلمة مرور الإدارة</label>
+            <input type="password" id="sa-second-password" class="sa-input" placeholder="أدخل كلمة المرور الإدارية" required />
+        </div>
+
+        <button type="button" id="sa-verify-btn" class="btn-sa-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="window.verifySaPassword()">
+            <i class="fa-solid fa-shield-check"></i> تحقق وادخل
+        </button>
+        <button type="button" class="btn-sa-secondary" style="width:100%; justify-content:center; margin-top:10px;" onclick="window.saLogout()">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+        </button>
+
+        <div id="sa-pw-error" style="display:none; margin-top:14px; padding:10px; border-radius:8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#f87171; font-size:0.82rem; font-weight:700;"></div>
+    </div>
+</div>
+
+<!-- ══ Header ════════════════════════════════════════════════ -->
 <header class="sa-header" id="sa-header" style="display:none;">
     <div class="sa-header-brand">
-        <div class="brand-icon">&#x1F4CA;</div>
-        <div><h1>لوحة التحكم العليا</h1><small>Athar Admin — متابعة إحصائيات النظام ومقاييس الأداء</small></div>
+        <div class="brand-icon">
+            <img src="/static/assets/logo_transparent.png" alt="أثر" style="width:22px; height:22px; object-fit:contain;" onerror="this.style.display='none'; this.parentElement.textContent='📊';">
+        </div>
+        <div>
+            <h1>لوحة التحكم العليا</h1>
+            <small>Athar Super Admin — إحصائيات ومقاييس النظام</small>
+        </div>
     </div>
     <div class="sa-header-actions">
-        <button class="btn-sa-logout" onclick="saLogout()">خروج</button>
+        <!-- Light/Dark Toggle -->
+        <button class="btn-theme-toggle" id="btn-theme-toggle" onclick="window.toggleTheme()" title="تبديل المظهر">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+        <button class="btn-sa-logout" onclick="window.saLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i> خروج
+        </button>
     </div>
 </header>
 
+<!-- ══ Main Content ══════════════════════════════════════════ -->
 <main class="sa-container" id="sa-main" style="display:none;">
+
+    <!-- === بطاقات الإحصائيات === -->
+    <div class="sa-section-title"><i class="fa-solid fa-chart-bar"></i> إحصائيات النظام</div>
     <div class="sa-metrics-grid">
-        <div class="sa-metric-card gold"><div class="metric-icon gold"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="metric-value" id="m-gemini-total">0</div><div class="metric-label">استدعاءات Gemini الكلية</div></div>
-        <div class="sa-metric-card green"><div class="metric-icon green"><i class="fa-solid fa-robot"></i></div><div class="metric-value" id="m-gemini-msg">0</div><div class="metric-label">رسائل ذكية أنشئت</div></div>
-        <div class="sa-metric-card cyan"><div class="metric-icon cyan"><i class="fa-solid fa-broom"></i></div><div class="metric-value" id="m-gemini-clean">0</div><div class="metric-label">تنظيفات ذكية</div></div>
-        <div class="sa-metric-card red"><div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="metric-value" id="m-gemini-err">0</div><div class="metric-label">أخطاء Gemini</div></div>
-        <div class="sa-metric-card purple"><div class="metric-icon purple"><i class="fa-solid fa-certificate"></i></div><div class="metric-value" id="m-certs">0</div><div class="metric-label">شهادات صدرت</div></div>
-        <div class="sa-metric-card gold"><div class="metric-icon gold"><i class="fa-solid fa-wifi-slash"></i></div><div class="metric-value" id="m-offline">0</div><div class="metric-label">عمليات أوفلاين</div></div>
-    </div>
-    <div class="sa-section-title">إدارة الطلبات والدورات</div>
-    <div class="sa-main-grid">
-        <div class="sa-panel">
-            <div class="sa-panel-header">
-                <h3><i class="fa-solid fa-inbox"></i> طلبات الانضمام <span id="demo-count-badge"></span></h3>
-                <button class="btn-sa-secondary" onclick="loadDemoRequests()"><i class="fa-solid fa-rotate"></i></button>
-            </div>
-            <div class="sa-panel-body" id="demo-requests-list"><div class="sa-empty"><i class="fa-solid fa-inbox"></i><p>لا توجد طلبات</p></div></div>
+        <div class="sa-metric-card blue">
+            <div class="metric-icon blue"><i class="fa-solid fa-users"></i></div>
+            <div class="metric-value" id="m-users">0</div>
+            <div class="metric-label">إجمالي المستخدمين</div>
         </div>
-        <div class="sa-panel">
-            <div class="sa-panel-header"><h3><i class="fa-solid fa-calendar-days"></i> إدارة الدورات (Epochs)</h3></div>
-            <div class="sa-panel-body">
-                <div class="epoch-form" style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--sa-border);">
-                    <div><label class="sa-input-label">اسم الدورة الجديدة</label><input type="text" class="sa-input" id="epoch-name-input" placeholder="مثال: دورة الحفظ الصيفية 1447" /></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <div><label class="sa-input-label">تاريخ البدء</label><input type="date" class="sa-input" id="epoch-start-input" /></div>
-                        <div><label class="sa-input-label">تاريخ النهاية</label><input type="date" class="sa-input" id="epoch-end-input" /></div>
-                    </div>
-                    <button class="btn-sa-primary" id="btn-create-epoch" onclick="createEpoch()"><i class="fa-solid fa-plus"></i> إنشاء دورة جديدة</button>
-                </div>
-                <div id="epochs-list"><div class="sa-empty"><i class="fa-solid fa-calendar-xmark"></i><p>لا توجد دورات مسجلة بعد</p></div></div>
-            </div>
+        <div class="sa-metric-card green">
+            <div class="metric-icon green"><i class="fa-solid fa-robot"></i></div>
+            <div class="metric-value" id="m-gemini-msg">0</div>
+            <div class="metric-label">رسائل ذكية أُنشئت</div>
+        </div>
+        <div class="sa-metric-card cyan">
+            <div class="metric-icon cyan"><i class="fa-solid fa-broom"></i></div>
+            <div class="metric-value" id="m-gemini-clean">0</div>
+            <div class="metric-label">تنظيفات ذكية</div>
+        </div>
+        <div class="sa-metric-card red">
+            <div class="metric-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="metric-value" id="m-gemini-err">0</div>
+            <div class="metric-label">أخطاء AI</div>
+        </div>
+        <div class="sa-metric-card purple">
+            <div class="metric-icon purple"><i class="fa-solid fa-certificate"></i></div>
+            <div class="metric-value" id="m-certs">0</div>
+            <div class="metric-label">شهادات أُصدرت</div>
+        </div>
+        <div class="sa-metric-card gold">
+            <div class="metric-icon gold"><i class="fa-solid fa-wifi-slash"></i></div>
+            <div class="metric-value" id="m-offline">0</div>
+            <div class="metric-label">عمليات أوفلاين</div>
         </div>
     </div>
-    <div class="sa-section-title">أسباب الانسحاب المسجلة</div>
+
+    <!-- === مخطط المجموعات (Accordion Tree) === -->
+    <div class="sa-section-title" style="margin-top:10px;">
+        <i class="fa-solid fa-sitemap"></i> مخطط المجموعات
+        <button class="btn-sa-secondary" onclick="window.loadGroupsTree()" style="margin-right:auto; font-size:0.76rem; padding:5px 12px;">
+            <i class="fa-solid fa-rotate"></i> تحديث
+        </button>
+    </div>
+    <div class="sa-panel" style="margin-bottom:28px;">
+        <div class="sa-panel-body" id="groups-tree-container">
+            <div class="sa-empty"><i class="fa-solid fa-sitemap"></i><p>جاري تحميل المجموعات...</p></div>
+        </div>
+    </div>
+
+    <!-- === أسباب الانسحاب === -->
+    <div class="sa-section-title" style="margin-top:10px;">
+        <i class="fa-solid fa-tags"></i> بيانات ML — أسباب الانسحاب
+        <button class="btn-sa-secondary" id="btn-export-reasons" onclick="window.exportReasonsExcel()" style="margin-right:auto; font-size:0.76rem; padding:5px 12px;" disabled>
+            <i class="fa-solid fa-file-excel"></i> تحميل Excel
+        </button>
+    </div>
     <div class="sa-panel" style="margin-bottom:28px;">
         <div class="sa-panel-header">
-            <h3><i class="fa-solid fa-tags"></i> بيانات ML — أسباب الانسحاب</h3>
+            <h3><i class="fa-solid fa-tags"></i> سجل أسباب الانسحاب</h3>
             <span id="reasons-count" style="font-size:0.75rem;color:var(--sa-muted);"></span>
         </div>
-        <div class="sa-panel-body"><div id="withdrawal-reasons-list"><div class="sa-empty"><i class="fa-solid fa-database"></i><p>لا توجد أسباب مسجلة بعد</p></div></div></div>
+        <div class="sa-panel-body" id="withdrawal-reasons-container">
+            <div class="sa-empty"><i class="fa-solid fa-database"></i><p>لا توجد أسباب مسجلة بعد</p></div>
+        </div>
     </div>
+
+    <!-- === منطقة الخطر: تصفير النظام === -->
+    <div class="sa-section-title danger-section" style="margin-top:10px;">
+        <i class="fa-solid fa-skull-crossbones"></i> منطقة الخطر
+    </div>
+    <div class="sa-panel danger-panel" style="margin-bottom:48px;">
+        <div class="sa-panel-header">
+            <h3><i class="fa-solid fa-rotate-left" style="color:var(--sa-red);"></i> تصفير النظام</h3>
+        </div>
+        <div class="sa-panel-body">
+            <p style="color:var(--sa-muted); font-size:0.88rem; margin-bottom:16px; line-height:1.7;">
+                ⚠️ هذا الإجراء سيحذف <strong style="color:var(--sa-red);">جميع البيانات</strong> من Firebase بشكل نهائي لا رجعة فيه (المستخدمون، المجموعات، الطلاب، الإحصائيات).
+                بعد الضغط على الزرار ستُمنح <strong>6 ساعات</strong> لإلغاء العملية.
+            </p>
+
+            <!-- حالة العداد (مخفي مبدئياً) -->
+            <div id="reset-countdown-display" style="display:none; text-align:center; margin-bottom:16px;">
+                <div class="reset-countdown-box">
+                    <i class="fa-solid fa-hourglass-half fa-spin" style="color:var(--sa-red); font-size:1.5rem; margin-bottom:8px;"></i>
+                    <div style="font-size:0.85rem; color:var(--sa-muted); margin-bottom:4px;">سيتم تصفير النظام خلال</div>
+                    <div id="countdown-timer" class="countdown-timer">06:00:00</div>
+                    <button class="btn-sa-secondary" style="margin-top:12px; border-color:rgba(74,222,128,0.4); color:#4ade80;" onclick="window.cancelSystemReset()">
+                        <i class="fa-solid fa-circle-xmark"></i> إلغاء التصفير
+                    </button>
+                </div>
+            </div>
+
+            <!-- زر التصفير (يُخفى عند بدء العداد) -->
+            <div id="reset-trigger-section">
+                <button class="btn-reset-system" onclick="window.initiateSystemReset()" id="btn-reset-system">
+                    <i class="fa-solid fa-skull-crossbones"></i>
+                    تصفير النظام بالكامل
+                </button>
+            </div>
+        </div>
+    </div>
+
 </main>
+
+<!-- ══ Modal: AI Instructions ════════════════════════════════ -->
+<div id="sa-instructions-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9000; display:none; align-items:center; justify-content:center;">
+    <div class="sa-modal-box">
+        <div class="sa-modal-header">
+            <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--sa-gold);"></i> تعليمات AI للمشرف</h3>
+            <button onclick="document.getElementById('sa-instructions-modal').style.display='none'" class="sa-modal-close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="sa-modal-body">
+            <div id="sa-instructions-content" style="background:var(--sa-surface); padding:16px; border-radius:10px; font-size:0.9rem; line-height:1.7; color:var(--sa-text); border:1px solid var(--sa-border); white-space:pre-wrap; min-height:80px;"></div>
+        </div>
+        <div style="padding:14px 18px; border-top:1px solid var(--sa-border); display:flex; justify-content:flex-end;">
+            <button class="btn-sa-secondary" onclick="document.getElementById('sa-instructions-modal').style.display='none'">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Modal: Reset Password Verify ════════════════════════ -->
+<div id="sa-reset-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9500; align-items:center; justify-content:center;">
+    <div class="sa-modal-box" style="border-color:rgba(231,76,60,0.5);">
+        <div class="sa-modal-header">
+            <h3><i class="fa-solid fa-skull-crossbones" style="color:var(--sa-red);"></i> تأكيد تصفير النظام</h3>
+        </div>
+        <div class="sa-modal-body">
+            <p style="color:var(--sa-muted); font-size:0.88rem; margin-bottom:14px; line-height:1.6;">
+                هذا الإجراء <strong style="color:var(--sa-red);">لا يمكن التراجع عنه</strong>. أدخل كلمة مرور الإدارة للمتابعة.
+            </p>
+            <input type="password" id="reset-confirm-password" class="sa-input" placeholder="كلمة مرور الإدارة العليا" />
+            <div id="reset-pw-error" style="display:none; margin-top:8px; color:var(--sa-red); font-size:0.82rem; font-weight:700;"></div>
+        </div>
+        <div style="padding:14px 18px; border-top:1px solid var(--sa-border); display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn-sa-secondary" onclick="document.getElementById('sa-reset-modal').style.display='none'">إلغاء</button>
+            <button class="btn-sa-primary" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);" onclick="window.confirmSystemReset()">
+                <i class="fa-solid fa-skull-crossbones"></i> تأكيد التصفير
+            </button>
+        </div>
+    </div>
+</div>
+
 <script type="module" src="/static/js/super_admin.js"></script>
 </body>
 </html>

@@ -216,8 +216,13 @@ export function initPageAuth(requiredRole = null) {
 
 /**
  * حماية صفحة الدخول: إذا كان المستخدم مسجل بالفعل، يتم تحويله للوحة التحكم
+ * — مع مراعاة علامة الخروج الصريح (EXPLICIT_LOGOUT_KEY)
  */
 export function checkAlreadyLoggedIn() {
+    // إذا خرج المستخدم صراحةً، لا نعيده تلقائياً أبداً
+    const explicitlyLoggedOut = localStorage.getItem('athar_explicitly_logged_out') === '1';
+    if (explicitlyLoggedOut) return;
+
     onAuthStateChanged(auth, async (user) => {
         const cachedUser = getCachedUser();
         const cachedUserData = getCachedUserData();

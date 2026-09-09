@@ -130,18 +130,9 @@ export function showAtharPrompt(title, message, defaultValue = "", inputType = "
         if (input) {
             input.value = defaultValue;
             input.type = inputType;
-        }
-
-        let iti = null;
-        if (inputType === "tel" && window.intlTelInput && input) {
-            iti = window.intlTelInput(input, {
-                initialCountry: "eg",
-                preferredCountries: ["eg", "sa", "ae", "kw", "qa"],
-                countryOrder: ["eg", "sa", "ae", "kw", "qa"],
-                separateDialCode: true,
-                dropdownContainer: document.body,
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/js/utils.js"
-            });
+            if (inputType === "tel") {
+                input.placeholder = "مثال: 01012345678 أو +201012345678";
+            }
         }
 
         if (inputWrapper) inputWrapper.style.display = 'block';
@@ -151,10 +142,7 @@ export function showAtharPrompt(title, message, defaultValue = "", inputType = "
         if (input) input.focus();
 
         const handleConfirm = () => {
-            let result = input ? input.value : '';
-            if (iti) {
-                result = iti.getNumber() || (input ? input.value : '');
-            }
+            let result = input ? input.value.trim() : '';
             cleanup();
             resolve(result);
         };
@@ -168,7 +156,6 @@ export function showAtharPrompt(title, message, defaultValue = "", inputType = "
             if (confirmBtn) confirmBtn.removeEventListener('click', handleConfirm);
             if (cancelBtn) cancelBtn.removeEventListener('click', handleCancel);
             if (closeBtn) closeBtn.removeEventListener('click', handleCancel);
-            if (iti) iti.destroy();
             if (input) input.type = "text";
             modal.style.display = 'none';
         };
@@ -186,7 +173,7 @@ export function showAtharChoice(title, message, choices) {
     return new Promise((resolve) => {
         const modal = document.getElementById('athar-prompt-modal');
         if (!modal) {
-            const choiceStr = choices.map(c => `${c.id}. ${c.text}`).join('\n');
+            const choiceStr = choices.map(c => `${c.text}`).join('\n');
             const val = prompt(`${title}\n${message}\n${choiceStr}`);
             return resolve(val);
         }
@@ -213,7 +200,7 @@ export function showAtharChoice(title, message, choices) {
                 btn.style.textAlign = 'right';
                 btn.style.padding = '12px';
                 btn.style.justifyContent = 'flex-start';
-                btn.innerHTML = `<span>${choice.id}- ${choice.text}</span>`;
+                btn.innerHTML = `<span>${choice.text}</span>`;
                 btn.onclick = () => {
                     cleanup();
                     resolve(choice.id);

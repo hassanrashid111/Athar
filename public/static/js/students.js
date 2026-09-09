@@ -302,16 +302,7 @@ export function openEditStudentModal(id) {
     if (nameElem) nameElem.value = student.name;
     if (phoneInput) {
         phoneInput.value = student.phone || "";
-        if (!phoneInput.iti && window.intlTelInput) {
-            phoneInput.iti = window.intlTelInput(phoneInput, {
-                initialCountry: "eg",
-                preferredCountries: ["eg", "sa", "ae", "kw", "qa"],
-                countryOrder: ["eg", "sa", "ae", "kw", "qa"],
-                separateDialCode: true,
-                dropdownContainer: document.body,
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/js/utils.js"
-            });
-        }
+        phoneInput.placeholder = "مثال: 01012345678 أو +201012345678";
     }
 
     const modal = document.getElementById('edit-student-modal');
@@ -325,8 +316,7 @@ export async function saveStudentDataEdit(onSuccess) {
     const id = parseFloat(document.getElementById('edit-id').value);
     const newName = document.getElementById('edit-name').value.trim();
     const phoneInput = document.getElementById('edit-phone');
-    const newPhoneRaw = phoneInput.value.trim();
-    const newPhone = phoneInput.iti ? (phoneInput.iti.getNumber() || newPhoneRaw) : newPhoneRaw;
+    const newPhone = phoneInput ? phoneInput.value.trim() : "";
 
     if (!newName) {
         showAtharNotification('الاسم مطلوب', 'error');
@@ -553,6 +543,97 @@ export async function saveStudentNotes() {
         closeNotesModal();
         showAtharNotification("تم حفظ البيانات والملاحظات بنجاح");
     }
+}
+
+/**
+ * حفظ صورة مؤشر الأداء التراكمي فقط (بدون المحاور أفقياً ورأسياً)
+ */
+export function downloadChartOnlyImage() {
+    if (!performanceChart) {
+        showAtharNotification("المخطط غير جاهز بعد", "warning");
+        return;
+    }
+
+    try {
+        const chartInstance = performanceChart;
+        const originalXDisplay = chartInstance.options.scales.x.display;
+        const originalYDisplay = chartInstance.options.scales.y.display;
+
+        // إخفاء العناوين والمحاور مؤقتاً لالتقاط صورة المنحنى فقط
+        chartInstance.options.scales.x.display = false;
+        chartInstance.options.scales.y.display = false;
+        chartInstance.update('none');
+
+        const imageURI = chartInstance.toBase64Image('image/png', 1.0);
+
+        // إعادة إظهار المحاور
+        chartInstance.options.scales.x.display = originalXDisplay;
+        chartInstance.options.scales.y.display = originalYDisplay;
+        chartInstance.update('none');
+
+        const studentName = document.getElementById('modal-student-name')?.innerText || 'الطالب';
+        const link = document.createElement('a');
+        link.download = `مؤشر_أداء_${studentName}.png`;
+        link.href = imageURI;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showAtharNotification("تم حفظ صورة مؤشر الأداء بنجاح ✓", "success");
+    } catch (e) {
+        console.error("Chart image export failed:", e);
+        showAtharNotification("تعذر حفظ صورة المؤشر", "error");
+    }
+}
+
+/**
+ * نسخ سجل حضور الطالب بتفاصيله
+ */
+export function copyAttendanceHistory() {
+    if (!currentEditingStudentId) return;
+    const student = state.students.find(s => s.id === currentEditingStudentId);
+    if (!student) return;
+
+    let text = `=== سجل حضور الطالب: ${student.name} ===\n`;
+    text += `رقم الهاتف: ${student.phone || 'غير مسجل'}\n`;
+    text += `تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-EG')}\n`;
+    text += `----------------------------------------\n`;
+
+    state.lectures.forEach((lec) => {
+        const progressValue = student.progress ? student.progress[lec.id] : null;
+        const score = calculateScore(lec.timestamp, progressValue);
+
+        let statusText = '❌ غائب';
+        if (progressValue) {
+            if (score === 100) statusText = '👑 تم (السبت - 100%)';
+            else if (score === 90) statusText = '✅ تم (الأحد - 90%)';
+            else if (score === 80) statusText = '✅ تم (الاثنين - 80%)';
+            else if (score === 70) statusText = '✅ تم (الثلاثاء - 70%)';
+            else if (score === 60) statusText = '✅ تم (الأربعاء - 60%)';
+            else if (score === 50) statusText = '✅ تم (الخميس - 50%)';
+            else if (score === 40) statusText = '✅ تم (الجمعة - 40%)';
+            else if (score === 30) statusText = '⏳ تأخير أسبوع (30%)';
+            else if (score === 20) statusText = '⏳ تأخير أسبوعين (20%)';
+            else statusText = '⏳ تأخير > أسبوعين (10%)';
+        }
+
+        const dateStr = (progressValue && progressValue !== true && progressValue !== 'replied')
+            ? new Date(progressValue).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+
+        text += `• ${lec.title}: ${statusText}${dateStr ? ' [' + dateStr + ']' : ''}\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+        showAtharNotification("تم نسخ سجل الحضور بنجاح ✓", "success");
+    }).catch(() => {
+        const dummy = document.createElement("textarea");
+        dummy.value = text;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        showAtharNotification("تم نسخ سجل الحضور بنجاح ✓", "success");
+    });
 }
 
 /**
