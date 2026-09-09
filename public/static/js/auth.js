@@ -86,14 +86,13 @@ export async function handleRegister(e) {
     const nameElem = document.getElementById('reg-name');
     const emailElem = document.getElementById('reg-email');
     const passElem = document.getElementById('reg-password');
-    const roleElem = document.getElementById('selected-role');
 
     if (!nameElem || !emailElem || !passElem) return;
 
     const name = nameElem.value.trim();
     const email = emailElem.value.trim();
     const pass = passElem.value;
-    const role = roleElem ? roleElem.value : 'followup_supervisor';
+    const role = 'followup_supervisor';
 
     if (!name || !email || !pass) {
         showAtharNotification("برجاء ملء جميع البيانات الأساسية", 'error');
@@ -157,10 +156,6 @@ export async function handleGoogleLogin(isRegistration = false) {
 
         if (!snapshot.exists()) {
             let role = 'followup_supervisor';
-            if (isRegistration) {
-                const roleElem = document.getElementById('selected-role');
-                role = roleElem ? roleElem.value : 'followup_supervisor';
-            }
 
             await set(userRef, {
                 email: user.email,
