@@ -122,7 +122,7 @@ function setupDropdownListeners() {
 
     const menu = document.getElementById('main-menu');
     if (menu) {
-        menu.querySelectorAll('button:not(.dropbtn), a').forEach(btn => {
+        menu.querySelectorAll('button:not(.dropbtn):not(.sidebar-group-btn), a').forEach(btn => {
             btn.addEventListener('click', () => {
                 const overlay = document.getElementById('menu-overlay');
                 if (menu.classList.contains('active')) {
