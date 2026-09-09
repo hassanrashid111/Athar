@@ -685,17 +685,60 @@ export function loadTheme() {
 }
 
 /**
- * قائمة السياق بالزر الأيمن
+ * قائمة السياق بالزر الأيمن أو الضغط المطول
  */
 export function showContextMenu(e, sId, lId) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     contextTarget = { sId, lId };
 
     const menu = document.getElementById('context-menu');
     if (menu) {
         menu.style.display = 'block';
-        menu.style.left = `${e.pageX}px`;
-        menu.style.top = `${e.pageY}px`;
+        
+        let clientX = 0;
+        let clientY = 0;
+
+        if (e) {
+            if (e.clientX !== undefined) {
+                clientX = e.clientX;
+            } else if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+            }
+
+            if (e.clientY !== undefined) {
+                clientY = e.clientY;
+            } else if (e.touches && e.touches.length > 0) {
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientY = e.changedTouches[0].clientY;
+            }
+        }
+
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const menuWidth = menu.offsetWidth || 220;
+        const menuHeight = menu.offsetHeight || 380;
+
+        // ضبط موضع القائمة ثابتة في موضع النقر تماماً مع ضمان بقائها داخل حدود الشاشة
+        let leftPos = clientX;
+        if (leftPos + menuWidth > screenWidth - 10) {
+            leftPos = Math.max(10, screenWidth - menuWidth - 10);
+        } else if (leftPos < 10) {
+            leftPos = 10;
+        }
+
+        let topPos = clientY;
+        if (topPos + menuHeight > screenHeight - 10) {
+            topPos = Math.max(10, screenHeight - menuHeight - 10);
+        } else if (topPos < 10) {
+            topPos = 10;
+        }
+
+        menu.style.position = 'fixed';
+        menu.style.left = `${leftPos}px`;
+        menu.style.top = `${topPos}px`;
     }
 }
 
@@ -737,8 +780,13 @@ export function hideContextMenu() {
     contextTarget = { sId: null, lId: null };
 }
 
-document.addEventListener('click', hideContextMenu);
-document.addEventListener('scroll', hideContextMenu);
+// إغلاق القائمة عند النقر خارجها وتثبيتها عند التمرير (Scroll)
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('context-menu');
+    if (menu && menu.style.display !== 'none' && !e.target.closest('#context-menu')) {
+        hideContextMenu();
+    }
+});
 
 /**
  * نسخ كود المجموعة

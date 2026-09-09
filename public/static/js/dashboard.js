@@ -719,15 +719,22 @@ export function handleCellTouchStart(e, sId, lId) {
     touchMoved = false;
     if (touchTimer) clearTimeout(touchTimer);
     
+    // الالتقاط الفوري لإحداثيات اللمس في الشاشة عند بدء الضغط
+    const touch = (e && e.touches && e.touches.length > 0) ? e.touches[0] : e;
+    const touchPos = {
+        clientX: touch ? touch.clientX : (e ? e.clientX : 0),
+        clientY: touch ? touch.clientY : (e ? e.clientY : 0),
+        preventDefault: () => { if (e && e.preventDefault) e.preventDefault(); }
+    };
+
     touchTimer = setTimeout(() => {
         if (!touchMoved) {
             if (navigator.vibrate) {
                 try { navigator.vibrate(40); } catch (err) {}
             }
-            const touch = (e.touches && e.touches.length > 0) ? e.touches[0] : e;
-            showContextMenu(touch, sId, lId);
+            showContextMenu(touchPos, sId, lId);
         }
-    }, 400);
+    }, 350);
 }
 
 export function handleCellTouchEnd() {
@@ -755,18 +762,51 @@ export function showContextMenu(e, sId, lId) {
     const menu = document.getElementById('context-menu');
     if (menu) {
         menu.style.display = 'block';
-        const pageX = e.pageX !== undefined ? e.pageX : (e.clientX || 0);
-        const pageY = e.pageY !== undefined ? e.pageY : (e.clientY || 0);
         
-        const menuWidth = 220;
-        const screenWidth = window.innerWidth;
-        let leftPos = pageX;
-        if (leftPos + menuWidth > screenWidth) {
-            leftPos = Math.max(10, screenWidth - menuWidth - 10);
+        let clientX = 0;
+        let clientY = 0;
+
+        if (e) {
+            if (e.clientX !== undefined) {
+                clientX = e.clientX;
+            } else if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+            }
+
+            if (e.clientY !== undefined) {
+                clientY = e.clientY;
+            } else if (e.touches && e.touches.length > 0) {
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientY = e.changedTouches[0].clientY;
+            }
         }
 
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const menuWidth = menu.offsetWidth || 220;
+        const menuHeight = menu.offsetHeight || 380;
+
+        // ضبط موضع القائمة ثابتة في موضع النقر تماماً مع ضمان بقائها داخل حدود الشاشة
+        let leftPos = clientX;
+        if (leftPos + menuWidth > screenWidth - 10) {
+            leftPos = Math.max(10, screenWidth - menuWidth - 10);
+        } else if (leftPos < 10) {
+            leftPos = 10;
+        }
+
+        let topPos = clientY;
+        if (topPos + menuHeight > screenHeight - 10) {
+            topPos = Math.max(10, screenHeight - menuHeight - 10);
+        } else if (topPos < 10) {
+            topPos = 10;
+        }
+
+        menu.style.position = 'fixed';
         menu.style.left = `${leftPos}px`;
-        menu.style.top = `${pageY}px`;
+        menu.style.top = `${topPos}px`;
     }
 }
 
@@ -808,8 +848,13 @@ export function hideContextMenu() {
     contextTarget = { sId: null, lId: null };
 }
 
-document.addEventListener('click', hideContextMenu);
-document.addEventListener('scroll', hideContextMenu);
+// إغلاق القائمة عند النقر خارجها وتثبيتها عند التمرير (Scroll)
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('context-menu');
+    if (menu && menu.style.display !== 'none' && !e.target.closest('#context-menu')) {
+        hideContextMenu();
+    }
+});
 
 /**
  * نسخ كود المجموعة
