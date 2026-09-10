@@ -25,7 +25,8 @@ import {
     importCleanedStudents, copyCleanedStudents,
     openCustomTransferModal, closeCustomTransferModal,
     renderCustomTransferTable, toggleTransferStudentSelection,
-    toggleSelectAllTransfer, filterTransferStudentsList, proceedCustomTransfer
+    toggleSelectAllTransfer, filterTransferStudentsList, proceedCustomTransfer,
+    openExternalTestersModal, renderExternalTestersTable
 } from "./students.js";
 import {
     addLectureFlow, deleteLectureFlow, toggleStudentCheck,
@@ -1060,7 +1061,10 @@ window.app = {
     flushOfflineSyncQueue: () => flushOfflineSyncQueue(),
     toggleToolsDropdown: (e) => toggleToolsDropdown(e),
     toggleSidebarGroup: (btn) => toggleSidebarGroup(btn),
-    toggleMenu: () => toggleMenuFlow()
+    toggleMenu: () => toggleMenuFlow(),
+
+    openExternalTestersModal: () => openExternalTestersModal(),
+    renderExternalTesters: (mode) => renderExternalTestersTable(mode)
 };
 
 // بدء تشغيل اللوحة فوراً وبأمان

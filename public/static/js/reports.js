@@ -255,7 +255,7 @@ export function showSupervisorMsgTypes(e, uid) {
 }
 
 /**
- * تصدير البيانات إلى ملف Excel
+ * تصدير البيانات إلى ملف Excel بتنسيق جمالي احترافي
  */
 export function exportToExcel() {
     if (typeof XLSX === 'undefined') {
@@ -269,41 +269,159 @@ export function exportToExcel() {
         return;
     }
 
-    const data = [];
-    const header = ['#', 'اسم الطالب', 'رقم الهاتف'];
+    // ===== بناء البيانات =====
+    const header = ['#', 'اسم الطالب', 'رقم الهاتف', 'رابط واتساب'];
     state.lectures.forEach(l => header.push(l.title));
-    header.push('النسبة');
-    data.push(header);
+    header.push('الحضور');
+    header.push('النسبة %');
+
+    const rows = [header];
 
     activeStudents.forEach((s, i) => {
-        const row = [i + 1, s.name, s.phone];
-        let c = 0;
+        const phone = (s.phone || '').replace(/\D/g, '');
+        const waLink = phone ? `https://wa.me/${phone}` : '';
+        const row = [i + 1, s.name || '', s.phone || '', waLink];
+        let attended = 0;
 
         state.lectures.forEach(l => {
             const p = s.progress ? s.progress[l.id] : null;
             if (p === 'replied') {
-                row.push('💬');
+                row.push('رد ولم يختبر');
+            } else if (p) {
+                row.push('حاضر');
+                attended++;
             } else {
-                row.push(p ? '✔' : '✖');
-                if (p) c++;
+                row.push('غائب');
             }
         });
 
-        const pct = state.lectures.length > 0 ? Math.round((c / state.lectures.length) * 100) + '%' : '0%';
-        row.push(pct);
-        data.push(row);
+        const total = state.lectures.length;
+        const pct = total > 0 ? Math.round((attended / total) * 100) : 0;
+        row.push(`${attended} / ${total}`);
+        row.push(pct + '%');
+        rows.push(row);
     });
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wscols = [{ wch: 5 }, { wch: 30 }, { wch: 15 }];
-    state.lectures.forEach(() => wscols.push({ wch: 12 }));
-    wscols.push({ wch: 10 });
+    // ===== إنشاء الورقة =====
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // ===== عرض الأعمدة =====
+    const wscols = [
+        { wch: 5 },   // #
+        { wch: 30 },  // اسم الطالب
+        { wch: 16 },  // رقم الهاتف
+        { wch: 40 },  // رابط واتساب
+    ];
+    state.lectures.forEach(() => wscols.push({ wch: 18 }));
+    wscols.push({ wch: 14 }); // الحضور
+    wscols.push({ wch: 12 }); // النسبة
     ws['!cols'] = wscols;
 
+    // ===== تجميد الصف الأول =====
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    // ===== تعريف الأنماط =====
+    const headerStyle = {
+        font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12, name: 'Cairo' },
+        fill: { fgColor: { rgb: '1A5D3A' } },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+        border: {
+            top: { style: 'medium', color: { rgb: '0E3B24' } },
+            bottom: { style: 'medium', color: { rgb: '0E3B24' } },
+            left: { style: 'thin', color: { rgb: '145232' } },
+            right: { style: 'thin', color: { rgb: '145232' } }
+        }
+    };
+    const presentStyle = {
+        font: { color: { rgb: '155724' }, bold: true },
+        fill: { fgColor: { rgb: 'C3E6CB' } },
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const absentStyle = {
+        font: { color: { rgb: '721C24' }, bold: true },
+        fill: { fgColor: { rgb: 'F5C6CB' } },
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const repliedStyle = {
+        font: { color: { rgb: '856404' }, bold: true },
+        fill: { fgColor: { rgb: 'FFF3CD' } },
+        alignment: { horizontal: 'center', vertical: 'center' }
+    };
+    const centerStyle = { alignment: { horizontal: 'center', vertical: 'center' } };
+    const linkStyle = {
+        font: { color: { rgb: '0563C1' }, underline: true },
+        alignment: { horizontal: 'left', vertical: 'center' }
+    };
+    const altRowStyle = { fill: { fgColor: { rgb: 'F0FAF4' } } };
+
+    // ===== تطبيق تنسيق صف العناوين =====
+    for (let c = 0; c < header.length; c++) {
+        const cellAddr = XLSX.utils.encode_cell({ r: 0, c });
+        if (!ws[cellAddr]) ws[cellAddr] = { v: '', t: 's' };
+        ws[cellAddr].s = headerStyle;
+    }
+
+    // ===== تطبيق تنسيق بيانات الطلاب =====
+    activeStudents.forEach((s, rowIdx) => {
+        const r = rowIdx + 1;
+        const lecStartCol = 4;
+        const isAlt = rowIdx % 2 === 1;
+
+        // رقم + اسم + هاتف
+        for (let c = 0; c < 3; c++) {
+            const addr = XLSX.utils.encode_cell({ r, c });
+            if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+            ws[addr].s = isAlt ? { ...centerStyle, fill: { fgColor: { rgb: 'F0FAF4' } } } : centerStyle;
+        }
+
+        // رابط واتساب
+        const waAddr = XLSX.utils.encode_cell({ r, c: 3 });
+        if (!ws[waAddr]) ws[waAddr] = { v: '', t: 's' };
+        ws[waAddr].s = linkStyle;
+
+        // خلايا المحاضرات
+        state.lectures.forEach((l, li) => {
+            const addr = XLSX.utils.encode_cell({ r, c: lecStartCol + li });
+            if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+            const val = String(ws[addr].v || '');
+            if (val === 'حاضر') ws[addr].s = presentStyle;
+            else if (val === 'رد ولم يختبر') ws[addr].s = repliedStyle;
+            else ws[addr].s = absentStyle;
+        });
+
+        // عمود الحضور والنسبة
+        const attAddr = XLSX.utils.encode_cell({ r, c: lecStartCol + state.lectures.length });
+        const pctAddr = XLSX.utils.encode_cell({ r, c: lecStartCol + state.lectures.length + 1 });
+        if (!ws[attAddr]) ws[attAddr] = { v: '', t: 's' };
+        if (!ws[pctAddr]) ws[pctAddr] = { v: '', t: 's' };
+        ws[attAddr].s = centerStyle;
+        ws[pctAddr].s = centerStyle;
+    });
+
+    // ===== ورقة معلومات المجموعة =====
+    const infoRows = [
+        ['منصة أثر التعليمية — تقرير سجل المتابعة', ''],
+        ['', ''],
+        ['اسم المجموعة', state.groupInfo?.name || 'غير محدد'],
+        ['رقم المجموعة', state.groupInfo?.number || 'غير محدد'],
+        ['اسم المشرف', state.userInfo?.name || 'غير معروف'],
+        ['تاريخ التصدير', new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })],
+        ['إجمالي الطلاب النشطين', activeStudents.length],
+        ['عدد المحاضرات المسجلة', state.lectures.length],
+    ];
+    const wsInfo = XLSX.utils.aoa_to_sheet(infoRows);
+    wsInfo['!cols'] = [{ wch: 28 }, { wch: 40 }];
+    // تنسيق عنوان ورقة المعلومات
+    const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
+    if (!wsInfo[titleCell]) wsInfo[titleCell] = { v: '', t: 's' };
+    wsInfo[titleCell].s = { font: { bold: true, sz: 14, color: { rgb: '1A5D3A' } }, alignment: { horizontal: 'center' } };
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "سجل المتابعة");
+    XLSX.utils.book_append_sheet(wb, ws, 'سجل المتابعة');
+    XLSX.utils.book_append_sheet(wb, wsInfo, 'معلومات المجموعة');
+
     XLSX.writeFile(wb, `Athar_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    showAtharNotification("تم تصدير ملف الإكسيل بنجاح");
+    showAtharNotification('تم تصدير ملف الإكسيل بنجاح ✓');
 }
 
 /**

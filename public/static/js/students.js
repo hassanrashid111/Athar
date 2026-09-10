@@ -436,12 +436,25 @@ export function openNotesModal(studentId) {
                 if (score <= 30) statusClass = 'absent';
             }
 
+            const extTesters = (student.externalTesters && student.externalTesters[lec.id]) ? student.externalTesters[lec.id] : 0;
+
             const itemHTML = `
                 <div class="history-item ${statusClass}">
-                    <div>
+                    <div style="flex:1;">
                         <div style="font-weight:bold">${lec.title}</div>
                         <div class="date" style="font-size:0.7rem; color:#aaa;">
                              ${progressValue && progressValue !== true ? new Date(progressValue).toLocaleDateString('ar-EG') : ''}
+                        </div>
+                        <div style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:0.75rem; color:var(--primary-green); white-space:nowrap;">
+                                <i class="fa-solid fa-users" style="font-size:0.7rem;"></i> مختبرون خارجيون:
+                            </label>
+                            <input type="number" min="0" max="999"
+                                id="ext-testers-${lec.id}"
+                                value="${extTesters}"
+                                placeholder="0"
+                                style="width:60px; padding:3px 6px; border:1px solid var(--border-color); border-radius:6px; font-size:0.8rem; font-family:inherit; text-align:center;"
+                            />
                         </div>
                     </div>
                     <div class="status">${icon} ${statusText}</div>
@@ -539,6 +552,18 @@ export async function saveStudentNotes() {
             state.students[idx].age = ageVal ? parseInt(ageVal) : '';
         }
         state.students[idx].notes = document.getElementById('student-notes').value;
+
+        // حفظ عدد المختبرين من الخارج لكل محاضرة
+        const extTesters = {};
+        state.lectures.forEach(lec => {
+            const input = document.getElementById(`ext-testers-${lec.id}`);
+            if (input) {
+                const val = parseInt(input.value) || 0;
+                if (val > 0) extTesters[lec.id] = val;
+            }
+        });
+        state.students[idx].externalTesters = extTesters;
+
         await saveData();
         closeNotesModal();
         showAtharNotification("تم حفظ البيانات والملاحظات بنجاح");
@@ -620,7 +645,10 @@ export function copyAttendanceHistory() {
             ? new Date(progressValue).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
             : '';
 
-        text += `• ${lec.title}: ${statusText}${dateStr ? ' [' + dateStr + ']' : ''}\n`;
+        const extCount = (student.externalTesters && student.externalTesters[lec.id]) ? student.externalTesters[lec.id] : 0;
+        const extLine = extCount > 0 ? ` | 👥 مختبرون من الخارج: ${extCount}` : '';
+
+        text += `• ${lec.title}: ${statusText}${dateStr ? ' [' + dateStr + ']' : ''}${extLine}\n`;
     });
 
     navigator.clipboard.writeText(text).then(() => {
@@ -1228,4 +1256,169 @@ export function copyCleanedStudents() {
         document.body.removeChild(dummy);
         showAtharNotification("📋 تم نسخ القائمة المنظفة إلى الحافظة بنجاح ✓", "success");
     });
+}
+
+/* ==========================================================================
+   👥 المختبرون من الخارج (External Testers Analytics)
+   ========================================================================== */
+
+/**
+ * فتح نافذة تقرير المختبرين من الخارج
+ */
+export function openExternalTestersModal() {
+    const modal = document.getElementById('external-testers-modal');
+    if (!modal) return;
+
+    // إعادة تعيين حالة الأزرار
+    const allBtn = document.getElementById('ext-all-btn');
+    const lastBtn = document.getElementById('ext-last-btn');
+    if (allBtn) {
+        allBtn.style.background = 'var(--primary-green)';
+        allBtn.style.color = 'white';
+        allBtn.style.border = 'none';
+    }
+    if (lastBtn) {
+        lastBtn.style.background = 'var(--bg-light)';
+        lastBtn.style.color = '';
+        lastBtn.style.border = '1px solid var(--border-color)';
+    }
+
+    const container = document.getElementById('external-testers-table-container');
+    if (container) container.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px;">اختر نوع التقرير من الأعلى</p>';
+
+    modal.style.display = 'flex';
+}
+
+/**
+ * رسم جدول المختبرين من الخارج
+ * @param {'all'|'last'} mode - كل المحاضرات أم آخر محاضرة
+ */
+export function renderExternalTestersTable(mode) {
+    const container = document.getElementById('external-testers-table-container');
+    if (!container) return;
+
+    // تحديث تنسيق الأزرار
+    const allBtn = document.getElementById('ext-all-btn');
+    const lastBtn = document.getElementById('ext-last-btn');
+    if (allBtn && lastBtn) {
+        if (mode === 'all') {
+            allBtn.style.background = 'var(--primary-green)';
+            allBtn.style.color = 'white';
+            allBtn.style.border = 'none';
+            lastBtn.style.background = 'var(--bg-light)';
+            lastBtn.style.color = '';
+            lastBtn.style.border = '1px solid var(--border-color)';
+        } else {
+            lastBtn.style.background = 'var(--primary-green)';
+            lastBtn.style.color = 'white';
+            lastBtn.style.border = 'none';
+            allBtn.style.background = 'var(--bg-light)';
+            allBtn.style.color = '';
+            allBtn.style.border = '1px solid var(--border-color)';
+        }
+    }
+
+    const activeStudents = state.students.filter(s => !s.deleted);
+    const lastLecture = state.lectures.length > 0 ? state.lectures[state.lectures.length - 1] : null;
+
+    // حساب البيانات لكل طالب
+    const rows = [];
+    let totalSum = 0;
+    let lastSum = 0;
+
+    activeStudents.forEach(s => {
+        const ext = s.externalTesters || {};
+
+        // العدد الكلي (كل المحاضرات)
+        let totalCount = 0;
+        Object.values(ext).forEach(v => { totalCount += (parseInt(v) || 0); });
+
+        // عدد آخر محاضرة
+        let lastCount = 0;
+        if (lastLecture) {
+            lastCount = parseInt(ext[lastLecture.id]) || 0;
+        }
+
+        const relevant = mode === 'all' ? totalCount : lastCount;
+        if (relevant === 0) return; // استثناء الصفر
+
+        rows.push({ name: s.name || '', phone: s.phone || '', lastCount, totalCount });
+        totalSum += totalCount;
+        lastSum += lastCount;
+    });
+
+    // ترتيب حسب الوضع المختار
+    rows.sort((a, b) => {
+        const va = mode === 'all' ? a.totalCount : a.lastCount;
+        const vb = mode === 'all' ? b.totalCount : b.lastCount;
+        return vb - va;
+    });
+
+    if (rows.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px; color:#aaa;">
+                <i class="fa-solid fa-circle-info" style="font-size:2rem; margin-bottom:10px;"></i>
+                <p>لا يوجد طلاب لديهم مختبرون مسجلون من الخارج</p>
+            </div>`;
+        return;
+    }
+
+    const modeLabel = mode === 'all' ? 'كل المحاضرات' : `آخر محاضرة (${lastLecture?.title || ''})`;
+    const colLabel = mode === 'all' ? 'إجمالي المختبرين' : 'مختبرو آخر محاضرة';
+
+    let tableHTML = `
+        <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">
+            <i class="fa-solid fa-filter"></i> النتائج بناءً على: <strong>${modeLabel}</strong>
+        </p>
+        <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+                <tr style="background:var(--primary-green); color:white;">
+                    <th style="padding:10px 12px; text-align:right; border-radius:6px 0 0 0;">#</th>
+                    <th style="padding:10px 12px; text-align:right;">اسم الطالب</th>
+                    <th style="padding:10px 12px; text-align:center;">رقم الهاتف</th>
+                    <th style="padding:10px 12px; text-align:center;">${colLabel}</th>
+                    <th style="padding:10px 12px; text-align:center; border-radius:0 6px 0 0;">العدد الكلي</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    rows.forEach((r, i) => {
+        const isAlt = i % 2 === 1;
+        const bg = isAlt ? 'var(--bg-light)' : '';
+        const mainVal = mode === 'all' ? r.totalCount : r.lastCount;
+        tableHTML += `
+            <tr style="background:${bg};">
+                <td style="padding:9px 12px; color:#888;">${i + 1}</td>
+                <td style="padding:9px 12px; font-weight:600;">${escapeHTML(r.name)}</td>
+                <td style="padding:9px 12px; text-align:center; direction:ltr; font-family:monospace;">${escapeHTML(r.phone)}</td>
+                <td style="padding:9px 12px; text-align:center;">
+                    <span style="background:var(--primary-green);color:white;padding:2px 10px;border-radius:12px;font-weight:700;">${mainVal}</span>
+                </td>
+                <td style="padding:9px 12px; text-align:center; color:#666;">${r.totalCount}</td>
+            </tr>
+        `;
+    });
+
+    // سطر المجموع
+    const totalRow = mode === 'all' ? totalSum : lastSum;
+    tableHTML += `
+            </tbody>
+            <tfoot>
+                <tr style="background:var(--bg-light); border-top:2px solid var(--primary-green); font-weight:700;">
+                    <td colspan="3" style="padding:10px 12px; color:var(--primary-green);">
+                        <i class="fa-solid fa-sigma"></i> المجموع الكلي
+                    </td>
+                    <td style="padding:10px 12px; text-align:center;">
+                        <span style="background:var(--primary-green);color:white;padding:3px 12px;border-radius:12px;font-weight:700;font-size:1rem;">${totalRow}</span>
+                    </td>
+                    <td style="padding:10px 12px; text-align:center; font-size:1rem;">${totalSum}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    `;
+
+    container.innerHTML = tableHTML;
 }
