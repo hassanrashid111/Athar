@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>لوحة التحكم - أثر</title>
-    
+
     <!-- PWA Settings & Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#1A5D3A" />
@@ -20,999 +21,1206 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
+
     <!-- Base & Components CSS -->
     <link rel="stylesheet" href="/static/css/base.css" />
     <link rel="stylesheet" href="/static/css/components.css" />
-    
+
     <!-- Third-Party Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    
-<link rel="stylesheet" href="/static/css/dashboard.css" />
+
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
 
 </head>
+
 <body>
-    
-    
-<div class="dashboard-container">
-    <header class="main-header">
-        <div class="header-right">
-            <div class="logo-area">
-                <div class="header-logo-wrapper">
-                    <img src="/static/assets/logo_transparent.png" alt="أثر" />
-                </div>
-                <div>
-                    <h2 id="header-title">أثر</h2>
+
+
+    <div class="dashboard-container">
+        <header class="main-header">
+            <div class="header-right">
+                <div class="logo-area">
+                    <div class="header-logo-wrapper">
+                        <img src="/static/assets/logo_transparent.png" alt="أثر" />
+                    </div>
+                    <div>
+                        <h2 id="header-title">أثر</h2>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn-action notif-btn" id="notif-center-btn" onclick="window.app.toggleNotificationCenter()" title="مركز التنبيهات" style="position: relative; padding: 8px; background: transparent; border: none; box-shadow: none; cursor: pointer;">
-                <i class="fa-solid fa-bell" style="font-size: 1.3rem; color: var(--accent-gold);"></i>
-                <span id="notif-badge" class="notif-badge" style="display: none; position: absolute; top: -2px; right: -2px; background: #e74c3c; color: white; border-radius: 10px; font-size: 0.68rem; font-weight: bold; padding: 2px 6px; line-height: 1; border: 2px solid white;">0</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="btn-action notif-btn" id="notif-center-btn"
+                    onclick="window.app.toggleNotificationCenter()" title="مركز التنبيهات"
+                    style="position: relative; padding: 8px; background: transparent; border: none; box-shadow: none; cursor: pointer;">
+                    <i class="fa-solid fa-bell" style="font-size: 1.3rem; color: var(--accent-gold);"></i>
+                    <span id="notif-badge" class="notif-badge"
+                        style="display: none; position: absolute; top: -2px; right: -2px; background: #e74c3c; color: white; border-radius: 10px; font-size: 0.68rem; font-weight: bold; padding: 2px 6px; line-height: 1; border: 2px solid white;">0</span>
+                </button>
 
-            <button class="hamburger-btn" onclick="window.app.toggleMenu()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </div>
-
-        <div class="header-left" id="main-menu">
-            <div class="menu-header-mobile">
-                <h3>القائمة الرئيسية</h3>
-                <button class="close-menu-btn" onclick="window.app.toggleMenu()">
-                    <i class="fa-solid fa-xmark"></i>
+                <button class="hamburger-btn" onclick="window.app.toggleMenu()">
+                    <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
 
-            <div class="sidebar-accordion">
-                <!-- Group 1: إضافة الطلبة -->
-                <div class="sidebar-group">
-                    <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
-                        <span><i class="fa-solid fa-user-plus"></i> إضافة الطلبة</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+            <div class="header-left" id="main-menu">
+                <div class="menu-header-mobile">
+                    <h3>القائمة الرئيسية</h3>
+                    <button class="close-menu-btn" onclick="window.app.toggleMenu()">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <div class="sidebar-group-content">
-                        <button class="sidebar-sub-item" onclick="window.app.openAICleaner()">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> تنظيف واستيراد ذكي
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.openImport()">
-                            <i class="fa-solid fa-file-import"></i> استيراد عدد طلبه
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.addStudent()">
-                            <i class="fa-solid fa-user-plus"></i> إضافة طالب
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.initiateStudentTransfer()">
-                            <i class="fa-solid fa-handshake"></i> تسليم الطلاب لمشرف آخر
-                        </button>
-                    </div>
                 </div>
 
-                <!-- Group 2: تحليلات الطلبة -->
-                <div class="sidebar-group">
-                    <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
-                        <span><i class="fa-solid fa-chart-pie"></i> تحليلات الطلبة</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </button>
-                    <div class="sidebar-group-content">
-                        <button class="sidebar-sub-item" id="at-risk-radar-btn" onclick="window.app.openAtRiskRadar()">
-                            <i class="fa-solid fa-crosshairs"></i> رادار المتابعة
-                            <span id="at-risk-badge" style="display: none; background: #e74c3c; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.72rem; margin-right: auto;">0</span>
+                <div class="sidebar-accordion">
+                    <!-- Group 1: إضافة الطلبة -->
+                    <div class="sidebar-group">
+                        <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
+                            <span><i class="fa-solid fa-user-plus"></i> إضافة الطلبة</span>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
                         </button>
-                        <button class="sidebar-sub-item" onclick="window.app.exportData()">
-                            <i class="fa-solid fa-file-excel"></i> تصدير الاكسيل
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.getReport()">
-                            <i class="fa-solid fa-file-lines"></i> تقرير نصي
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.openExternalTestersModal()">
-                            <i class="fa-solid fa-users-viewfinder"></i> المختبرون من الخارج
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Group 3: إعدادات النظام -->
-                <div class="sidebar-group">
-                    <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
-                        <span><i class="fa-solid fa-gear"></i> إعدادات النظام</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </button>
-                    <div class="sidebar-group-content">
-                        <div class="sidebar-sub-item notif-toggle-row" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span><i class="fa-solid fa-bell"></i> التنبيهات</span>
-                            <label class="switch">
-                                <input type="checkbox" class="athar-notif-checkbox" onchange="window.app.toggleNotificationsSetting(this)">
-                                <span class="slider round"></span>
-                            </label>
+                        <div class="sidebar-group-content">
+                            <button class="sidebar-sub-item" onclick="window.app.openAICleaner()">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> تنظيف واستيراد ذكي
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.openImport()">
+                                <i class="fa-solid fa-file-import"></i> استيراد عدد طلبه
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.addStudent()">
+                                <i class="fa-solid fa-user-plus"></i> إضافة طالب
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.initiateStudentTransfer()">
+                                <i class="fa-solid fa-handshake"></i> تسليم الطلاب لمشرف آخر
+                            </button>
                         </div>
-                        <button class="sidebar-sub-item" id="pwa-install-sidebar-btn" onclick="window.app.promptPWAInstall()">
-                            <i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق
-                        </button>
-                        <a href="/presentation" class="sidebar-sub-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-book-open-reader"></i> دليل وعرض المنصة 🎯
-                        </a>
-                        <button class="sidebar-sub-item" onclick="window.app.openGroupInfoModal()">
-                            <i class="fa-solid fa-circle-info"></i> معلومات المجموعة
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.openProfileModal()">
-                            <i class="fa-solid fa-user-gear"></i> الملف الشخصي
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.backupData()">
-                            <i class="fa-solid fa-download"></i> حفظ نسخة
-                        </button>
-                        <button class="sidebar-sub-item" onclick="document.getElementById('restore-input').click()">
-                            <i class="fa-solid fa-upload"></i> استرجاع نسخة
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.resetMessages()">
-                            <i class="fa-solid fa-rotate-left"></i> تصفير الرسائل
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.openCertSettings()">
-                            <i class="fa-solid fa-certificate"></i> إعدادات الشهادة
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.clearAllData()">
-                            <i class="fa-solid fa-trash-can"></i> تصفير قائمة طلابي
-                        </button>
-                        <button class="sidebar-sub-item" onclick="window.app.toggleTheme()">
-                            <i class="fa-solid fa-moon"></i> الوضع الليلي
-                        </button>
-                        <button class="sidebar-sub-item btn-sidebar-logout" onclick="window.app.logout()">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <input type="file" id="restore-input" style="display: none" onchange="window.app.restoreData(this)" accept=".json" />
-        </div>
-
-        <div class="menu-overlay" id="menu-overlay" onclick="window.app.toggleMenu()"></div>
-    </header>
-
-    <main class="main-content">
-        <div class="page-title-area">
-            <h1>سجل متابعة الطلاب</h1>
-            <p>منصة أثر لإدارة الدورات العلمية - إدارة الحضور والغياب والمراسلة الدورية</p>
-            <div class="filters-container">
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchInput" onkeyup="window.app.search()" placeholder="بحث بالاسم أو الهاتف..." />
-                </div>
-            </div>
-        </div>
-
-        <div class="table-card">
-            <div class="table-responsive">
-                <table id="students-table">
-                    <thead>
-                        <tr id="table-header-row"></tr>
-                    </thead>
-                    <tbody id="students-body"></tbody>
-                </table>
-            </div>
-            <div class="pagination">
-                <span>جاري التحميل...</span>
-            </div>
-        </div>
-
-        <div class="bottom-grid">
-            <div class="card summary-card">
-                <div class="card-header">
-                    <h3>ملخص اليوم</h3>
-                    <p class="date-display" id="current-date">--</p>
-                </div>
-                <div class="stats-list">
-                    <div class="stat-item total">
-                        <span>العدد الكلي</span><strong id="stat-total">0</strong>
-                    </div>
-                    <div class="stat-item absence">
-                        <span>الغياب اليوم</span><strong id="stat-absence">0</strong>
-                    </div>
-                    <div class="stat-item remaining">
-                        <span>المحاضرات المتبقية</span><strong id="stat-remaining">0</strong>
-                    </div>
-                </div>
-                <div class="quote-box">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <i class="fa-solid fa-quote-right quote-icon" style="position: static; opacity: 0.7; font-size: 1.1rem; color: var(--accent-gold);"></i>
-                        <button class="btn-action" onclick="window.app.copyHadith()" style="padding: 4px 10px; font-size: 0.78rem; background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-dark);" title="نسخ الحديث الشريف">
-                            <i class="fa-regular fa-copy"></i> نسخ الحديث
-                        </button>
-                    </div>
-                    <p id="hadith-text">جاري تحميل الحديث الشريف...</p>
-                    <small id="hadith-source" style="display:block; margin-top:5px; color:var(--accent-gold); font-weight:bold;"></small>
-                </div>
-            </div>
-
-            <div class="card messaging-card">
-                <div class="card-header-row">
-                    <div class="icon-sq">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                    </div>
-                    <div>
-                        <h3 id="msg-card-title">رسالة المتابعة</h3>
-                        <p id="msg-card-desc">قم بصياغة الرسالة التي سيتم إرسالها للطلاب المستهدفين</p>
-                    </div>
-                </div>
-
-                <div class="message-body">
-                    <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
-                        <button class="btn-action insert-var-btn" onclick="window.app.insertVariable('{الاسم}')">
-                            <i class="fa-solid fa-user-tag"></i> إدراج الاسم
-                        </button>
-                        <span class="hint-text" id="msg-hint-text">سيتم الاستبدال باسم الطالب تلقائياً.</span>
                     </div>
 
-                    <textarea id="message-text" placeholder="مثال: أهلاً بك يا {الاسم}، نود تذكيرك بموعد المحاضرة ..."></textarea>
-
-                    <div class="action-row">
-                        <div id="mobile-send-status" class="mobile-only-status"
-                            style="display: none; width: 100%; text-align: center; margin-bottom: 10px; background: #f0f7f3; padding: 8px; border-radius: 6px; border: 1px solid #d4edda; color: #155724; font-size: 0.9rem; font-weight: bold;">
-                            <i class="fa-solid fa-circle-info"></i> تم إرسال <span id="mobile-sent-count">0</span> من أصل
-                            <span id="mobile-total-count">0</span>
+                    <!-- Group 2: تحليلات الطلبة -->
+                    <div class="sidebar-group">
+                        <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
+                            <span><i class="fa-solid fa-chart-pie"></i> تحليلات الطلبة</span>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="sidebar-group-content">
+                            <button class="sidebar-sub-item" id="at-risk-radar-btn"
+                                onclick="window.app.openAtRiskRadar()">
+                                <i class="fa-solid fa-crosshairs"></i> رادار المتابعة
+                                <span id="at-risk-badge"
+                                    style="display: none; background: #e74c3c; color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.72rem; margin-right: auto;">0</span>
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.exportData()">
+                                <i class="fa-solid fa-file-excel"></i> تصدير الاكسيل
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.getReport()">
+                                <i class="fa-solid fa-file-lines"></i> تقرير نصي
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.openExternalTestersModal()">
+                                <i class="fa-solid fa-users-viewfinder"></i> المختبرون من الخارج
+                            </button>
                         </div>
-                        <button class="btn-whatsapp" onclick="window.app.sendMessages()">
-                            إرسال الرسالة عبر واتساب
-                            <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+
+                    <!-- Group 3: إعدادات النظام -->
+                    <div class="sidebar-group">
+                        <button class="sidebar-group-btn" onclick="window.app.toggleSidebarGroup(this)">
+                            <span><i class="fa-solid fa-gear"></i> إعدادات النظام</span>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
                         </button>
+                        <div class="sidebar-group-content">
+                            <div class="sidebar-sub-item notif-toggle-row"
+                                style="display: flex; justify-content: space-between; align-items: center;">
+                                <span><i class="fa-solid fa-bell"></i> التنبيهات</span>
+                                <label class="switch">
+                                    <input type="checkbox" class="athar-notif-checkbox"
+                                        onchange="window.app.toggleNotificationsSetting(this)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <button class="sidebar-sub-item" id="pwa-install-sidebar-btn"
+                                onclick="window.app.promptPWAInstall()">
+                                <i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق
+                            </button>
+                            <a href="/presentation" class="sidebar-sub-item"
+                                style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-book-open-reader"></i> دليل وعرض المنصة 🎯
+                            </a>
+                            <button class="sidebar-sub-item" onclick="window.app.openGroupInfoModal()">
+                                <i class="fa-solid fa-circle-info"></i> معلومات المجموعة
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.openProfileModal()">
+                                <i class="fa-solid fa-user-gear"></i> الملف الشخصي
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.backupData()">
+                                <i class="fa-solid fa-download"></i> حفظ نسخة
+                            </button>
+                            <button class="sidebar-sub-item" onclick="document.getElementById('restore-input').click()">
+                                <i class="fa-solid fa-upload"></i> استرجاع نسخة
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.resetMessages()">
+                                <i class="fa-solid fa-rotate-left"></i> تصفير الرسائل
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.openCertSettings()">
+                                <i class="fa-solid fa-certificate"></i> إعدادات الشهادة
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.clearAllData()">
+                                <i class="fa-solid fa-trash-can"></i> تصفير قائمة طلابي
+                            </button>
+                            <button class="sidebar-sub-item" onclick="window.app.toggleTheme()">
+                                <i class="fa-solid fa-moon"></i> الوضع الليلي
+                            </button>
+                            <button class="sidebar-sub-item btn-sidebar-logout" onclick="window.app.logout()">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="file" id="restore-input" style="display: none" onchange="window.app.restoreData(this)"
+                    accept=".json" />
+            </div>
+
+            <div class="menu-overlay" id="menu-overlay" onclick="window.app.toggleMenu()"></div>
+        </header>
+
+        <main class="main-content">
+            <div class="page-title-area">
+                <h1>سجل متابعة الطلاب</h1>
+                <p>منصة أثر لإدارة الدورات العلمية - إدارة الحضور والغياب والمراسلة الدورية</p>
+                <div class="filters-container">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" onkeyup="window.app.search()"
+                            placeholder="بحث بالاسم أو الهاتف..." />
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <footer class="main-footer">
-        <h3>وَقُل رَّبِّ زِدْنِي عِلْمًا</h3>
-        <p>© 2026 | منصة أثر لإدارة الدورات العلمية | تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Hassan Rashid</a></p>
-    </footer>
-</div>
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table id="students-table">
+                        <thead>
+                            <tr id="table-header-row"></tr>
+                        </thead>
+                        <tbody id="students-body"></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span>جاري التحميل...</span>
+                </div>
+            </div>
+
+            <div class="bottom-grid">
+                <div class="card summary-card">
+                    <div class="card-header">
+                        <h3>ملخص اليوم</h3>
+                        <p class="date-display" id="current-date">--</p>
+                    </div>
+                    <div class="stats-list">
+                        <div class="stat-item total">
+                            <span>العدد الكلي</span><strong id="stat-total">0</strong>
+                        </div>
+                        <div class="stat-item absence">
+                            <span>الغياب اليوم</span><strong id="stat-absence">0</strong>
+                        </div>
+                        <div class="stat-item remaining">
+                            <span>المحاضرات المتبقية</span><strong id="stat-remaining">0</strong>
+                        </div>
+                    </div>
+                    <div class="quote-box">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <i class="fa-solid fa-quote-right quote-icon"
+                                style="position: static; opacity: 0.7; font-size: 1.1rem; color: var(--accent-gold);"></i>
+                            <button class="btn-action" onclick="window.app.copyHadith()"
+                                style="padding: 4px 10px; font-size: 0.78rem; background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-dark);"
+                                title="نسخ الحديث الشريف">
+                                <i class="fa-regular fa-copy"></i> نسخ الحديث
+                            </button>
+                        </div>
+                        <p id="hadith-text">جاري تحميل الحديث الشريف...</p>
+                        <small id="hadith-source"
+                            style="display:block; margin-top:5px; color:var(--accent-gold); font-weight:bold;"></small>
+                    </div>
+                </div>
+
+                <div class="card messaging-card">
+                    <div class="card-header-row">
+                        <div class="icon-sq">
+                            <i class="fa-solid fa-envelope-open-text"></i>
+                        </div>
+                        <div>
+                            <h3 id="msg-card-title">رسالة المتابعة</h3>
+                            <p id="msg-card-desc">قم بصياغة الرسالة التي سيتم إرسالها للطلاب المستهدفين</p>
+                        </div>
+                    </div>
+
+                    <div class="message-body">
+                        <div style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-action insert-var-btn" onclick="window.app.insertVariable('{الاسم}')">
+                                <i class="fa-solid fa-user-tag"></i> إدراج الاسم
+                            </button>
+                            <span class="hint-text" id="msg-hint-text">سيتم الاستبدال باسم الطالب تلقائياً.</span>
+                        </div>
+
+                        <textarea id="message-text"
+                            placeholder="مثال: أهلاً بك يا {الاسم}، نود تذكيرك بموعد المحاضرة ..."></textarea>
+
+                        <div class="action-row">
+                            <div id="mobile-send-status" class="mobile-only-status"
+                                style="display: none; width: 100%; text-align: center; margin-bottom: 10px; background: #f0f7f3; padding: 8px; border-radius: 6px; border: 1px solid #d4edda; color: #155724; font-size: 0.9rem; font-weight: bold;">
+                                <i class="fa-solid fa-circle-info"></i> تم إرسال <span id="mobile-sent-count">0</span>
+                                من أصل
+                                <span id="mobile-total-count">0</span>
+                            </div>
+                            <button class="btn-whatsapp" onclick="window.app.sendMessages()">
+                                إرسال الرسالة عبر واتساب
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="main-footer">
+            <h3>وَقُل رَّبِّ زِدْنِي عِلْمًا</h3>
+            <p>© 2026 | منصة أثر لإدارة الدورات العلمية | تطوير بواسطة <a href="https://wa.me/201092640962"
+                    target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Hassan Rashid</a></p>
+        </footer>
+    </div>
 
 
     <!-- Notes & Profile Modal -->
-<div id="notes-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card profile-card-wide">
-        <div class="modal-header">
-            <div class="student-info-header">
-                <div class="modal-avatar" id="modal-avatar">A</div>
-                <div>
-                    <h2 id="modal-student-name">اسم الطالب</h2>
-                    <span class="modal-subtitle" id="modal-student-phone">01xxxxxxxxx</span>
-                </div>
-            </div>
-            <button class="close-modal" onclick="window.app.closeNotes()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body-grid">
-            <div class="profile-main">
-                <div class="chart-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h3 style="margin: 0;"><i class="fa-solid fa-chart-line"></i> مؤشر الأداء التراكمي</h3>
-                        <button class="btn-action" onclick="window.app.downloadChartOnlyImage()" style="padding: 4px 10px; font-size: 0.82rem; background: var(--bg-light); border: 1px solid var(--border-color);" title="حفظ صورة المؤشر فقط">
-                            <i class="fa-solid fa-camera" style="color: var(--primary-green);"></i> حفظ المؤشر صورة
-                        </button>
-                    </div>
-                    <canvas id="performanceChart"></canvas>
-                </div>
-                <div class="notes-section">
-                    <div style="margin-bottom: 10px; text-align: right;">
-                        <label for="student-age" style="display: block; margin-bottom: 5px; font-weight: 700; color: var(--primary-green);">
-                            <i class="fa-solid fa-cake-candles"></i> عمر الطالب (السن):
-                        </label>
-                        <input type="number" id="student-age" placeholder="مثال: 18" min="4" max="120" style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 0.95rem;" />
-                    </div>
-                    <label for="student-notes" style="display: block; margin-bottom: 5px; font-weight: 700; color: var(--primary-green);">
-                        <i class="fa-solid fa-pen-to-square"></i> الملاحظات التربوية:
-                    </label>
-                    <textarea id="student-notes" placeholder="اكتب ملاحظاتك عن الطالب هنا..."></textarea>
-                    <button class="btn-save-notes" onclick="window.app.saveNotes()">
-                        <i class="fa-solid fa-floppy-disk"></i> حفظ البيانات والملاحظات
-                    </button>
-                </div>
-            </div>
-            <div class="profile-sidebar">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h3 style="margin: 0;"><i class="fa-solid fa-clock-rotate-left"></i> سجل الحضور</h3>
-                    <button class="btn-action" onclick="window.app.copyAttendanceHistory()" style="padding: 4px 10px; font-size: 0.82rem; background: var(--bg-light); border: 1px solid var(--border-color);" title="نسخ سجل الحضور بتفاصيله">
-                        <i class="fa-regular fa-copy"></i> نسخ السجل
-                    </button>
-                </div>
-                <div class="history-list" id="attendance-history"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- External Testers Modal -->
-<div id="external-testers-modal" class="modal-overlay" style="display:none">
-    <div class="modal-card" style="max-width:700px; max-height:90vh; overflow-y:auto;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-users-viewfinder" style="color:var(--primary-green)"></i> المختبرون من الخارج</h3>
-            <button class="close-modal" onclick="document.getElementById('external-testers-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
-                <button id="ext-all-btn" class="btn-action" style="background:var(--primary-green);color:white;flex:1;min-width:140px;" onclick="window.app.renderExternalTesters('all')">
-                    <i class="fa-solid fa-list"></i> كل المحاضرات
-                </button>
-                <button id="ext-last-btn" class="btn-action" style="background:var(--bg-light);border:1px solid var(--border-color);flex:1;min-width:140px;" onclick="window.app.renderExternalTesters('last')">
-                    <i class="fa-solid fa-clock-rotate-left"></i> آخر محاضرة فقط
-                </button>
-            </div>
-            <div id="external-testers-table-container">
-                <p style="text-align:center;color:#aaa;padding:20px;">اختر نوع التقرير من الأعلى</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Context Menu for Fast Grading -->
-<div id="context-menu" class="context-menu" style="display: none">
-    <div class="menu-header">تحديد حالة الطالب</div>
-    <ul>
-        <li class="separator"></li>
-        <li onclick="window.app.manualStatus('replied')"><i class="fa-solid fa-comment-dots" style="color: #f39c12"></i> رد ولم يختبر</li>
-        <li onclick="window.app.manualStatus(0)"><i class="fa-solid fa-crown" style="color: #f1c40f"></i> تسليم السبت (100%)</li>
-        <li onclick="window.app.manualStatus(1)"><i class="fa-solid fa-circle-check" style="color: #2ecc71"></i> تسليم الأحد (90%)</li>
-        <li onclick="window.app.manualStatus(2)"><i class="fa-solid fa-circle-check" style="color: #2ecc71"></i> تسليم الاثنين (80%)</li>
-        <li onclick="window.app.manualStatus(3)"><i class="fa-solid fa-circle-check" style="color: #27ae60"></i> تسليم الثلاثاء (70%)</li>
-        <li onclick="window.app.manualStatus(4)"><i class="fa-solid fa-circle-check" style="color: #27ae60"></i> تسليم الأربعاء (60%)</li>
-        <li onclick="window.app.manualStatus(5)"><i class="fa-solid fa-circle-check" style="color: #f39c12"></i> تسليم الخميس (50%)</li>
-        <li onclick="window.app.manualStatus(6)"><i class="fa-solid fa-circle-check" style="color: #e67e22"></i> تسليم الجمعة (40%)</li>
-        <li class="separator"></li>
-        <li onclick="window.app.manualStatus(10)"><i class="fa-solid fa-clock" style="color: #e74c3c"></i> تأخير أسبوع (30%)</li>
-        <li onclick="window.app.manualStatus(17)"><i class="fa-solid fa-clock" style="color: #c0392b"></i> تأخير أسبوعين (20%)</li>
-        <li class="separator"></li>
-        <li onclick="window.app.manualStatus(-1)"><i class="fa-solid fa-trash"></i> إلغاء / غياب</li>
-    </ul>
-</div>
-
-<!-- Quick Bulk Import Modal -->
-<div id="import-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-users"></i> استيراد سريع</h3>
-            <button class="close-modal" onclick="document.getElementById('import-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <label>الصق القائمة هنا (كل طالب في سطر):</label>
-            <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px">يمكنك لصق الأسماء، أو أرقام الهواتف فقط.</p>
-            <textarea id="import-text" placeholder="010xxxxxxx&#10;011xxxxxxx&#10;..." style="height: 200px; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn-action" onclick="document.getElementById('import-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
-            <button class="btn-save-notes" onclick="window.app.saveImport()" style="width: auto; margin: 0;">
-                <i class="fa-solid fa-file-import"></i> بدء الاستيراد
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- AI Messy Data Parser Modal (المنظف الذكي للقوائم) -->
-<div id="ai-cleaner-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> المنظف الذكي للقوائم (AI Parser)</h3>
-            <button class="close-modal" onclick="document.getElementById('ai-cleaner-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">
-                الصق أي نص عشوائي أو غير منظم من الواتساب (أسماء مع أرقام، ترقيم، أقواس، عبارات إضافية...) وسيتولى الذكاء الاصطناعي استخراج وتنظيم بيانات الطلاب فوراً.
-            </p>
-            <textarea id="ai-cleaner-input" placeholder="مثال:&#10;1- أحمد محمد علي (01012345678)&#10;الطالب: محمود حسن / 01123456789&#10;عمر خالد - +201234567890 ممتاز..." style="height: 140px; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
-            
-            <button id="btn-run-cleaner" class="btn-whatsapp" onclick="window.app.runAICleaner()" style="margin-top: 10px; width: 100%; justify-content: center; background: linear-gradient(135deg, #1A5D3A 0%, #D4AF37 100%);">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> تنظيف واستخراج البيانات بالذكاء الاصطناعي
-            </button>
-
-            <!-- Results Preview Section -->
-            <div id="ai-cleaner-results" style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span id="ai-cleaner-count" style="font-weight: bold; color: var(--primary-green); font-size: 0.9rem;"></span>
-                    <button class="btn-action" onclick="window.app.copyCleanedStudents()" style="font-size: 0.8rem; padding: 4px 8px; background: #eef2f5;">
-                        <i class="fa-regular fa-copy"></i> نسخ القائمة
-                    </button>
-                </div>
-                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-                        <thead>
-                            <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
-                                <th style="padding: 6px; text-align: center; width: 40px;">#</th>
-                                <th style="padding: 6px; text-align: right;">الاسم</th>
-                                <th style="padding: 6px; text-align: right;">رقم الهاتف</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ai-cleaner-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-            <button class="btn-action" onclick="document.getElementById('ai-cleaner-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc;">إغلاق</button>
-            <button class="btn-save-notes" onclick="window.app.importCleanedStudents()" style="width: auto; margin: 0; background: var(--primary-green);">
-                <i class="fa-solid fa-file-import"></i> استيراد مباشر للطلاب
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Student Data Modal -->
-<div id="edit-student-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 400px">
-        <div class="modal-header">
-            <h3>تعديل بيانات الطالب</h3>
-            <button class="close-modal" onclick="document.getElementById('edit-student-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="input-group" style="text-align: right">
-                <label>اسم الطالب</label>
-                <input type="text" id="edit-name" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
-            </div>
-            <div class="input-group" style="text-align: right; margin-top: 10px">
-                <label>رقم الهاتف</label>
-                <input type="text" id="edit-phone" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
-            </div>
-            <input type="hidden" id="edit-id" />
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn-action" onclick="document.getElementById('edit-student-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
-            <button class="btn-save-notes" onclick="window.app.saveStudentEdit()" style="width: auto; margin: 0;">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ التعديلات
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Athar Interactive Prompt Modal -->
-<div id="athar-prompt-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 450px">
-        <div class="modal-header">
-            <h3 id="prompt-title">عنوان النافذة</h3>
-            <button class="close-modal" id="close-prompt-btn">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <p id="prompt-message" style="margin-bottom: 15px; font-weight: 600;"></p>
-            <div id="prompt-input-wrapper">
-                <input type="text" id="prompt-input" style="width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-family: inherit; font-size: 1rem;" />
-            </div>
-            <div id="prompt-choice-wrapper" style="display: none; flex-direction: column; gap: 10px;"></div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button id="prompt-cancel-btn" class="btn-action" style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
-            <button id="prompt-confirm-btn" class="btn-save-notes" style="width: auto; margin: 0;">تأكيد</button>
-        </div>
-    </div>
-</div>
-
-<!-- Mobile WhatsApp Queue Modal -->
-<div id="messaging-queue-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 480px; text-align: center;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-paper-plane"></i> طابور إرسال الموبايل</h3>
-            <button class="close-modal" onclick="window.app.closeMessagingQueue()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="padding: 1.25rem;">
-            <div id="queue-status-badge" style="margin-bottom: 15px; color: var(--primary-green); font-weight: bold; font-size: 1.1rem;">
-                جاري التجهيز...
-            </div>
-            
-            <div class="student-target-card" style="background: var(--bg-light); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px; text-align: center;">
-                <div class="modal-avatar" id="queue-avatar" style="margin: 0 auto 8px; width: 44px; height: 44px; font-size: 1.1rem;">?</div>
-                <h2 id="queue-student-name" style="font-size: 1.2rem; margin-bottom: 4px; color: var(--text-dark);">اسم الطالب</h2>
-                <p id="queue-student-phone" style="color: var(--text-light); font-size: 0.9rem; direction: ltr; font-family: monospace;"></p>
-            </div>
-
-            <!-- Message Textarea Area (Editable / AI Generated) -->
-            <div class="queue-message-box" style="margin-bottom: 15px; text-align: right;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label for="queue-message-input" style="font-weight: 700; font-size: 0.88rem; color: var(--primary-green); display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-envelope-open-text"></i> نص الرسالة (جاهزة للتعديل والإرسال):
-                    </label>
-                    <span id="queue-ai-badge" style="display: none; background: rgba(37, 211, 102, 0.15); color: var(--primary-green); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 12px;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI صياغة مخصصة
-                    </span>
-                </div>
-                <textarea id="queue-message-input" rows="3" placeholder="جاري تحضير الرسالة..." style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.92rem; resize: vertical; min-height: 85px; background: var(--card-white); color: var(--text-dark); line-height: 1.5;"></textarea>
-            </div>
-
-            <div class="queue-progress-container" style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-light);">
-                    <span>التقدم في الإرسال</span>
-                    <span id="queue-progress-text">0 / 0</span>
-                </div>
-                <div style="width: 100%; height: 6px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
-                    <div id="queue-progress-bar" style="width: 0%; height: 100%; background: var(--primary-green); transition: width 0.3s;"></div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="flex-direction: column; gap: 8px; padding: 1rem 1.25rem;">
-            <button id="queue-send-btn" class="btn-whatsapp" style="width: 100%; margin: 0; background: #25D366; font-size: 1rem; padding: 12px;">
-                <i class="fa-brands fa-whatsapp"></i> إرسال الآن للواتساب
-            </button>
-            <button id="queue-next-btn" class="btn-action" style="width: 100%; margin: 0; justify-content: center;">
-                تخطي للطالب التالي <i class="fa-solid fa-forward"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Certificate Settings & Visual Drag-and-Drop Modal -->
-<div id="cert-settings-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 800px; max-height: 92vh; display: flex; flex-direction: column;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-certificate" style="color: var(--accent-gold);"></i> محرر وتخصيص شهادة التقدير</h3>
-            <button class="close-modal" onclick="window.app.closeCertSettings()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="text-align: right; overflow-y: auto; flex: 1; padding: 1.25rem;">
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--primary-green);">
-                    <span><i class="fa-solid fa-image"></i> قالب الشهادة (صورة خاصة بالدورة):</span>
-                    <small style="color: var(--text-light); font-weight: normal;">(JPG, PNG بأبعاد عالية مثل 2000x1414)</small>
-                </label>
-                <input type="file" id="cert-template-input" accept="image/*" style="width: 100%; padding: 8px; border: 1.5px dashed var(--border-color); border-radius: 8px; background: var(--bg-light);" onchange="window.app.handleCertTemplateUpload(this)" />
-            </div>
-
-            <!-- Visual Live Interactive Drag-and-Drop Container -->
-            <div style="margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-dark);">
-                        <i class="fa-solid fa-hand-pointer" style="color: var(--accent-gold);"></i> المعاينة التفاعلية (اسحب العناصر بالماوس أو اللمس لموضعها المطلوب):
-                    </span>
-                </div>
-                <div id="cert-preview-container" style="position: relative; width: 100%; border: 2px dashed var(--border-color); border-radius: 10px; overflow: hidden; background: #0f172a; min-height: 220px; display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;">
-                    <div id="cert-no-template-msg" style="display: flex; flex-direction: column; align-items: center; gap: 8px; color: #94a3b8; padding: 35px 20px; text-align: center;">
-                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5rem; color: var(--accent-gold);"></i>
-                        <span style="font-size: 0.95rem; font-weight: bold; color: #f8fafc;">لم يتم رفع قالب شهادة بعد</span>
-                        <span style="font-size: 0.82rem;">يرجى رفع صورة قالب الشهادة أعلاه لبدء السحب وتحديد مواضع النصوص</span>
-                    </div>
-                    <img id="cert-preview-img" style="width: 100%; height: auto; display: none; pointer-events: none;" alt="معاينة الشهادة">
-                    <div id="cert-markers-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none;">
-                        <div id="marker-name" class="cert-drag-marker" data-type="name" style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(39, 174, 96, 0.9); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: flex; align-items: center; gap: 6px; z-index: 10;">
-                            <i class="fa-solid fa-arrows-up-down-left-right"></i> اسم الطالب
-                        </div>
-                        <div id="marker-date" class="cert-drag-marker" data-type="date" style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(41, 128, 185, 0.9); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: flex; align-items: center; gap: 6px; z-index: 10;">
-                            <i class="fa-solid fa-arrows-up-down-left-right"></i> التاريخ
-                        </div>
-                        <div id="marker-lecture" class="cert-drag-marker" data-type="lecture" style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(212, 175, 55, 0.95); color: #1a1a1a; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: none; align-items: center; gap: 6px; z-index: 10;">
-                            <i class="fa-solid fa-arrows-up-down-left-right"></i> رقم المحاضرة
-                        </div>
+    <div id="notes-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card profile-card-wide">
+            <div class="modal-header">
+                <div class="student-info-header">
+                    <div class="modal-avatar" id="modal-avatar">A</div>
+                    <div>
+                        <h2 id="modal-student-name">اسم الطالب</h2>
+                        <span class="modal-subtitle" id="modal-student-phone">01xxxxxxxxx</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Coordinate Controls & Toggle -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                <div class="cert-field-config" style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="margin: 0; color: #27ae60; font-size: 0.9rem;"><i class="fa-solid fa-user"></i> اسم الطالب</h4>
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
-                            <input type="checkbox" id="cert-name-show" onchange="window.app.updateVisualMarkersPositions()" checked /> تفعيل
-                        </label>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-name-x" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                        <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-name-y" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                    </div>
-                </div>
-
-                <div class="cert-field-config" style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="margin: 0; color: #2980b9; font-size: 0.9rem;"><i class="fa-solid fa-calendar"></i> التاريخ</h4>
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
-                            <input type="checkbox" id="cert-date-show" onchange="window.app.updateVisualMarkersPositions()" checked /> تفعيل
-                        </label>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-date-x" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                        <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-date-y" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                    </div>
-                </div>
-
-                <div class="cert-field-config" style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="margin: 0; color: #d4af37; font-size: 0.9rem;"><i class="fa-solid fa-book-open"></i> رقم المحاضرة</h4>
-                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
-                            <input type="checkbox" id="cert-lec-show" onchange="window.app.updateVisualMarkersPositions()" /> تفعيل
-                        </label>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-lec-x" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                        <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-lec-y" oninput="window.app.updateVisualMarkersPositions()" style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
-            <button class="btn-action" onclick="window.app.closeCertSettings()" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
-            <button class="btn-save-notes" onclick="window.app.saveCertSettings()" style="width: auto; margin: 0; background: var(--primary-green);">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ القالب والإعدادات
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Supervisor Report Details Modal -->
-<div id="supervisor-report-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 600px">
-        <div class="modal-header">
-            <h3 id="sup-report-title">تقرير المشرف</h3>
-            <button class="close-modal" onclick="document.getElementById('supervisor-report-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <textarea id="sup-report-text" readonly style="width: 100%; height: 350px; font-family: monospace; direction: ltr; text-align: left; padding: 15px; background: #000; color: #0f0; border: 1px solid #333; border-radius: 8px; font-size: 0.9rem;"></textarea>
-        </div>
-        <div class="modal-footer">
-            <button id="download-sup-report-btn" class="btn-save-notes" style="width: 100%;">
-                <i class="fa-solid fa-file-arrow-down"></i> تحميل التقرير كملف نصي
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- In-App Text Report Modal -->
-<div id="text-report-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-file-lines" style="color: var(--primary-green);"></i> التقرير النصي الشامل</h3>
-            <button class="close-modal" onclick="document.getElementById('text-report-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 15px;">
-            <textarea id="text-report-content" readonly style="width: 100%; height: 350px; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.92rem; background: var(--bg-light); color: var(--text-dark); line-height: 1.6; resize: vertical;"></textarea>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
-            <button class="btn-action" onclick="document.getElementById('text-report-modal').style.display='none'" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إغلاق</button>
-            <button class="btn-save-notes" onclick="window.app.copyTextReport()" style="width: auto; margin: 0; background: var(--primary-green);">
-                <i class="fa-regular fa-copy"></i> نسخ التقرير النصي
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Message Types Breakdown Modal -->
-<div id="msg-details-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 500px">
-        <div class="modal-header">
-            <h3 id="msg-details-title"><i class="fa-solid fa-chart-pie"></i> إحصائيات الرسائل</h3>
-            <button class="close-modal" onclick="document.getElementById('msg-details-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" id="msg-details-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        <div class="modal-footer">
-            <button class="btn-action" onclick="document.getElementById('msg-details-modal').style.display='none'" style="background: #eee; color: #333; width: 100%; justify-content: center;">إغلاق</button>
-        </div>
-    </div>
-</div>
-
-<!-- Group Info / Settings Modal -->
-<div id="group-info-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 450px">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-circle-info"></i> معلومات المجموعة</h3>
-            <button class="close-modal" onclick="document.getElementById('group-info-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" id="group-info-content" style="line-height: 1.8;"></div>
-        <div class="modal-footer" style="display: flex; gap: 10px;">
-            <button class="btn-action" onclick="document.getElementById('group-info-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc; flex: 1; padding: 10px; border-radius: 8px; justify-content: center;">إغلاق</button>
-            <button id="save-group-info-btn" class="btn-save-notes" onclick="window.app.saveGroupSettings()" style="display:none; flex: 1; margin: 0; padding: 10px; border-radius: 8px;">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Lecture Settings Modal -->
-<div id="lecture-settings-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 450px">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-gear"></i> إعدادات المحاضرة</h3>
-            <button class="close-modal" onclick="document.getElementById('lecture-settings-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="text-align: right; max-height: 60vh; overflow-y: auto;">
-            <input type="hidden" id="edit-lec-id-hidden" />
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">عنوان المحاضرة أو الاختبار</label>
-                <input type="text" id="edit-lec-name" placeholder="مثال: المحاضرة 1 أو الاختبار النهائي" style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
-            </div>
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">رابط نموذج الاختبار / Google Form (إجباري)</label>
-                <input type="url" id="edit-lec-link" placeholder="https://docs.google.com/forms/..." style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
-            </div>
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">رابط المحاضرة على يوتيوب (اختياري - اتركه فارغاً للاختبارات)</label>
-                <input type="url" id="edit-lec-video" placeholder="https://youtu.be/..." style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
-            </div>
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">كود الربط (يوضع في Google Forms)</label>
-                <div style="display:flex; flex-direction:column; gap: 5px;">
-                    <textarea id="edit-lec-script" readonly style="width: 100%; height: 110px; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); direction: ltr; font-family: monospace; font-size: 0.8rem;"></textarea>
-                    <button type="button" class="btn-action" onclick="window.app.copyLectureScript()" style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--primary-green); padding: 5px 15px; border-radius: 8px; width: fit-content; align-self: flex-end;">
-                        <i class="fa-regular fa-copy"></i> نسخ الاسكريبت
-                    </button>
-                </div>
-            </div>
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">كود المحاضرة (معرف النظام)</label>
-                <div style="display:flex; gap: 10px;">
-                    <input type="text" id="edit-lec-id-display" readonly style="flex: 1; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; background: var(--bg-light); color: var(--text-dark);" />
-                    <button type="button" class="btn-action" onclick="window.app.copyLectureId()" style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--primary-green); padding: 5px 15px; border-radius: 8px;">
-                        <i class="fa-regular fa-copy"></i> نسخ
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: space-between;">
-            <button class="btn-action" onclick="window.app.deleteLectureFromSettings()" style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold;">
-                <i class="fa-solid fa-trash"></i> حذف المحاضرة
-            </button>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-action" onclick="document.getElementById('lecture-settings-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
-                <button class="btn-save-notes" onclick="window.app.saveLectureSettings()" style="width: auto; margin: 0;">
-                    <i class="fa-solid fa-floppy-disk"></i> حفظ
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Profile Modal -->
-<div id="profile-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 450px">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-user-gear"></i> الملف الشخصي</h3>
-            <button class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="input-group">
-                <label>الاسم الكامل</label>
-                <input type="text" id="profile-name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" />
-            </div>
-            <div class="input-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" id="profile-email" readonly style="width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9; color: #888;" />
-            </div>
-            <div class="input-group">
-                <label>رقم الواتساب (لاستلام الطلاب)</label>
-                <input type="tel" id="profile-phone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" />
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px;">
-            <button class="btn-action" onclick="document.getElementById('profile-modal').style.display='none'" style="background: #eee; color: #333; border: 1px solid #ccc; flex: 1; padding: 10px; border-radius: 8px; justify-content: center;">إلغاء</button>
-            <button class="btn-save-notes" onclick="window.app.saveProfileChanges()" style="flex: 1; margin: 0; padding: 10px; border-radius: 8px;">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- AI Custom Instructions Modal -->
-<div id="ai-instructions-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 500px">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> تعليمات الذكاء الاصطناعي</h3>
-            <button class="close-modal" onclick="document.getElementById('ai-instructions-modal').style.display='none'">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="text-align: right;">
-            <p style="font-size: 0.88rem; color: var(--text-light); margin-bottom: 12px; line-height: 1.6;">
-                يمكنك هنا كتابة أي توجيهات أو أسلوب تفضله ليلتزم به الذكاء الاصطناعي عند صياغة رسائل طلابك (خاصة بحسابك فقط).
-            </p>
-            <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; font-weight: 700; color: var(--primary-green); margin-bottom: 6px;">
-                    <i class="fa-solid fa-comment-dots"></i> توجيهاتي الخاصة للذكاء الاصطناعي:
-                </label>
-                <textarea id="supervisor-ai-instructions" rows="4" placeholder="مثال: ركز على أسلوب الأخ الصديق، واستخدم عبارات دافئة ومحفزة..." style="width: 100%; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 100px; background: var(--bg-light); color: var(--text-dark); line-height: 1.5;"></textarea>
-            </div>
-            <div style="background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--accent-gold); padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; color: var(--text-dark); line-height: 1.5;">
-                <i class="fa-solid fa-lightbulb" style="color: var(--accent-gold);"></i>
-                <strong>ملاحظة ذكية:</strong> يراعي النظام تلقائياً عمر الطالب وطريقة خطابه كصديق دون ذكر أرقام أو إفشاء أي ملاحظات داخلية.
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
-            <button class="btn-action" onclick="document.getElementById('ai-instructions-modal').style.display='none'" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
-            <button class="btn-save-notes" onclick="window.app.saveAIInstructions()" style="width: auto; margin: 0;">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ التعليمات
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Custom Student Transfer Selection Modal -->
-<div id="custom-transfer-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 650px; max-height: 90vh; display: flex; flex-direction: column;">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-handshake"></i> تحديد الطلاب لتسليمهم لمشرف آخر</h3>
-            <button class="close-modal" onclick="window.app.closeCustomTransferModal()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button type="button" class="btn-action" id="transfer-select-all-btn" onclick="window.app.toggleSelectAllTransfer()" style="padding: 6px 12px; font-size: 0.85rem;">
-                        <i class="fa-solid fa-check-double"></i> تحديد الكل
-                    </button>
-                    <span id="transfer-selected-count-badge" style="background: rgba(26, 93, 58, 0.12); color: var(--primary-green); font-weight: bold; font-size: 0.85rem; padding: 4px 10px; border-radius: 12px;">
-                        المحدد: 0 طالب
-                    </span>
-                </div>
-                <div style="min-width: 180px; flex: 1; max-width: 250px;">
-                    <input type="text" id="transfer-search-input" onkeyup="window.app.filterTransferStudentsList()" placeholder="بحث في القائمة..." style="width: 100%; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; font-family: inherit;">
-                </div>
-            </div>
-
-            <div class="custom-transfer-table-wrapper" style="border: 1px solid var(--border-color); border-radius: 8px; max-height: 380px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative;">
-                <table style="width: 100%; min-width: 520px; border-collapse: separate; border-spacing: 0; text-align: right; font-size: 0.88rem;">
-                    <thead style="background: var(--bg-light); color: var(--text-dark);">
-                        <tr>
-                            <th style="width: 48px; min-width: 48px; text-align: center; padding: 10px 8px; position: sticky; right: 0; top: 0; background: var(--bg-light); z-index: 3; border-bottom: 2px solid var(--border-color); box-shadow: -2px 0 4px rgba(0,0,0,0.06);">#</th>
-                            <th style="padding: 10px 10px; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 150px; white-space: nowrap;">اسم الطالب</th>
-                            <th style="padding: 10px 10px; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 130px; white-space: nowrap;">رقم الهاتف</th>
-                            <th style="padding: 10px 10px; text-align: center; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 140px; white-space: nowrap;">المحاضرات المختبرة</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transfer-students-tbody">
-                        <!-- Rendered dynamically -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
-            <button class="btn-action" onclick="window.app.closeCustomTransferModal()" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
-            <button class="btn-save-notes" id="proceed-custom-transfer-btn" onclick="window.app.proceedCustomTransfer()" style="width: auto; margin: 0; background: var(--primary-green);">
-                متابعة التسليم ➡️
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Notification Center Modal / Drawer -->
-<div id="notification-center-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
-        <div class="modal-header" style="justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-bell" style="color: var(--accent-gold); font-size: 1.2rem;"></i>
-                <h3 style="margin: 0;">مركز التنبيهات</h3>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="btn-action" onclick="window.app.clearAllNotifications()" title="مسح جميع الإشعارات" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-light); border: 1px solid var(--border-color);">
-                    <i class="fa-solid fa-trash-can"></i> مسح
-                </button>
-                <button class="close-modal" onclick="window.app.closeNotificationCenter()">
+                <button class="close-modal" onclick="window.app.closeNotes()">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-        </div>
-        
-        <!-- Toggle Setting Switch -->
-        <div style="background: var(--bg-light); padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark);">
-                <i class="fa-solid fa-tower-broadcast" style="color: var(--primary-green);"></i> التنبيهات الفورية (شاشة القفل):
-            </span>
-            <label class="switch">
-                <input type="checkbox" class="athar-notif-checkbox" onchange="window.app.toggleNotificationsSetting(this)">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
-        <div class="modal-body" id="notif-center-list" style="overflow-y: auto; flex: 1; padding: 12px; max-height: 450px;">
-            <!-- Notifications rendered dynamically -->
-        </div>
-    </div>
-</div>
-
-<!-- At-Risk Students Radar Modal -->
-<div id="at-risk-radar-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
-        <div class="modal-header" style="justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(231, 76, 60, 0.15); display: flex; align-items: center; justify-content: center; color: #e74c3c;">
-                    <i class="fa-solid fa-crosshairs" style="font-size: 1.2rem;"></i>
+            <div class="modal-body-grid">
+                <div class="profile-main">
+                    <div class="chart-container">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h3 style="margin: 0;"><i class="fa-solid fa-chart-line"></i> مؤشر الأداء التراكمي</h3>
+                            <button class="btn-action" onclick="window.app.downloadChartOnlyImage()"
+                                style="padding: 4px 10px; font-size: 0.82rem; background: var(--bg-light); border: 1px solid var(--border-color);"
+                                title="حفظ صورة المؤشر فقط">
+                                <i class="fa-solid fa-camera" style="color: var(--primary-green);"></i> حفظ المؤشر صورة
+                            </button>
+                        </div>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="notes-section">
+                        <div style="margin-bottom: 10px; text-align: right;">
+                            <label for="student-age"
+                                style="display: block; margin-bottom: 5px; font-weight: 700; color: var(--primary-green);">
+                                <i class="fa-solid fa-cake-candles"></i> عمر الطالب (السن):
+                            </label>
+                            <input type="number" id="student-age" placeholder="مثال: 18" min="4" max="120"
+                                style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 0.95rem;" />
+                        </div>
+                        <label for="student-notes"
+                            style="display: block; margin-bottom: 5px; font-weight: 700; color: var(--primary-green);">
+                            <i class="fa-solid fa-pen-to-square"></i> الملاحظات التربوية:
+                        </label>
+                        <textarea id="student-notes" placeholder="اكتب ملاحظاتك عن الطالب هنا..."></textarea>
+                        <button class="btn-save-notes" onclick="window.app.saveNotes()">
+                            <i class="fa-solid fa-floppy-disk"></i> حفظ البيانات والملاحظات
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <h3 style="margin: 0; font-size: 1.15rem;">رادار المتابعة والتسرب المبكر</h3>
-                    <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-light);">كشف الطلاب الذين كانوا متميزين وبدأ أداؤهم في التراجع لتداركهم</p>
+                <div class="profile-sidebar">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h3 style="margin: 0;"><i class="fa-solid fa-clock-rotate-left"></i> سجل الحضور</h3>
+                        <button class="btn-action" onclick="window.app.copyAttendanceHistory()"
+                            style="padding: 4px 10px; font-size: 0.82rem; background: var(--bg-light); border: 1px solid var(--border-color);"
+                            title="نسخ سجل الحضور بتفاصيله">
+                            <i class="fa-regular fa-copy"></i> نسخ السجل
+                        </button>
+                    </div>
+                    <div class="history-list" id="attendance-history"></div>
                 </div>
             </div>
-            <button class="close-modal" onclick="window.app.closeAtRiskRadar()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.25rem;">
-            <div id="at-risk-radar-content">
-                <!-- Rendered dynamically -->
-            </div>
-        </div>
-        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
-            <span id="at-risk-total-count" style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark);">إجمالي الحالات المرصودة: 0</span>
-            <button class="btn-action" onclick="window.app.closeAtRiskRadar()" style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إغلاق</button>
         </div>
     </div>
-</div>
 
-<!-- ===== Withdrawal Reason Modal (Smart Soft Delete - ML Labeling) ===== -->
-<div id="withdrawal-reason-modal" class="modal-overlay" style="display: none">
-    <div class="modal-card" style="max-width: 460px">
-        <div class="modal-header">
-            <h3 style="display:flex;align-items:center;gap:8px;">
-                <span style="background:#e74c3c;color:white;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85rem;">
-                    <i class="fa-solid fa-person-walking-arrow-right"></i>
+    <!-- External Testers Modal -->
+    <div id="external-testers-modal" class="modal-overlay" style="display:none">
+        <div class="modal-card" style="max-width:700px; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-users-viewfinder" style="color:var(--primary-green)"></i> المختبرون من الخارج
+                </h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('external-testers-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+                    <button id="ext-all-btn" class="btn-action"
+                        style="background:var(--primary-green);color:white;flex:1;min-width:140px;"
+                        onclick="window.app.renderExternalTesters('all')">
+                        <i class="fa-solid fa-list"></i> كل المحاضرات
+                    </button>
+                    <button id="ext-last-btn" class="btn-action"
+                        style="background:var(--bg-light);border:1px solid var(--border-color);flex:1;min-width:140px;"
+                        onclick="window.app.renderExternalTesters('last')">
+                        <i class="fa-solid fa-clock-rotate-left"></i> آخر محاضرة فقط
+                    </button>
+                </div>
+                <div id="external-testers-table-container">
+                    <p style="text-align:center;color:#aaa;padding:20px;">اختر نوع التقرير من الأعلى</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu for Fast Grading -->
+    <div id="context-menu" class="context-menu" style="display: none">
+        <div class="menu-header">تحديد حالة الطالب</div>
+        <ul>
+            <li class="separator"></li>
+            <li onclick="window.app.manualStatus('replied')"><i class="fa-solid fa-comment-dots"
+                    style="color: #f39c12"></i> رد ولم يختبر</li>
+            <li onclick="window.app.manualStatus(0)"><i class="fa-solid fa-crown" style="color: #f1c40f"></i> تسليم
+                السبت (100%)</li>
+            <li onclick="window.app.manualStatus(1)"><i class="fa-solid fa-circle-check" style="color: #2ecc71"></i>
+                تسليم الأحد (90%)</li>
+            <li onclick="window.app.manualStatus(2)"><i class="fa-solid fa-circle-check" style="color: #2ecc71"></i>
+                تسليم الاثنين (80%)</li>
+            <li onclick="window.app.manualStatus(3)"><i class="fa-solid fa-circle-check" style="color: #27ae60"></i>
+                تسليم الثلاثاء (70%)</li>
+            <li onclick="window.app.manualStatus(4)"><i class="fa-solid fa-circle-check" style="color: #27ae60"></i>
+                تسليم الأربعاء (60%)</li>
+            <li onclick="window.app.manualStatus(5)"><i class="fa-solid fa-circle-check" style="color: #f39c12"></i>
+                تسليم الخميس (50%)</li>
+            <li onclick="window.app.manualStatus(6)"><i class="fa-solid fa-circle-check" style="color: #e67e22"></i>
+                تسليم الجمعة (40%)</li>
+            <li class="separator"></li>
+            <li onclick="window.app.manualStatus(10)"><i class="fa-solid fa-clock" style="color: #e74c3c"></i> تأخير
+                أسبوع (30%)</li>
+            <li onclick="window.app.manualStatus(17)"><i class="fa-solid fa-clock" style="color: #c0392b"></i> تأخير
+                أسبوعين (20%)</li>
+            <li class="separator"></li>
+            <li onclick="window.app.manualStatus(-1)"><i class="fa-solid fa-trash"></i> إلغاء / غياب</li>
+        </ul>
+    </div>
+
+    <!-- Quick Bulk Import Modal -->
+    <div id="import-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-users"></i> استيراد سريع</h3>
+                <button class="close-modal" onclick="document.getElementById('import-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label>الصق القائمة هنا (كل طالب في سطر):</label>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px">يمكنك لصق الأسماء، أو أرقام الهواتف فقط.
+                </p>
+                <textarea id="import-text" placeholder="010xxxxxxx&#10;011xxxxxxx&#10;..."
+                    style="height: 200px; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-action" onclick="document.getElementById('import-modal').style.display='none'"
+                    style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
+                <button class="btn-save-notes" onclick="window.app.saveImport()" style="width: auto; margin: 0;">
+                    <i class="fa-solid fa-file-import"></i> بدء الاستيراد
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Messy Data Parser Modal (المنظف الذكي للقوائم) -->
+    <div id="ai-cleaner-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> المنظف الذكي
+                    للقوائم (AI Parser)</h3>
+                <button class="close-modal" onclick="document.getElementById('ai-cleaner-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">
+                    الصق أي نص عشوائي أو غير منظم من الواتساب (أسماء مع أرقام، ترقيم، أقواس، عبارات إضافية...) وسيتولى
+                    الذكاء الاصطناعي استخراج وتنظيم بيانات الطلاب فوراً.
+                </p>
+                <textarea id="ai-cleaner-input"
+                    placeholder="مثال:&#10;1- أحمد محمد علي (01012345678)&#10;الطالب: محمود حسن / 01123456789&#10;عمر خالد - +201234567890 ممتاز..."
+                    style="height: 140px; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
+
+                <button id="btn-run-cleaner" class="btn-whatsapp" onclick="window.app.runAICleaner()"
+                    style="margin-top: 10px; width: 100%; justify-content: center; background: linear-gradient(135deg, #1A5D3A 0%, #D4AF37 100%);">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> تنظيف واستخراج البيانات بالذكاء الاصطناعي
+                </button>
+
+                <!-- Results Preview Section -->
+                <div id="ai-cleaner-results"
+                    style="display: none; margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span id="ai-cleaner-count"
+                            style="font-weight: bold; color: var(--primary-green); font-size: 0.9rem;"></span>
+                        <button class="btn-action" onclick="window.app.copyCleanedStudents()"
+                            style="font-size: 0.8rem; padding: 4px 8px; background: #eef2f5;">
+                            <i class="fa-regular fa-copy"></i> نسخ القائمة
+                        </button>
+                    </div>
+                    <div style="max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
+                                    <th style="padding: 6px; text-align: center; width: 40px;">#</th>
+                                    <th style="padding: 6px; text-align: right;">الاسم</th>
+                                    <th style="padding: 6px; text-align: right;">رقم الهاتف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ai-cleaner-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                <button class="btn-action" onclick="document.getElementById('ai-cleaner-modal').style.display='none'"
+                    style="background: #eee; color: #333; border: 1px solid #ccc;">إغلاق</button>
+                <button class="btn-save-notes" onclick="window.app.importCleanedStudents()"
+                    style="width: auto; margin: 0; background: var(--primary-green);">
+                    <i class="fa-solid fa-file-import"></i> استيراد مباشر للطلاب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Data Modal -->
+    <div id="edit-student-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 400px">
+            <div class="modal-header">
+                <h3>تعديل بيانات الطالب</h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('edit-student-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group" style="text-align: right">
+                    <label>اسم الطالب</label>
+                    <input type="text" id="edit-name"
+                        style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
+                </div>
+                <div class="input-group" style="text-align: right; margin-top: 10px">
+                    <label>رقم الهاتف</label>
+                    <input type="text" id="edit-phone"
+                        style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px;" />
+                </div>
+                <input type="hidden" id="edit-id" />
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-action" onclick="document.getElementById('edit-student-modal').style.display='none'"
+                    style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
+                <button class="btn-save-notes" onclick="window.app.saveStudentEdit()" style="width: auto; margin: 0;">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ التعديلات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Athar Interactive Prompt Modal -->
+    <div id="athar-prompt-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 450px">
+            <div class="modal-header">
+                <h3 id="prompt-title">عنوان النافذة</h3>
+                <button class="close-modal" id="close-prompt-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="prompt-message" style="margin-bottom: 15px; font-weight: 600;"></p>
+                <div id="prompt-input-wrapper">
+                    <input type="text" id="prompt-input"
+                        style="width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-family: inherit; font-size: 1rem;" />
+                </div>
+                <div id="prompt-choice-wrapper" style="display: none; flex-direction: column; gap: 10px;"></div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="prompt-cancel-btn" class="btn-action"
+                    style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
+                <button id="prompt-confirm-btn" class="btn-save-notes" style="width: auto; margin: 0;">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile WhatsApp Queue Modal -->
+    <div id="messaging-queue-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 480px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-paper-plane"></i> طابور إرسال الموبايل</h3>
+                <button class="close-modal" onclick="window.app.closeMessagingQueue()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <div id="queue-status-badge"
+                    style="margin-bottom: 15px; color: var(--primary-green); font-weight: bold; font-size: 1.1rem;">
+                    جاري التجهيز...
+                </div>
+
+                <div class="student-target-card"
+                    style="background: var(--bg-light); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px; text-align: center;">
+                    <div class="modal-avatar" id="queue-avatar"
+                        style="margin: 0 auto 8px; width: 44px; height: 44px; font-size: 1.1rem;">?</div>
+                    <h2 id="queue-student-name" style="font-size: 1.2rem; margin-bottom: 4px; color: var(--text-dark);">
+                        اسم الطالب</h2>
+                    <p id="queue-student-phone"
+                        style="color: var(--text-light); font-size: 0.9rem; direction: ltr; font-family: monospace;">
+                    </p>
+                </div>
+
+                <!-- Message Textarea Area (Editable / AI Generated) -->
+                <div class="queue-message-box" style="margin-bottom: 15px; text-align: right;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="queue-message-input"
+                            style="font-weight: 700; font-size: 0.88rem; color: var(--primary-green); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-envelope-open-text"></i> نص الرسالة (جاهزة للتعديل والإرسال):
+                        </label>
+                        <span id="queue-ai-badge"
+                            style="display: none; background: rgba(37, 211, 102, 0.15); color: var(--primary-green); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 12px;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AI صياغة مخصصة
+                        </span>
+                    </div>
+                    <textarea id="queue-message-input" rows="3" placeholder="جاري تحضير الرسالة..."
+                        style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.92rem; resize: vertical; min-height: 85px; background: var(--card-white); color: var(--text-dark); line-height: 1.5;"></textarea>
+                </div>
+
+                <div class="queue-progress-container" style="margin-bottom: 10px;">
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-light);">
+                        <span>التقدم في الإرسال</span>
+                        <span id="queue-progress-text">0 / 0</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                        <div id="queue-progress-bar"
+                            style="width: 0%; height: 100%; background: var(--primary-green); transition: width 0.3s;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="flex-direction: column; gap: 8px; padding: 1rem 1.25rem;">
+                <button id="queue-send-btn" class="btn-whatsapp"
+                    style="width: 100%; margin: 0; background: #25D366; font-size: 1rem; padding: 12px;">
+                    <i class="fa-brands fa-whatsapp"></i> إرسال الآن للواتساب
+                </button>
+                <button id="queue-next-btn" class="btn-action" style="width: 100%; margin: 0; justify-content: center;">
+                    تخطي للطالب التالي <i class="fa-solid fa-forward"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Settings & Visual Drag-and-Drop Modal -->
+    <div id="cert-settings-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 800px; max-height: 92vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-certificate" style="color: var(--accent-gold);"></i> محرر وتخصيص شهادة التقدير
+                </h3>
+                <button class="close-modal" onclick="window.app.closeCertSettings()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: right; overflow-y: auto; flex: 1; padding: 1.25rem;">
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label
+                        style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--primary-green);">
+                        <span><i class="fa-solid fa-image"></i> قالب الشهادة (صورة خاصة بالدورة):</span>
+                        <small style="color: var(--text-light); font-weight: normal;">(JPG, PNG بأبعاد عالية مثل
+                            2000x1414)</small>
+                    </label>
+                    <input type="file" id="cert-template-input" accept="image/*"
+                        style="width: 100%; padding: 8px; border: 1.5px dashed var(--border-color); border-radius: 8px; background: var(--bg-light);"
+                        onchange="window.app.handleCertTemplateUpload(this)" />
+                </div>
+
+                <!-- Visual Live Interactive Drag-and-Drop Container -->
+                <div style="margin-bottom: 15px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-dark);">
+                            <i class="fa-solid fa-hand-pointer" style="color: var(--accent-gold);"></i> المعاينة
+                            التفاعلية (اسحب العناصر بالماوس أو اللمس لموضعها المطلوب):
+                        </span>
+                    </div>
+                    <div id="cert-preview-container"
+                        style="position: relative; width: 100%; border: 2px dashed var(--border-color); border-radius: 10px; overflow: hidden; background: #0f172a; min-height: 220px; display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;">
+                        <div id="cert-no-template-msg"
+                            style="display: flex; flex-direction: column; align-items: center; gap: 8px; color: #94a3b8; padding: 35px 20px; text-align: center;">
+                            <i class="fa-solid fa-cloud-arrow-up"
+                                style="font-size: 2.5rem; color: var(--accent-gold);"></i>
+                            <span style="font-size: 0.95rem; font-weight: bold; color: #f8fafc;">لم يتم رفع قالب شهادة
+                                بعد</span>
+                            <span style="font-size: 0.82rem;">يرجى رفع صورة قالب الشهادة أعلاه لبدء السحب وتحديد مواضع
+                                النصوص</span>
+                        </div>
+                        <img id="cert-preview-img"
+                            style="width: 100%; height: auto; display: none; pointer-events: none;"
+                            alt="معاينة الشهادة">
+                        <div id="cert-markers-layer"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none;">
+                            <div id="marker-name" class="cert-drag-marker" data-type="name"
+                                style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(39, 174, 96, 0.9); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: flex; align-items: center; gap: 6px; z-index: 10;">
+                                <i class="fa-solid fa-arrows-up-down-left-right"></i> اسم الطالب
+                            </div>
+                            <div id="marker-date" class="cert-drag-marker" data-type="date"
+                                style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(41, 128, 185, 0.9); color: white; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: flex; align-items: center; gap: 6px; z-index: 10;">
+                                <i class="fa-solid fa-arrows-up-down-left-right"></i> التاريخ
+                            </div>
+                            <div id="marker-lecture" class="cert-drag-marker" data-type="lecture"
+                                style="position: absolute; transform: translate(-50%, -50%); cursor: grab; background: rgba(212, 175, 55, 0.95); color: #1a1a1a; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 4px 14px rgba(0,0,0,0.5); pointer-events: auto; display: none; align-items: center; gap: 6px; z-index: 10;">
+                                <i class="fa-solid fa-arrows-up-down-left-right"></i> رقم المحاضرة
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coordinate Controls & Toggle -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <div class="cert-field-config"
+                        style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; color: #27ae60; font-size: 0.9rem;"><i class="fa-solid fa-user"></i>
+                                اسم الطالب</h4>
+                            <label
+                                style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
+                                <input type="checkbox" id="cert-name-show"
+                                    onchange="window.app.updateVisualMarkersPositions()" checked /> تفعيل
+                            </label>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-name-x"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                            <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-name-y"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                        </div>
+                    </div>
+
+                    <div class="cert-field-config"
+                        style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; color: #2980b9; font-size: 0.9rem;"><i
+                                    class="fa-solid fa-calendar"></i> التاريخ</h4>
+                            <label
+                                style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
+                                <input type="checkbox" id="cert-date-show"
+                                    onchange="window.app.updateVisualMarkersPositions()" checked /> تفعيل
+                            </label>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-date-x"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                            <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-date-y"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                        </div>
+                    </div>
+
+                    <div class="cert-field-config"
+                        style="background: var(--bg-light); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; color: #d4af37; font-size: 0.9rem;"><i
+                                    class="fa-solid fa-book-open"></i> رقم المحاضرة</h4>
+                            <label
+                                style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.8rem;">
+                                <input type="checkbox" id="cert-lec-show"
+                                    onchange="window.app.updateVisualMarkersPositions()" /> تفعيل
+                            </label>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="font-size: 0.8rem;">X:</span> <input type="number" id="cert-lec-x"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                            <span style="font-size: 0.8rem;">Y:</span> <input type="number" id="cert-lec-y"
+                                oninput="window.app.updateVisualMarkersPositions()"
+                                style="width: 100%; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
+                <button class="btn-action" onclick="window.app.closeCertSettings()"
+                    style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
+                <button class="btn-save-notes" onclick="window.app.saveCertSettings()"
+                    style="width: auto; margin: 0; background: var(--primary-green);">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ القالب والإعدادات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supervisor Report Details Modal -->
+    <div id="supervisor-report-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 600px">
+            <div class="modal-header">
+                <h3 id="sup-report-title">تقرير المشرف</h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('supervisor-report-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea id="sup-report-text" readonly
+                    style="width: 100%; height: 350px; font-family: monospace; direction: ltr; text-align: left; padding: 15px; background: #000; color: #0f0; border: 1px solid #333; border-radius: 8px; font-size: 0.9rem;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="download-sup-report-btn" class="btn-save-notes" style="width: 100%;">
+                    <i class="fa-solid fa-file-arrow-down"></i> تحميل التقرير كملف نصي
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-App Text Report Modal -->
+    <div id="text-report-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-lines" style="color: var(--primary-green);"></i> التقرير النصي الشامل
+                </h3>
+                <button class="close-modal" onclick="document.getElementById('text-report-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 15px;">
+                <textarea id="text-report-content" readonly
+                    style="width: 100%; height: 350px; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.92rem; background: var(--bg-light); color: var(--text-dark); line-height: 1.6; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
+                <button class="btn-action" onclick="document.getElementById('text-report-modal').style.display='none'"
+                    style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إغلاق</button>
+                <button class="btn-save-notes" onclick="window.app.copyTextReport()"
+                    style="width: auto; margin: 0; background: var(--primary-green);">
+                    <i class="fa-regular fa-copy"></i> نسخ التقرير النصي
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Types Breakdown Modal -->
+    <div id="msg-details-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 500px">
+            <div class="modal-header">
+                <h3 id="msg-details-title"><i class="fa-solid fa-chart-pie"></i> إحصائيات الرسائل</h3>
+                <button class="close-modal" onclick="document.getElementById('msg-details-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="msg-details-container"
+                style="display: flex; flex-direction: column; gap: 10px;"></div>
+            <div class="modal-footer">
+                <button class="btn-action" onclick="document.getElementById('msg-details-modal').style.display='none'"
+                    style="background: #eee; color: #333; width: 100%; justify-content: center;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Info / Settings Modal -->
+    <div id="group-info-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 450px">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-info"></i> معلومات المجموعة</h3>
+                <button class="close-modal" onclick="document.getElementById('group-info-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="group-info-content" style="line-height: 1.8;"></div>
+            <div class="modal-footer" style="display: flex; gap: 10px;">
+                <button class="btn-action" onclick="document.getElementById('group-info-modal').style.display='none'"
+                    style="background: #eee; color: #333; border: 1px solid #ccc; flex: 1; padding: 10px; border-radius: 8px; justify-content: center;">إغلاق</button>
+                <button id="save-group-info-btn" class="btn-save-notes" onclick="window.app.saveGroupSettings()"
+                    style="display:none; flex: 1; margin: 0; padding: 10px; border-radius: 8px;">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lecture Settings Modal -->
+    <div id="lecture-settings-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 450px">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear"></i> إعدادات المحاضرة</h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('lecture-settings-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: right; max-height: 60vh; overflow-y: auto;">
+                <input type="hidden" id="edit-lec-id-hidden" />
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">عنوان
+                        المحاضرة أو الاختبار</label>
+                    <input type="text" id="edit-lec-name" placeholder="مثال: المحاضرة 1 أو الاختبار النهائي"
+                        style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
+                </div>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">رابط
+                        نموذج الاختبار / Google Form (إجباري)</label>
+                    <input type="url" id="edit-lec-link" placeholder="https://docs.google.com/forms/..."
+                        style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
+                </div>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">رابط
+                        المحاضرة على يوتيوب (اختياري - اتركه فارغاً للاختبارات)</label>
+                    <input type="url" id="edit-lec-video" placeholder="https://youtu.be/..."
+                        style="width: 100%; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px;" />
+                </div>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">كود
+                        الربط (يوضع في Google Forms)</label>
+                    <div style="display:flex; flex-direction:column; gap: 5px;">
+                        <textarea id="edit-lec-script" readonly
+                            style="width: 100%; height: 110px; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; background: var(--bg-light); color: var(--text-dark); direction: ltr; font-family: monospace; font-size: 0.8rem;"></textarea>
+                        <button type="button" class="btn-action" onclick="window.app.copyLectureScript()"
+                            style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--primary-green); padding: 5px 15px; border-radius: 8px; width: fit-content; align-self: flex-end;">
+                            <i class="fa-regular fa-copy"></i> نسخ الاسكريبت
+                        </button>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; text-align:right; font-weight: 700; color: var(--primary-green);">كود
+                        المحاضرة (معرف النظام)</label>
+                    <div style="display:flex; gap: 10px;">
+                        <input type="text" id="edit-lec-id-display" readonly
+                            style="flex: 1; padding: 10px; border: 1.5px solid var(--border-color); border-radius: 8px; background: var(--bg-light); color: var(--text-dark);" />
+                        <button type="button" class="btn-action" onclick="window.app.copyLectureId()"
+                            style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--primary-green); padding: 5px 15px; border-radius: 8px;">
+                            <i class="fa-regular fa-copy"></i> نسخ
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: space-between;">
+                <button class="btn-action" onclick="window.app.deleteLectureFromSettings()"
+                    style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold;">
+                    <i class="fa-solid fa-trash"></i> حذف المحاضرة
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action"
+                        onclick="document.getElementById('lecture-settings-modal').style.display='none'"
+                        style="background: #eee; color: #333; border: 1px solid #ccc;">إلغاء</button>
+                    <button class="btn-save-notes" onclick="window.app.saveLectureSettings()"
+                        style="width: auto; margin: 0;">
+                        <i class="fa-solid fa-floppy-disk"></i> حفظ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 450px">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear"></i> الملف الشخصي</h3>
+                <button class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" id="profile-name"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" />
+                </div>
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="profile-email" readonly
+                        style="width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9; color: #888;" />
+                </div>
+                <div class="input-group">
+                    <label>رقم الواتساب (لاستلام الطلاب)</label>
+                    <input type="tel" id="profile-phone"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;" />
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px;">
+                <button class="btn-action" onclick="document.getElementById('profile-modal').style.display='none'"
+                    style="background: #eee; color: #333; border: 1px solid #ccc; flex: 1; padding: 10px; border-radius: 8px; justify-content: center;">إلغاء</button>
+                <button class="btn-save-notes" onclick="window.app.saveProfileChanges()"
+                    style="flex: 1; margin: 0; padding: 10px; border-radius: 8px;">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Custom Instructions Modal -->
+    <div id="ai-instructions-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 500px">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold);"></i> تعليمات الذكاء
+                    الاصطناعي</h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('ai-instructions-modal').style.display='none'">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: right;">
+                <p style="font-size: 0.88rem; color: var(--text-light); margin-bottom: 12px; line-height: 1.6;">
+                    يمكنك هنا كتابة أي توجيهات أو أسلوب تفضله ليلتزم به الذكاء الاصطناعي عند صياغة رسائل طلابك (خاصة
+                    بحسابك فقط).
+                </p>
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label style="display:block; font-weight: 700; color: var(--primary-green); margin-bottom: 6px;">
+                        <i class="fa-solid fa-comment-dots"></i> توجيهاتي الخاصة للذكاء الاصطناعي:
+                    </label>
+                    <textarea id="supervisor-ai-instructions" rows="4"
+                        placeholder="مثال: ركز على أسلوب الأخ الصديق، واستخدم عبارات دافئة ومحفزة..."
+                        style="width: 100%; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 10px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 100px; background: var(--bg-light); color: var(--text-dark); line-height: 1.5;"></textarea>
+                </div>
+                <div
+                    style="background: rgba(212, 175, 55, 0.1); border-right: 4px solid var(--accent-gold); padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; color: var(--text-dark); line-height: 1.5;">
+                    <i class="fa-solid fa-lightbulb" style="color: var(--accent-gold);"></i>
+                    <strong>ملاحظة ذكية:</strong> يراعي النظام تلقائياً عمر الطالب وطريقة خطابه كصديق دون ذكر أرقام أو
+                    إفشاء أي ملاحظات داخلية.
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-action"
+                    onclick="document.getElementById('ai-instructions-modal').style.display='none'"
+                    style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
+                <button class="btn-save-notes" onclick="window.app.saveAIInstructions()"
+                    style="width: auto; margin: 0;">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ التعليمات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Student Transfer Selection Modal -->
+    <div id="custom-transfer-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 650px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-handshake"></i> تحديد الطلاب لتسليمهم لمشرف آخر</h3>
+                <button class="close-modal" onclick="window.app.closeCustomTransferModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.25rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn-action" id="transfer-select-all-btn"
+                            onclick="window.app.toggleSelectAllTransfer()"
+                            style="padding: 6px 12px; font-size: 0.85rem;">
+                            <i class="fa-solid fa-check-double"></i> تحديد الكل
+                        </button>
+                        <span id="transfer-selected-count-badge"
+                            style="background: rgba(26, 93, 58, 0.12); color: var(--primary-green); font-weight: bold; font-size: 0.85rem; padding: 4px 10px; border-radius: 12px;">
+                            المحدد: 0 طالب
+                        </span>
+                    </div>
+                    <div style="min-width: 180px; flex: 1; max-width: 250px;">
+                        <input type="text" id="transfer-search-input" onkeyup="window.app.filterTransferStudentsList()"
+                            placeholder="بحث في القائمة..."
+                            style="width: 100%; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem; font-family: inherit;">
+                    </div>
+                </div>
+
+                <div class="custom-transfer-table-wrapper"
+                    style="border: 1px solid var(--border-color); border-radius: 8px; max-height: 380px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative;">
+                    <table
+                        style="width: 100%; min-width: 520px; border-collapse: separate; border-spacing: 0; text-align: right; font-size: 0.88rem;">
+                        <thead style="background: var(--bg-light); color: var(--text-dark);">
+                            <tr>
+                                <th
+                                    style="width: 48px; min-width: 48px; text-align: center; padding: 10px 8px; position: sticky; right: 0; top: 0; background: var(--bg-light); z-index: 3; border-bottom: 2px solid var(--border-color); box-shadow: -2px 0 4px rgba(0,0,0,0.06);">
+                                    #</th>
+                                <th
+                                    style="padding: 10px 10px; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 150px; white-space: nowrap;">
+                                    اسم الطالب</th>
+                                <th
+                                    style="padding: 10px 10px; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 130px; white-space: nowrap;">
+                                    رقم الهاتف</th>
+                                <th
+                                    style="padding: 10px 10px; text-align: center; position: sticky; top: 0; background: var(--bg-light); z-index: 2; border-bottom: 2px solid var(--border-color); min-width: 140px; white-space: nowrap;">
+                                    المحاضرات المختبرة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transfer-students-tbody">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 10px; justify-content: flex-end; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
+                <button class="btn-action" onclick="window.app.closeCustomTransferModal()"
+                    style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إلغاء</button>
+                <button class="btn-save-notes" id="proceed-custom-transfer-btn"
+                    onclick="window.app.proceedCustomTransfer()"
+                    style="width: auto; margin: 0; background: var(--primary-green);">
+                    متابعة التسليم ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Center Modal / Drawer -->
+    <div id="notification-center-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-bell" style="color: var(--accent-gold); font-size: 1.2rem;"></i>
+                    <h3 style="margin: 0;">مركز التنبيهات</h3>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-action" onclick="window.app.clearAllNotifications()" title="مسح جميع الإشعارات"
+                        style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-light); border: 1px solid var(--border-color);">
+                        <i class="fa-solid fa-trash-can"></i> مسح
+                    </button>
+                    <button class="close-modal" onclick="window.app.closeNotificationCenter()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toggle Setting Switch -->
+            <div
+                style="background: var(--bg-light); padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark);">
+                    <i class="fa-solid fa-tower-broadcast" style="color: var(--primary-green);"></i> التنبيهات الفورية
+                    (شاشة القفل):
                 </span>
-                تسجيل سبب الانسحاب
-            </h3>
-            <button class="close-modal" id="withdrawal-modal-close">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="text-align:right;">
-            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:14px;line-height:1.6;background:rgba(212,175,55,0.08);border-right:3px solid var(--accent-gold);padding:8px 12px;border-radius:6px;">
-                <i class="fa-solid fa-circle-info" style="color:var(--accent-gold);"></i>
-                سيتم حفظ سبب الانسحاب مع تاريخه ونسبة الحضور لتدريب نماذج الذكاء الاصطناعي لاحقاً.
-            </p>
-
-            <div class="input-group" style="margin-bottom:14px;">
-                <label style="display:block;font-weight:700;color:var(--primary-green);margin-bottom:8px;">
-                    <i class="fa-solid fa-list-ul"></i> سبب الانسحاب:
+                <label class="switch">
+                    <input type="checkbox" class="athar-notif-checkbox"
+                        onchange="window.app.toggleNotificationsSetting(this)">
+                    <span class="slider round"></span>
                 </label>
-                <select id="withdrawal-reason-select"
-                    style="width:100%;padding:11px 12px;border:2px solid var(--border-color);border-radius:10px;font-family:inherit;font-size:0.95rem;background:var(--card-white);color:var(--text-dark);appearance:auto;cursor:pointer;">
-                    <option value="">— اختر سبب الانسحاب —</option>
-                </select>
             </div>
 
-            <!-- حقل السبب المخصص (يظهر فقط عند اختيار "إضافة سبب جديد") -->
-            <div id="withdrawal-custom-group" style="display:none;margin-bottom:14px;">
-                <label style="display:block;font-weight:700;color:var(--primary-green);margin-bottom:8px;">
-                    <i class="fa-solid fa-pen"></i> اكتب السبب الجديد (سيُضاف للقائمة العامة):
-                </label>
-                <input type="text" id="withdrawal-custom-input"
-                    placeholder="مثال: مرض مزمن، سفر خارجي، التحاق بعمل..."
-                    style="width:100%;padding:11px 12px;border:2px solid var(--accent-gold);border-radius:10px;font-family:inherit;font-size:0.95rem;background:var(--card-white);color:var(--text-dark);" />
-                <small style="color:var(--text-light);font-size:0.78rem;margin-top:4px;display:block;">
-                    <i class="fa-solid fa-share-nodes"></i> سيظهر هذا السبب فوراً في قوائم جميع المشرفين الآخرين.
-                </small>
+            <div class="modal-body" id="notif-center-list"
+                style="overflow-y: auto; flex: 1; padding: 12px; max-height: 450px;">
+                <!-- Notifications rendered dynamically -->
             </div>
-        </div>
-        <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
-            <button id="withdrawal-cancel-btn" class="btn-action" style="background:#eee;color:#333;border:1px solid #ccc;">
-                إلغاء
-            </button>
-            <button id="withdrawal-confirm-btn" class="btn-save-notes" style="width:auto;margin:0;background:#e74c3c;">
-                <i class="fa-solid fa-check"></i> تأكيد الانسحاب
-            </button>
         </div>
     </div>
-</div>
 
-    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" id="scrollTopBtn" class="scroll-top-btn" title="الرجوع للأعلى">
+    <!-- At-Risk Students Radar Modal -->
+    <div id="at-risk-radar-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 700px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div
+                        style="width: 36px; height: 36px; border-radius: 50%; background: rgba(231, 76, 60, 0.15); display: flex; align-items: center; justify-content: center; color: #e74c3c;">
+                        <i class="fa-solid fa-crosshairs" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.15rem;">رادار المتابعة والتسرب المبكر</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-light);">كشف الطلاب الذين
+                            كانوا متميزين وبدأ أداؤهم في التراجع لتداركهم</p>
+                    </div>
+                </div>
+                <button class="close-modal" onclick="window.app.closeAtRiskRadar()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 1.25rem;">
+                <div id="at-risk-radar-content">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-top: 1px solid var(--border-color);">
+                <span id="at-risk-total-count"
+                    style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark);">إجمالي الحالات المرصودة:
+                    0</span>
+                <button class="btn-action" onclick="window.app.closeAtRiskRadar()"
+                    style="background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Withdrawal Reason Modal (Smart Soft Delete - ML Labeling) ===== -->
+    <div id="withdrawal-reason-modal" class="modal-overlay" style="display: none">
+        <div class="modal-card" style="max-width: 460px">
+            <div class="modal-header">
+                <h3 style="display:flex;align-items:center;gap:8px;">
+                    <span
+                        style="background:#e74c3c;color:white;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85rem;">
+                        <i class="fa-solid fa-person-walking-arrow-right"></i>
+                    </span>
+                    تسجيل سبب الانسحاب
+                </h3>
+                <button class="close-modal" id="withdrawal-modal-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align:right;">
+                <p
+                    style="font-size:0.85rem;color:var(--text-light);margin-bottom:14px;line-height:1.6;background:rgba(212,175,55,0.08);border-right:3px solid var(--accent-gold);padding:8px 12px;border-radius:6px;">
+                    <i class="fa-solid fa-circle-info" style="color:var(--accent-gold);"></i>
+                    سيتم حفظ سبب الانسحاب مع تاريخه ونسبة الحضور لتدريب نماذج الذكاء الاصطناعي لاحقاً.
+                </p>
+
+                <div class="input-group" style="margin-bottom:14px;">
+                    <label style="display:block;font-weight:700;color:var(--primary-green);margin-bottom:8px;">
+                        <i class="fa-solid fa-list-ul"></i> سبب الانسحاب:
+                    </label>
+                    <select id="withdrawal-reason-select"
+                        style="width:100%;padding:11px 12px;border:2px solid var(--border-color);border-radius:10px;font-family:inherit;font-size:0.95rem;background:var(--card-white);color:var(--text-dark);appearance:auto;cursor:pointer;">
+                        <option value="">— اختر سبب الانسحاب —</option>
+                    </select>
+                </div>
+
+                <!-- حقل السبب المخصص (يظهر فقط عند اختيار "إضافة سبب جديد") -->
+                <div id="withdrawal-custom-group" style="display:none;margin-bottom:14px;">
+                    <label style="display:block;font-weight:700;color:var(--primary-green);margin-bottom:8px;">
+                        <i class="fa-solid fa-pen"></i> اكتب السبب الجديد (سيُضاف للقائمة العامة):
+                    </label>
+                    <input type="text" id="withdrawal-custom-input"
+                        placeholder="مثال: مرض مزمن، سفر خارجي، التحاق بعمل..."
+                        style="width:100%;padding:11px 12px;border:2px solid var(--accent-gold);border-radius:10px;font-family:inherit;font-size:0.95rem;background:var(--card-white);color:var(--text-dark);" />
+                    <small style="color:var(--text-light);font-size:0.78rem;margin-top:4px;display:block;">
+                        <i class="fa-solid fa-share-nodes"></i> سيظهر هذا السبب فوراً في قوائم جميع المشرفين الآخرين.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;">
+                <button id="withdrawal-cancel-btn" class="btn-action"
+                    style="background:#eee;color:#333;border:1px solid #ccc;">
+                    إلغاء
+                </button>
+                <button id="withdrawal-confirm-btn" class="btn-save-notes"
+                    style="width:auto;margin:0;background:#e74c3c;">
+                    <i class="fa-solid fa-check"></i> تأكيد الانسحاب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'});" id="scrollTopBtn" class="scroll-top-btn"
+        title="الرجوع للأعلى">
         <i class="fa-solid fa-arrow-up"></i>
     </button>
     <script>
@@ -1027,8 +1235,9 @@
     <!-- PWA Registration Module -->
     <script type="module" src="/static/js/pwa.js"></script>
 
-    
-<script type="module" src="/static/js/dashboard.js"></script>
+
+    <script type="module" src="/static/js/dashboard.js"></script>
 
 </body>
+
 </html>
