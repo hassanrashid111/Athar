@@ -10,7 +10,7 @@
 
 import {
     auth, db, ref, get, set, remove, onValue,
-    signInWithEmailAndPassword, signInWithPopup, googleProvider, signOut
+    signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, googleProvider, signOut
 } from "./firebase-config.js";
 import { initSuperAdminRoute } from "./router.js";
 
@@ -68,6 +68,17 @@ async function checkAuthAndInit() {
     const main        = document.getElementById('sa-main');
 
     try {
+        try {
+            await getRedirectResult(auth);
+        } catch (redirectErr) {
+            console.warn('[SA Redirect]', redirectErr);
+            const errorEl = document.getElementById('sa-auth-error');
+            if (errorEl) {
+                errorEl.style.display = 'block';
+                errorEl.textContent = 'خطأ في تسجيل الدخول عبر Google: ' + redirectErr.message;
+            }
+        }
+
         const { user } = await initSuperAdminRoute();
 
         if (user) {
@@ -184,12 +195,9 @@ window.handleSaGoogleLogin = async function () {
     const errorEl = document.getElementById('sa-auth-error');
     if (errorEl) errorEl.style.display = 'none';
     try {
-        await signInWithPopup(auth, googleProvider);
-        _saVerified = false;
-        checkAuthAndInit();
+        await signInWithRedirect(auth, googleProvider);
     } catch (err) {
-        if (err.code === 'auth/popup-closed-by-user') return;
-        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = 'خطأ في تسجيل الدخول عبر Google: ' + err.message; }
+        if (errorEl) { errorEl.style.display = 'block'; errorEl.textContent = 'خطأ في التوجيه عبر Google: ' + err.message; }
     }
 };
 

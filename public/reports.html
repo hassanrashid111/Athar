@@ -103,6 +103,15 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border-color); background: rgba(26, 93, 58, 0.06);">
+                        <span style="font-size: 0.88rem; font-weight: bold; color: var(--text-dark); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-code-branch" style="color: var(--primary-green);"></i> إصدار المنصة
+                        </span>
+                        <span id="app-version-badge" class="app-version-badge" title="إصدار المنصة الحالي">v2.1.0</span>
+                    </div>
+                    <a id="sidebar-check-update-btn" onclick="window.app.checkForAppUpdates(true)" style="cursor: pointer;">
+                        <i class="fa-solid fa-arrows-rotate"></i> فحص التحديثات
+                    </a>
                     <a onclick="window.app.promptPWAInstall()" style="color: var(--primary-green); font-weight: bold;"><i class="fa-solid fa-mobile-screen-button"></i> تثبيت التطبيق 📲</a>
                     <a href="/presentation" target="_blank" style="color: var(--accent-gold); font-weight: bold;"><i class="fa-solid fa-chalkboard-user"></i> دليل وعرض المنصة 🎯</a>
                     <a onclick="window.app.getReport()"><i class="fa-solid fa-file-lines"></i> تقرير نصي شامل</a>

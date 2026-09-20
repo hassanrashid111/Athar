@@ -218,7 +218,16 @@ export function initPageAuth(requiredRole = null) {
  * حماية صفحة الدخول: إذا كان المستخدم مسجل بالفعل، يتم تحويله للوحة التحكم
  * — مع مراعاة علامة الخروج الصريح (EXPLICIT_LOGOUT_KEY)
  */
-export function checkAlreadyLoggedIn() {
+export async function checkAlreadyLoggedIn() {
+    // 1. التحقق أولاً إذا كان المستخدم عائداً للتو من توجيه Google (Redirect)
+    try {
+        const { handleRedirectAuthResult } = await import("./auth.js");
+        const handledRedirect = await handleRedirectAuthResult();
+        if (handledRedirect) return;
+    } catch (e) {
+        console.warn("[Router] Check redirect result error:", e);
+    }
+
     // إذا خرج المستخدم صراحةً، لا نعيده تلقائياً أبداً
     const explicitlyLoggedOut = localStorage.getItem('athar_explicitly_logged_out') === '1';
     if (explicitlyLoggedOut) return;

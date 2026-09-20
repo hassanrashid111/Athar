@@ -6,6 +6,7 @@ import {
     auth, db, googleProvider,
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
     signOut, onAuthStateChanged, signInWithPopup,
+    signInWithRedirect, getRedirectResult,
     ref, set, get, update
 } from "./firebase-config.js";
 import { showAtharNotification } from "./utils.js";
@@ -155,7 +156,7 @@ export async function handleRegister(e) {
 }
 
 /**
- * تسجيل الدخول / إنشاء حساب عبر جوجل — مع mutex لمنع الاستدعاء المزدوج
+ * تسجيل الدخول / إنشاء حساب عبر جوجل — باستخدام signInWithRedirect لضمان التوافق التام مع PWA والموبايل
  */
 export async function handleGoogleLogin(isRegistration = false) {
     if (_googleLoginInProgress) {
@@ -171,60 +172,79 @@ export async function handleGoogleLogin(isRegistration = false) {
         originalStates.push({ btn, html: btn.innerHTML });
         btn.disabled = true;
         btn.classList.add('btn-loading');
-        btn.innerHTML = '<span class="athar-spinner-sm"></span> جاري التحقق من جوجل...';
+        btn.innerHTML = '<span class="athar-spinner-sm"></span> جاري التوجيه إلى Google...';
     });
-
-    // timeout تلقائي 30 ثانية
-    const timeoutId = setTimeout(() => {
-        _googleLoginInProgress = false;
-        originalStates.forEach(({ btn, html }) => {
-            btn.disabled = false;
-            btn.classList.remove('btn-loading');
-            btn.innerHTML = html;
-        });
-    }, 30000);
 
     try {
         // مسح علامة الخروج الصريح قبل الدخول الجديد
         try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
 
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        setCurrentUser(user);
-
-        const userRef = ref(db, `users/${user.uid}`);
-        const snapshot = await get(userRef);
-
-        if (!snapshot.exists()) {
-            let role = 'followup_supervisor';
-
-            await set(userRef, {
-                email: user.email,
-                name: user.displayName || "مشرف جديد",
-                role: role,
-                createdAt: Date.now()
-            });
-
-            showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! تم إنشاء حسابك بنجاح.`);
-            window.location.replace('/setup');
+        if (isRegistration) {
+            sessionStorage.setItem('athar_is_google_registration', '1');
         } else {
-            await update(userRef, { name: user.displayName || "مشرف أثر" });
-            showAtharNotification("تم تسجيل الدخول بنجاح!");
-            await redirectAfterAuth(user.uid);
+            sessionStorage.removeItem('athar_is_google_registration');
         }
+
+        // التوجيه الكامل لصفحة جوجل لاختيار الحساب (PWA / Mobile Friendly)
+        await signInWithRedirect(auth, googleProvider);
     } catch (error) {
+        _googleLoginInProgress = false;
         originalStates.forEach(({ btn, html }) => {
             btn.disabled = false;
             btn.classList.remove('btn-loading');
             btn.innerHTML = html;
         });
-        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-            showAtharNotification("خطأ في العملية عبر جوجل: " + error.message, 'error');
-        }
-    } finally {
-        clearTimeout(timeoutId);
-        _googleLoginInProgress = false;
+        showAtharNotification("خطأ في التوجيه إلى Google: " + error.message, 'error');
     }
+}
+
+/**
+ * معالجة نتيجة العودة من التوجيه عبر Google (getRedirectResult)
+ * تُستدعى عند فتح الصفحة للتحقق مما إذا كان المستخدم عائداً من صفحة اختيار حساب Google
+ */
+export async function handleRedirectAuthResult() {
+    try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+            const user = result.user;
+            setCurrentUser(user);
+            try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
+
+            const { showLoader } = await import("./state.js");
+            showLoader("جاري استكمال تسجيل الدخول عبر Google...");
+
+            const isReg = sessionStorage.getItem('athar_is_google_registration') === '1';
+            sessionStorage.removeItem('athar_is_google_registration');
+
+            const userRef = ref(db, `users/${user.uid}`);
+            const snapshot = await get(userRef);
+
+            if (!snapshot.exists()) {
+                let role = 'followup_supervisor';
+
+                await set(userRef, {
+                    email: user.email,
+                    name: user.displayName || "مشرف جديد",
+                    role: role,
+                    createdAt: Date.now()
+                });
+
+                showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! تم إنشاء حسابك بنجاح.`);
+                window.location.replace('/setup');
+            } else {
+                await update(userRef, { name: user.displayName || "مشرف أثر" });
+                showAtharNotification("تم تسجيل الدخول بنجاح!");
+                await redirectAfterAuth(user.uid);
+            }
+            return true;
+        }
+    } catch (error) {
+        console.error("[Auth] Redirect result error:", error);
+        if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+            showAtharNotification("خطأ في تسجيل الدخول عبر Google: " + error.message, 'error');
+        }
+    }
+    return false;
 }
 
 /**

@@ -6,7 +6,195 @@
 import { showAtharNotification, cleanPhone, escapeHTML } from "./utils.js";
 import { state } from "./state.js";
 
+export const APP_VERSION = '2.1.0';
+export const APP_BUILD_DATE = '2026-09-20';
+
 let deferredPrompt = null;
+let swRegistration = null;
+let newWorkerWaiting = null;
+let isUpdateAvailable = false;
+let isRefreshing = false;
+
+/**
+ * مقارنة نسختين وفق المعيار الدلالي Semantic Versioning (Major.Minor.Patch)
+ */
+export function isNewerVersion(remote, local) {
+    if (!remote || !local) return false;
+    const rParts = remote.replace(/^v/, '').split('.').map(Number);
+    const lParts = local.replace(/^v/, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(rParts.length, lParts.length); i++) {
+        const r = rParts[i] || 0;
+        const l = lParts[i] || 0;
+        if (r > l) return true;
+        if (r < l) return false;
+    }
+    return false;
+}
+
+/**
+ * تحديث واجهة عرض رقم الإصدار في القائمة الجانبية وشاشات النظام
+ */
+export function renderAppVersionUI(targetVersion = APP_VERSION, hasUpdate = false) {
+    const displayVersion = `v${targetVersion}`;
+
+    // شارات عرض رقم الإصدار
+    document.querySelectorAll('.app-version-badge, #app-version-badge').forEach(el => {
+        el.textContent = displayVersion;
+        if (hasUpdate) {
+            el.classList.add('has-update');
+            el.title = 'يوجد تحديث جديد متاح للمنصة!';
+        } else {
+            el.classList.remove('has-update');
+            el.title = `إصدار المنصة: ${displayVersion}`;
+        }
+    });
+
+    // أزرار فحص وتنزيل التحديثات في القائمة الجانبية
+    document.querySelectorAll('#sidebar-check-update-btn, .btn-check-update').forEach(btn => {
+        if (hasUpdate) {
+            btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent-gold);"></i> <span style="color:var(--accent-gold); font-weight:bold;">تثبيت التحديث الجديد ✨</span>`;
+            btn.onclick = () => applyAppUpdate();
+            btn.classList.add('has-update-pulse');
+        } else {
+            btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> فحص التحديثات`;
+            btn.onclick = () => checkForAppUpdates(true);
+            btn.classList.remove('has-update-pulse');
+        }
+    });
+}
+
+/**
+ * فحص التحديثات المتاحة للتطبيق
+ * @param {boolean} manual هل الفحص تم بالنقر يدوياً بواسطة المشرف
+ */
+export async function checkForAppUpdates(manual = false) {
+    if (manual) {
+        showAtharNotification("جاري فحص التحديثات المتاحة...", "info");
+    }
+
+    try {
+        // فحص ملف الإصدار مباشرة من السيرفر متجاوزين كاش المتصفح
+        const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            const serverVersion = (data.version || '').trim();
+
+            if (serverVersion && isNewerVersion(serverVersion, APP_VERSION)) {
+                isUpdateAvailable = true;
+                renderAppVersionUI(serverVersion, true);
+                showUpdateBanner(serverVersion, data.changelog);
+
+                // إشعار السيرفس وركر لجلب وتخزين الملفات الجديدة
+                if (swRegistration) {
+                    swRegistration.update().catch(() => {});
+                }
+                return true;
+            }
+        }
+
+        // فحص Service Worker إن كان هناك worker ينتظر التفعيل
+        if (swRegistration) {
+            await swRegistration.update();
+            if (swRegistration.waiting) {
+                newWorkerWaiting = swRegistration.waiting;
+                isUpdateAvailable = true;
+                renderAppVersionUI(APP_VERSION, true);
+                showUpdateBanner(APP_VERSION);
+                return true;
+            }
+        }
+
+        renderAppVersionUI(APP_VERSION, false);
+        if (manual) {
+            showAtharNotification(`🎉 أنت تستخدم أحدث إصدار من منصة أثر (v${APP_VERSION})`, "success");
+        }
+        return false;
+    } catch (err) {
+        console.warn("[PWA] Update check failed:", err);
+        if (manual) {
+            showAtharNotification(`الإصدار الحالي: v${APP_VERSION} (تعذر الاتصال بالشبكة)`, "info");
+        }
+        return false;
+    }
+}
+
+/**
+ * تطبيق التحديث الجديد ومسح الكاش وإعادة تشغيل التطبيق بنسخته الأحدث
+ */
+export async function applyAppUpdate() {
+    showAtharNotification("جاري تنزيل التحديث وتنشيط كاش المنصة الأحدث...", "info");
+
+    try {
+        // إرسال أمر التخطي للـ Service Worker
+        if (newWorkerWaiting) {
+            newWorkerWaiting.postMessage({ type: 'SKIP_WAITING' });
+        } else if (swRegistration && swRegistration.waiting) {
+            swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        // مسح الكاش المخزن لضمان قراءة الملفات الجديدة مباشرة
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+
+        // إعادة تحميل التطبيق بشكل نظيف
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 500);
+    } catch (e) {
+        console.warn("[PWA] Error applying update:", e);
+        window.location.reload(true);
+    }
+}
+
+/**
+ * إظهار بنر التحديث العائم
+ */
+export function showUpdateBanner(version = '', changelog = '') {
+    let banner = document.getElementById('athar-update-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'athar-update-banner';
+        banner.className = 'athar-update-banner';
+        document.body.appendChild(banner);
+    }
+
+    const versionStr = version ? `(v${version})` : '';
+    const descStr = changelog || 'يتوفر إصدار جديد يحتوي على ميزات وتحسينات جديدة لمنصة أثر.';
+
+    banner.innerHTML = `
+        <div class="update-banner-content">
+            <div class="update-banner-icon">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+            </div>
+            <div class="update-banner-text">
+                <strong>تحديث جديد متاح ${versionStr} 🚀</strong>
+                <span>${descStr}</span>
+            </div>
+        </div>
+        <div class="update-banner-actions">
+            <button class="btn-update-install" onclick="window.app.applyAppUpdate()">
+                <i class="fa-solid fa-rotate"></i> تحديث الآن
+            </button>
+            <button class="btn-update-dismiss" onclick="window.app.dismissUpdateBanner()" title="إغلاق">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    `;
+
+    banner.style.display = 'flex';
+}
+
+/**
+ * إغلاق بنر التحديث مؤقتاً
+ */
+export function dismissUpdateBanner() {
+    const banner = document.getElementById('athar-update-banner');
+    if (banner) {
+        banner.style.display = 'none';
+    }
+}
 
 /**
  * فحص ما إذا كانت الإشعارات مفعلة بواسطة المشرف
@@ -31,16 +219,46 @@ export function syncNotificationToggles() {
  * تسجيل Service Worker والتجهيز للتثبيت والإشعارات
  */
 export function initPWA() {
-    // 1. تسجيل الـ Service Worker
+    // 1. تسجيل الـ Service Worker مع رصد التحديثات
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js', { scope: '/' })
                 .then((reg) => {
+                    swRegistration = reg;
                     console.log('[PWA] Service Worker registered with scope:', reg.scope);
+
+                    // إذا كان هناك worker بانتظار التفعيل
+                    if (reg.waiting) {
+                        newWorkerWaiting = reg.waiting;
+                        isUpdateAvailable = true;
+                        showUpdateBanner(APP_VERSION);
+                        renderAppVersionUI(APP_VERSION, true);
+                    }
+
+                    // رصد تنزيل وتثبيت تحديث جديد
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                newWorkerWaiting = newWorker;
+                                isUpdateAvailable = true;
+                                showUpdateBanner(APP_VERSION);
+                                renderAppVersionUI(APP_VERSION, true);
+                            }
+                        });
+                    });
                 })
                 .catch((err) => {
                     console.warn('[PWA] Service Worker registration failed:', err);
                 });
+
+            // الاستماع لتغيير المتحكم وإعادة التحميل تلقائياً عند تفعيل التحديث
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (isRefreshing) return;
+                isRefreshing = true;
+                window.location.reload();
+            });
         });
     }
 
@@ -69,11 +287,13 @@ export function initPWA() {
         showAtharNotification("🎉 تم تثبيت منصة أثر كتطبيق على جهازك بنجاح!", "success");
     });
 
-    // 4. تحديث شارة الإشعارات ومفاتيح التبديل عند التحميل
+    // 4. تحديث شارة الإشعارات ورقم الإصدار وفحص التحديثات بهدوء
     setTimeout(() => {
         updateNotificationBadgeUI();
         syncNotificationToggles();
         checkAndPromptNotificationPermission();
+        renderAppVersionUI(APP_VERSION, false);
+        checkForAppUpdates(false);
     }, 2000);
 }
 

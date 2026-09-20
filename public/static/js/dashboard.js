@@ -50,7 +50,8 @@ import {
     checkPendingRepliedReminder, requestNotificationPermission,
     toggleNotificationCenter, openNotificationCenter, closeNotificationCenter,
     dismissNotification, clearAllNotifications, toggleNotificationsSetting,
-    openAtRiskRadar, closeAtRiskRadar, updateAtRiskRadarBadge, updateNotificationBadgeUI
+    openAtRiskRadar, closeAtRiskRadar, updateAtRiskRadarBadge, updateNotificationBadgeUI,
+    promptPWAInstall, checkForAppUpdates, applyAppUpdate, dismissUpdateBanner, APP_VERSION
 } from "./pwa.js";
 
 let sortDirection = 1;
@@ -1131,7 +1132,12 @@ window.app = {
     toggleMenu: () => toggleMenuFlow(),
 
     openExternalTestersModal: () => openExternalTestersModal(),
-    renderExternalTesters: (mode) => renderExternalTestersTable(mode)
+    renderExternalTesters: (mode) => renderExternalTestersTable(mode),
+
+    promptPWAInstall: () => promptPWAInstall(),
+    checkForAppUpdates: (manual = false) => checkForAppUpdates(manual),
+    applyAppUpdate: () => applyAppUpdate(),
+    dismissUpdateBanner: () => dismissUpdateBanner()
 };
 
 // بدء تشغيل اللوحة فوراً وبأمان

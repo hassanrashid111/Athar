@@ -9,7 +9,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
     getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup
+    signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup,
+    signInWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -31,5 +32,6 @@ export {
     db, auth, googleProvider,
     ref, set, get, update, remove, push, child, onValue, increment,
     signInWithEmailAndPassword, createUserWithEmailAndPassword,
-    signOut, onAuthStateChanged, signInWithPopup
+    signOut, onAuthStateChanged, signInWithPopup,
+    signInWithRedirect, getRedirectResult
 };

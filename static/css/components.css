@@ -646,3 +646,183 @@ body.dark-theme .fa-spin.fa-spinner,
 body.dark-theme .fa-spin.fa-circle-notch {
     color: var(--accent-gold, #fbbf24) !important;
 }
+
+/* ===== بنر التحديث التلقائي لمنصة أثر (Athar PWA Update Banner) ===== */
+.athar-update-banner {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    z-index: 99999;
+    background: linear-gradient(135deg, #0e3b24 0%, #1A5D3A 50%, #14492c 100%);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 16px;
+    padding: 14px 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.2);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 480px;
+    width: calc(100vw - 48px);
+    animation: atharSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    direction: rtl;
+}
+
+@keyframes atharSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.update-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+.update-banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(212, 175, 55, 0.18);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-gold, #D4AF37);
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    animation: atharIconBounce 2s infinite ease-in-out;
+}
+
+@keyframes atharIconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.update-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.update-banner-text strong {
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.update-banner-text span {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.update-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-update-install {
+    background: linear-gradient(135deg, #D4AF37 0%, #F39C12 100%);
+    color: #0c2b1a;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+    white-space: nowrap;
+}
+
+.btn-update-install:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.5);
+    filter: brightness(1.08);
+}
+
+.btn-update-dismiss {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-update-dismiss:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* شارة الإصدار في القائمة الجانبية */
+.app-version-badge {
+    background: var(--primary-green, #1A5D3A);
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+}
+
+.app-version-badge.has-update {
+    background: var(--accent-gold, #D4AF37);
+    color: #0a2917;
+    animation: atharPulse 1.5s infinite;
+}
+
+@keyframes atharPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+#sidebar-check-update-btn.has-update-pulse {
+    background: rgba(212, 175, 55, 0.14) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    animation: atharBorderGlow 2s infinite ease-in-out;
+}
+
+@keyframes atharBorderGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+    50% { box-shadow: 0 0 10px 2px rgba(212, 175, 55, 0.3); }
+}
+
+@media (max-width: 600px) {
+    .athar-update-banner {
+        right: 12px;
+        left: 12px;
+        bottom: 16px;
+        width: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+    .update-banner-actions {
+        justify-content: flex-end;
+    }
+}

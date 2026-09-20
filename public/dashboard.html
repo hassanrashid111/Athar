@@ -129,6 +129,19 @@
                             <i class="fa-solid fa-chevron-down arrow-icon"></i>
                         </button>
                         <div class="sidebar-group-content">
+                            <!-- رقم الإصدار وزر فحص/تنزيل التحديثات -->
+                            <div class="sidebar-sub-item app-version-row"
+                                style="display: flex; justify-content: space-between; align-items: center; background: rgba(26, 93, 58, 0.08); border-radius: 8px; padding: 10px 14px; margin: 4px 0 6px 0; border: 1px solid rgba(26, 93, 58, 0.18);">
+                                <span style="font-size: 0.88rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-code-branch" style="color: var(--primary-green);"></i> إصدار المنصة
+                                </span>
+                                <span id="app-version-badge" class="app-version-badge" title="إصدار المنصة الحالي">v2.1.0</span>
+                            </div>
+                            <button class="sidebar-sub-item" id="sidebar-check-update-btn"
+                                onclick="window.app.checkForAppUpdates(true)">
+                                <i class="fa-solid fa-arrows-rotate"></i> فحص التحديثات
+                            </button>
+
                             <div class="sidebar-sub-item notif-toggle-row"
                                 style="display: flex; justify-content: space-between; align-items: center;">
                                 <span><i class="fa-solid fa-bell"></i> التنبيهات</span>

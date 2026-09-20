@@ -1,4 +1,4 @@
-const CACHE_NAME = 'athar-pwa-v1.0.3';
+const CACHE_NAME = 'athar-pwa-v2.1.0';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
     '/reports',
     '/setup',
     '/login',
+    '/version.json',
     '/static/css/base.css',
     '/static/css/components.css',
     '/static/css/dashboard.css',
@@ -78,6 +79,14 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // استثناء فحص الإصدار - يطلب دائماً من الشبكة أولاً لاكتشاف التحديثات الجديدة فوراً
+    if (url.pathname === '/version.json') {
+        event.respondWith(
+            fetch(request).catch(() => caches.match(request))
+        );
+        return;
+    }
+
     // لطلبات صفحات التنقل (HTML) - Cache First with Network Fallback
     if (request.mode === 'navigate' || request.destination === 'document') {
         event.respondWith(
@@ -138,6 +147,13 @@ self.addEventListener('notificationclick', (event) => {
             }
         })
     );
+});
+
+// استقبال الأوامر من الصفحة (تطبيق التحديث فوراً)
+self.addEventListener('message', (event) => {
+    if (event.data && (event.data.type === 'SKIP_WAITING' || event.data === 'skipWaiting')) {
+        self.skipWaiting();
+    }
 });
 
 // استقبال إشعارات Push المباشرة إن وُجدت

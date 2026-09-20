@@ -11,6 +11,17 @@
       "**/node_modules/**"
     ],
     "cleanUrls": true,
+    "headers": [
+      {
+        "source": "/(version.json|sw.js)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ],
     "rewrites": [
       { "source": "/login",       "destination": "/login.html" },
       { "source": "/setup",       "destination": "/setup.html" },
