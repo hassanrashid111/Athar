@@ -44,6 +44,9 @@ export async function initReportsPage() {
     renderHadith();
     setupDropdownListeners();
 
+    // إظهار مؤشر أثر أثناء التحقق المبدئي
+    showLoader("جاري تحميل صفحة التقارير...");
+
     const { user, userData, activeGroupId } = await initPageAuth('group_supervisor');
 
     if (activeGroupId) {

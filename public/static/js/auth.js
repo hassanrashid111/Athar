@@ -54,6 +54,14 @@ export async function handleLogin(e) {
         return;
     }
 
+    const submitBtn = document.querySelector('#login-form button[type="submit"]');
+    const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = '<span class="athar-spinner-sm"></span> جاري تسجيل الدخول...';
+    }
+
     try {
         // مسح علامة الخروج عند تسجيل دخول جديد
         try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
@@ -65,6 +73,11 @@ export async function handleLogin(e) {
         showAtharNotification("تم تسجيل الدخول بنجاح!");
         await redirectAfterAuth(user.uid);
     } catch (error) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading');
+            submitBtn.innerHTML = originalHTML;
+        }
         let msg = "خطأ في تسجيل الدخول: " + error.message;
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
             msg = "البريد الإلكتروني أو كلمة المرور غير صحيحة";
@@ -99,6 +112,14 @@ export async function handleRegister(e) {
         return;
     }
 
+    const submitBtn = document.querySelector('#register-form button[type="submit"]');
+    const originalHTML = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('btn-loading');
+        submitBtn.innerHTML = '<span class="athar-spinner-sm"></span> جاري إنشاء الحساب...';
+    }
+
     try {
         // مسح علامة الخروج عند إنشاء حساب جديد
         try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
@@ -118,6 +139,11 @@ export async function handleRegister(e) {
         showAtharNotification("تم إنشاء الحساب بنجاح!");
         window.location.replace('/setup');
     } catch (error) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading');
+            submitBtn.innerHTML = originalHTML;
+        }
         let msg = "خطأ في إنشاء الحساب: " + error.message;
         if (error.code === 'auth/email-already-in-use') {
             msg = "هذا البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.";
@@ -138,9 +164,24 @@ export async function handleGoogleLogin(isRegistration = false) {
     }
     _googleLoginInProgress = true;
 
+    // تعطيل أزرار جوجل وإظهار مؤشر أثر
+    const googleBtns = document.querySelectorAll('.btn-google');
+    const originalStates = [];
+    googleBtns.forEach(btn => {
+        originalStates.push({ btn, html: btn.innerHTML });
+        btn.disabled = true;
+        btn.classList.add('btn-loading');
+        btn.innerHTML = '<span class="athar-spinner-sm"></span> جاري التحقق من جوجل...';
+    });
+
     // timeout تلقائي 30 ثانية
     const timeoutId = setTimeout(() => {
         _googleLoginInProgress = false;
+        originalStates.forEach(({ btn, html }) => {
+            btn.disabled = false;
+            btn.classList.remove('btn-loading');
+            btn.innerHTML = html;
+        });
     }, 30000);
 
     try {
@@ -172,6 +213,11 @@ export async function handleGoogleLogin(isRegistration = false) {
             await redirectAfterAuth(user.uid);
         }
     } catch (error) {
+        originalStates.forEach(({ btn, html }) => {
+            btn.disabled = false;
+            btn.classList.remove('btn-loading');
+            btn.innerHTML = html;
+        });
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
             showAtharNotification("خطأ في العملية عبر جوجل: " + error.message, 'error');
         }

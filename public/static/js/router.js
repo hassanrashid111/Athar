@@ -7,7 +7,7 @@ import { auth, db, ref, get, onValue, onAuthStateChanged } from "./firebase-conf
 import {
     state, setCurrentUser, setCurrentGroup, getCachedUser,
     getCachedUserData, setCachedUserData, loadStateFromLocalStorage,
-    initOfflineSyncEngine
+    initOfflineSyncEngine, showLoader, removeLoader
 } from "./state.js";
 import { showAtharNotification } from "./utils.js";
 
@@ -223,12 +223,17 @@ export function checkAlreadyLoggedIn() {
     const explicitlyLoggedOut = localStorage.getItem('athar_explicitly_logged_out') === '1';
     if (explicitlyLoggedOut) return;
 
+    const cachedUser = getCachedUser();
+    const cachedUserData = getCachedUserData();
+    if (cachedUser && cachedUserData) {
+        showLoader("جاري التحقق واستعادة الجلسة...");
+    }
+
     onAuthStateChanged(auth, async (user) => {
-        const cachedUser = getCachedUser();
-        const cachedUserData = getCachedUserData();
         const activeUser = user || cachedUser;
 
         if (activeUser) {
+            showLoader("جاري التحقق واستعادة الجلسة...");
             let userData = null;
             try {
                 if (navigator.onLine && user) {
@@ -253,8 +258,10 @@ export function checkAlreadyLoggedIn() {
                 } else {
                     window.location.replace('/dashboard');
                 }
+                return;
             }
         }
+        removeLoader();
     });
 }
 

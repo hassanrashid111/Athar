@@ -7,65 +7,140 @@
 {% endblock %}
 
 {% block content %}
-<div class="login-container">
-    <div id="group-setup-view" class="login-card" style="max-width: 500px;">
-        <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" class="login-logo-img" />
-        <h2>أثر - إعداد المجموعة</h2>
-        <p class="subtitle">منصة أثر لإدارة الدورات العلمية</p>
-
-        <!-- Create Group Section (Group Supervisor) -->
-        <div id="create-group-section" style="display: none;">
-            <div class="input-group">
-                <label for="new-group-name">اسم المجموعة</label>
-                <div class="input-wrapper">
-                    <input type="text" id="new-group-name" placeholder="مثال: دورة العقيدة" required />
-                    <i class="fa-solid fa-layer-group"></i>
-                </div>
+<div class="login-container" id="setup-container">
+    <div id="group-setup-view" class="login-card" style="max-width: 520px; overflow: hidden;">
+        
+        <!-- شريط الخطوات -->
+        <div class="stepper-header" id="stepper-header">
+            <div class="step-item active" id="step-indicator-1">
+                <div class="step-circle">1</div>
+                <span>الخيار</span>
             </div>
-
-            <div class="input-group">
-                <label for="new-group-number">رقم المجموعة</label>
-                <div class="input-wrapper">
-                    <input type="text" id="new-group-number" placeholder="مثال: 101" required />
-                    <i class="fa-solid fa-hashtag"></i>
-                </div>
+            <div class="step-line"></div>
+            <div class="step-item" id="step-indicator-2">
+                <div class="step-circle">2</div>
+                <span>البيانات</span>
             </div>
-
-            <div class="input-group">
-                <label for="new-group-lectures">عدد محاضرات الدورة</label>
-                <div class="input-wrapper">
-                    <input type="number" id="new-group-lectures" value="12" min="1" max="50" required />
-                    <i class="fa-solid fa-list-ol"></i>
-                </div>
+            <div class="step-line"></div>
+            <div class="step-item" id="step-indicator-3">
+                <div class="step-circle">3</div>
+                <span>التأكيد</span>
             </div>
-
-            <button type="button" class="btn-login" style="background: var(--primary-green);" onclick="window.app.createGroup()">
-                إنشاء المجموعة <i class="fa-solid fa-check"></i>
-            </button>
         </div>
 
-        <!-- Join Group Section (Followup Supervisor) -->
-        <div id="join-group-section" style="display: none;">
-            <div class="input-group">
-                <label for="join-group-id">كود المجموعة</label>
-                <div class="input-wrapper">
-                    <input type="text" id="join-group-id" placeholder="الصق كود المجموعة هنا (مثال: GRP-101-ABCD)" required />
-                    <i class="fa-solid fa-key"></i>
-                </div>
-                <small style="color: var(--text-light); margin-top: 5px; display: block;">احصل على الكود من المشرف المسؤول عن المجموعة.</small>
+        <!-- الخطوة 1: اختيار نوع العملية -->
+        <div id="setup-step-1" class="setup-step">
+            <div class="login-logo-wrapper">
+                <img src="{{ url_for('static', filename='assets/logo_transparent.png') }}" alt="أثر" />
+            </div>
+            <h2>مرحباً بك في أثر</h2>
+            <p class="subtitle">كيف تريد البدء؟</p>
+
+            <div class="role-choice-grid">
+                <button type="button" id="choice-create" class="role-choice-btn" onclick="window.app.selectChoice('create')">
+                    <div class="role-choice-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <div class="role-choice-title">إنشاء مجموعة جديدة</div>
+                    <div class="role-choice-desc">أنا مشرف مجموعة وأريد إنشاء مجموعة جديدة</div>
+                </button>
+                <button type="button" id="choice-join" class="role-choice-btn" onclick="window.app.selectChoice('join')">
+                    <div class="role-choice-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+                    <div class="role-choice-title">الانضمام لمجموعة</div>
+                    <div class="role-choice-desc">أنا مشرف متابعة ولدي كود المجموعة</div>
+                </button>
             </div>
 
-            <button type="button" class="btn-login" style="background: var(--primary-green);" onclick="window.app.joinGroup()">
-                الانضمام للمجموعة <i class="fa-solid fa-right-to-bracket"></i>
-            </button>
+            <div class="stepper-footer">
+                <div></div>
+                <button type="button" id="step1-next" class="btn-step-next" onclick="window.app.goStep(2)" disabled>
+                    التالي <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
         </div>
 
-        <button type="button" class="btn-action" onclick="window.app.logout()" style="margin-top: 15px; width: 100%; background: #eee; color: #555; border: 1px solid #ddd; justify-content: center;">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
-        </button>
+        <!-- الخطوة 2: إدخال البيانات -->
+        <div id="setup-step-2" class="setup-step" style="display:none;">
+            <h2 id="step2-title">إنشاء مجموعة جديدة</h2>
+            <p class="subtitle" id="step2-subtitle">أدخل بيانات المجموعة الجديدة</p>
+
+            <!-- نموذج إنشاء المجموعة -->
+            <div id="create-group-section">
+                <div class="input-group">
+                    <label for="new-group-name">اسم المجموعة</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="new-group-name" placeholder="مثال: دورة العقيدة" />
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="new-group-number">رقم المجموعة</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="new-group-number" placeholder="مثال: 101" />
+                        <i class="fa-solid fa-hashtag"></i>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="new-group-lectures">عدد المحاضرات المخططة</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="new-group-lectures" value="12" min="1" max="50" />
+                        <i class="fa-solid fa-list-ol"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج الانضمام -->
+            <div id="join-group-section" style="display:none;">
+                <div class="input-group">
+                    <label for="join-group-id">كود المجموعة</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="join-group-id" placeholder="الصق الكود هنا (مثال: 83741#K)" />
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <small style="color: var(--text-light); margin-top: 6px; display: block;">
+                        <i class="fa-solid fa-circle-info" style="color: var(--primary-green);"></i>
+                        احصل على الكود من المشرف المسؤول عن مجموعتك
+                    </small>
+                </div>
+            </div>
+
+            <div class="stepper-footer">
+                <button type="button" class="btn-step-back" onclick="window.app.goStep(1)">
+                    <i class="fa-solid fa-arrow-right"></i> السابق
+                </button>
+                <button type="button" class="btn-step-next" onclick="window.app.submitStep2()">
+                    التالي <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- الخطوة 3: تأكيد وإنشاء -->
+        <div id="setup-step-3" class="setup-step" style="display:none;">
+            <div class="step3-success-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2 id="step3-title">تأكيد الإنشاء</h2>
+            <p class="subtitle" id="step3-subtitle">راجع البيانات ثم اضغط تأكيد</p>
+
+            <div id="step3-summary" class="step3-summary"></div>
+
+            <div class="stepper-footer">
+                <button type="button" class="btn-step-back" onclick="window.app.goStep(2)">
+                    <i class="fa-solid fa-arrow-right"></i> تعديل
+                </button>
+                <button type="button" id="btn-final-submit" class="btn-login" style="flex:1;" onclick="window.app.finalSubmit()">
+                    <i class="fa-solid fa-check"></i> تأكيد وبدء
+                </button>
+            </div>
+        </div>
+
+        <!-- رابط تسجيل الخروج -->
+        <div style="text-align:center; margin-top: 16px; padding-bottom: 4px;">
+            <button type="button" onclick="window.app.logout()" style="background:none; border:none; color: var(--text-light); font-size:0.78rem; cursor:pointer; font-family:inherit; opacity:0.6;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+            </button>
+        </div>
 
         <div class="copyright">
-            تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Eng.Hassan Rashid</a>
+            تطوير بواسطة <a href="https://wa.me/201092640962" target="_blank" class="developer-link"><i class="fa-brands fa-whatsapp"></i> Hassan Rashid</a>
         </div>
     </div>
 </div>

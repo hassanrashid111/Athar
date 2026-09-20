@@ -111,7 +111,7 @@ window.verifySaPassword = async function () {
 
     if (!pw) return;
 
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...'; }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="athar-spinner-sm"></span> جاري التحقق...'; }
     if (errEl) errEl.style.display = 'none';
 
     try {
@@ -162,7 +162,7 @@ window.handleSaLogin = async function (e) {
     const errorEl  = document.getElementById('sa-auth-error');
 
     if (!email || !pass) return;
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري...'; }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="athar-spinner-sm"></span> جاري...'; }
     if (errorEl) errorEl.style.display = 'none';
 
     try {
@@ -250,7 +250,7 @@ async function loadAnalytics() {
 window.loadGroupsTree = async function () {
     const container = document.getElementById('groups-tree-container');
     if (!container) return;
-    container.innerHTML = '<div class="sa-empty"><i class="fa-solid fa-spinner fa-spin"></i><p>جاري تحميل المجموعات...</p></div>';
+    container.innerHTML = '<div class="sa-empty"><span class="athar-spinner athar-spinner-md"></span><p style="margin-top:12px;">جاري تحميل المجموعات...</p></div>';
 
     try {
         const groupsSnap = await get(ref(db, 'athar_groups'));

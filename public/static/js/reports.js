@@ -37,7 +37,7 @@ export function renderReports(allStudentsData) {
         return;
     }
 
-    tableBody.innerHTML = `<tr><td colspan="${6 + lectures.length}">جاري جلب بيانات المشرفين...</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="${6 + lectures.length}" style="text-align:center; padding: 24px;"><div style="display:inline-flex; align-items:center; justify-content:center; gap:10px;"><span class="athar-spinner athar-spinner-sm dark"></span> <span>جاري جلب بيانات المشرفين...</span></div></td></tr>`;
 
     const supervisorPromises = supervisorUids.map(async (uid, idx) => {
         try {
@@ -212,7 +212,7 @@ export function showSupervisorMsgTypes(e, uid) {
     if (!supData) return;
 
     const supervisorName = supData.name || "المشرف";
-    const msgTypesCount = supData.msgTypesCount || {};
+    const rawMsgTypes = supData.msgTypesCount || {};
 
     const typeLabels = {
         '1': "🔴 الغياب الحقيقي (أسماء موجودة)",
@@ -223,11 +223,54 @@ export function showSupervisorMsgTypes(e, uid) {
         '6': "🌐 الجميع (كل القائمة)"
     };
 
+    const categoryAliases = {
+        '1': ['1', 'real_absent'],
+        '2': ['2', 'replied_not_tested'],
+        '3': ['3', 'unregistered'],
+        '4': ['4', 'all_absent'],
+        '5': ['5', 'tested_only'],
+        '6': ['6', 'everyone']
+    };
+
+    const keyToCatId = {};
+    for (const [catId, aliases] of Object.entries(categoryAliases)) {
+        aliases.forEach(alias => {
+            keyToCatId[alias] = catId;
+        });
+    }
+
+    const counts = {
+        '1': 0,
+        '2': 0,
+        '3': 0,
+        '4': 0,
+        '5': 0,
+        '6': 0
+    };
+
+    // استخراج وتجميع الأعداد بشكل سليم ومرن سواء كانت البيانات مجمعة حسب المحاضرات أو كائن مسطح
+    function aggregateCounts(data) {
+        if (!data || typeof data !== 'object') return;
+
+        for (const [key, val] of Object.entries(data)) {
+            if (val && typeof val === 'object') {
+                aggregateCounts(val);
+            } else if (typeof val === 'number' || (typeof val === 'string' && !isNaN(val) && val.trim() !== '')) {
+                const num = Number(val);
+                if (!isNaN(num) && keyToCatId[key]) {
+                    counts[keyToCatId[key]] += num;
+                }
+            }
+        }
+    }
+
+    aggregateCounts(rawMsgTypes);
+
     let html = '';
     let total = 0;
 
     for (const [id, label] of Object.entries(typeLabels)) {
-        const count = msgTypesCount[id] || 0;
+        const count = counts[id] || 0;
         total += count;
         html += `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 8px;">
@@ -237,10 +280,12 @@ export function showSupervisorMsgTypes(e, uid) {
         `;
     }
 
+    const finalTotal = total > 0 ? total : (Number(supData.msgCount) || 0);
+
     html += `
         <div style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #e5e7eb; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: var(--primary-green);">
             <span>الإجمالي:</span>
-            <span>${total} رسالة</span>
+            <span>${finalTotal} رسالة</span>
         </div>
     `;
 
@@ -280,7 +325,10 @@ export function exportToExcel() {
     activeStudents.forEach((s, i) => {
         const phone = (s.phone || '').replace(/\D/g, '');
         const waLink = phone ? `https://wa.me/${phone}` : '';
-        const row = [i + 1, s.name || '', s.phone || '', waLink];
+        const studentSerial = (s.serial !== undefined && s.serial !== null && s.serial !== '') 
+            ? (typeof s.serial === 'number' ? s.serial.toString().padStart(3, '0') : s.serial)
+            : (i + 1).toString().padStart(3, '0');
+        const row = [studentSerial, s.name || '', s.phone || '', waLink];
         let attended = 0;
 
         state.lectures.forEach(l => {

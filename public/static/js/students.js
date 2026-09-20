@@ -17,6 +17,53 @@ let performanceChart = null;
 let currentEditingStudentId = null;
 
 /**
+ * الحصول على المعرف الفريد الدائم للطالب (Student Serial ID) بتنسيق ثلاثي (001، 015، إلخ)
+ */
+export function getStudentSerial(student) {
+    if (!student) return '---';
+    if (student.serial !== undefined && student.serial !== null && student.serial !== '') {
+        const num = parseInt(student.serial, 10);
+        return !isNaN(num) ? num.toString().padStart(3, '0') : String(student.serial);
+    }
+    const idx = (state.students || []).findIndex(s => s && s.id === student.id);
+    if (idx !== -1) {
+        return (idx + 1).toString().padStart(3, '0');
+    }
+    return '---';
+}
+
+/**
+ * التأكد من أن جميع الطلاب لديهم معرف فريد (serial) ثابت لا يتغير مع الترتيب أو الفلترة
+ */
+export function ensureStudentSerials(students) {
+    if (!Array.isArray(students)) return false;
+    let changed = false;
+    let maxSerial = 0;
+
+    // العثور على أعلى رقم تسلسلي حالي
+    students.forEach(s => {
+        if (s && s.serial !== undefined && s.serial !== null && s.serial !== '') {
+            const num = parseInt(s.serial, 10);
+            if (!isNaN(num) && num > maxSerial) {
+                maxSerial = num;
+            }
+        }
+    });
+
+    // تعيين أرقام للطلاب الذين ليس لديهم رقم تسلسلي ثابت
+    students.forEach((s) => {
+        if (!s) return;
+        if (s.serial === undefined || s.serial === null || s.serial === '') {
+            maxSerial++;
+            s.serial = maxSerial;
+            changed = true;
+        }
+    });
+
+    return changed;
+}
+
+/**
  * إضافة طالب جديد
  */
 export async function addStudentFlow(onSuccess) {
@@ -35,8 +82,14 @@ export async function addStudentFlow(onSuccess) {
         return;
     }
 
+    const maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     state.students.push({
         id: Date.now(),
+        serial: maxSerial + 1,
         name: name,
         phone: phone,
         progress: {},
@@ -349,6 +402,11 @@ export async function processBulkImport(onSuccess) {
     if (!confirmImport) return;
 
     let added = 0;
+    let maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     lines.forEach((line, idx) => {
         const isPhone = /^[0-9+\-\s()]{8,}$/.test(line);
         let newName = '';
@@ -369,8 +427,10 @@ export async function processBulkImport(onSuccess) {
         });
 
         if (!exists) {
+            maxSerial++;
             state.students.push({
                 id: Date.now() + idx,
+                serial: maxSerial,
                 name: newName,
                 phone: newPhone,
                 progress: {},
@@ -869,7 +929,21 @@ export async function acceptStudentTransfer(tid, data, onSuccess) {
     try {
         const groupId = currentGroup.id;
         const currentStudents = state.students || [];
-        const combinedStudents = [...currentStudents, ...data.students];
+
+        let maxSerial = currentStudents.reduce((max, s) => {
+            const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+            return (!isNaN(val) && val > max) ? val : max;
+        }, 0);
+
+        const incomingStudents = (data.students || []).map(s => {
+            maxSerial++;
+            return {
+                ...s,
+                serial: maxSerial
+            };
+        });
+
+        const combinedStudents = [...currentStudents, ...incomingStudents];
 
         // قراءة قائمة طلاب المشرف المرسل الحالية لحذف الطلاب المنقولين فقط من عنده
         let remainingSenderStudents = [];
@@ -1081,7 +1155,7 @@ export async function runAICleaner() {
     const originalBtnHTML = btn ? btn.innerHTML : '';
 
     if (btn) {
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التحليل والتنظيف بالذكاء الاصطناعي...`;
+        btn.innerHTML = `<span class="athar-spinner-sm"></span> جاري التحليل والتنظيف بالذكاء الاصطناعي...`;
         btn.disabled = true;
     }
 
@@ -1199,6 +1273,11 @@ export async function importCleanedStudents(onSuccess) {
     if (!confirm) return;
 
     let added = 0;
+    let maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     cleanedStudentsCache.forEach((item, idx) => {
         const cleanP = cleanPhone(item.phone);
         const name = (item.name || '').trim();
@@ -1210,8 +1289,10 @@ export async function importCleanedStudents(onSuccess) {
         });
 
         if (!exists) {
+            maxSerial++;
             state.students.push({
                 id: Date.now() + idx,
+                serial: maxSerial,
                 name: name,
                 phone: cleanP,
                 progress: {},
@@ -1342,7 +1423,14 @@ export function renderExternalTestersTable(mode) {
         const relevant = mode === 'all' ? totalCount : lastCount;
         if (relevant === 0) return; // استثناء الصفر
 
-        rows.push({ name: s.name || '', phone: s.phone || '', lastCount, totalCount });
+        rows.push({
+            id: s.id,
+            serial: getStudentSerial(s),
+            name: s.name || '',
+            phone: s.phone || '',
+            lastCount,
+            totalCount
+        });
         totalSum += totalCount;
         lastSum += lastCount;
     });
@@ -1374,7 +1462,7 @@ export function renderExternalTestersTable(mode) {
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
             <thead>
                 <tr style="background:var(--primary-green); color:white;">
-                    <th style="padding:10px 12px; text-align:right; border-radius:6px 0 0 0;">#</th>
+                    <th style="padding:10px 12px; text-align:center; border-radius:6px 0 0 0;">#</th>
                     <th style="padding:10px 12px; text-align:right;">اسم الطالب</th>
                     <th style="padding:10px 12px; text-align:center;">رقم الهاتف</th>
                     <th style="padding:10px 12px; text-align:center;">${colLabel}</th>
@@ -1390,7 +1478,7 @@ export function renderExternalTestersTable(mode) {
         const mainVal = mode === 'all' ? r.totalCount : r.lastCount;
         tableHTML += `
             <tr style="background:${bg};">
-                <td style="padding:9px 12px; color:#888;">${i + 1}</td>
+                <td style="padding:9px 12px; color:var(--primary-green); font-weight:bold; text-align:center;">${r.serial}</td>
                 <td style="padding:9px 12px; font-weight:600;">${escapeHTML(r.name)}</td>
                 <td style="padding:9px 12px; text-align:center; direction:ltr; font-family:monospace;">${escapeHTML(r.phone)}</td>
                 <td style="padding:9px 12px; text-align:center;">

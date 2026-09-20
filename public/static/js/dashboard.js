@@ -26,7 +26,8 @@ import {
     openCustomTransferModal, closeCustomTransferModal,
     renderCustomTransferTable, toggleTransferStudentSelection,
     toggleSelectAllTransfer, filterTransferStudentsList, proceedCustomTransfer,
-    openExternalTestersModal, renderExternalTestersTable
+    openExternalTestersModal, renderExternalTestersTable,
+    getStudentSerial, ensureStudentSerials
 } from "./students.js";
 import {
     addLectureFlow, deleteLectureFlow, toggleStudentCheck,
@@ -65,6 +66,9 @@ export async function initDashboard() {
     setupDropdownListeners();
     checkPWAInstallVisibility();
 
+    // إظهار مؤشر أثر أثناء التحقق المبدئي
+    showLoader("جاري تحميل لوحة التحكم...");
+
     // التحقق من الصلاحيات واسترجاع المستخدم والمجموعة
     const { user, userData, activeGroupId } = await initPageAuth();
 
@@ -72,10 +76,11 @@ export async function initDashboard() {
     if (activeGroupId) {
         const hasLocalData = loadStateFromLocalStorage(activeGroupId);
         if (hasLocalData && (state.students?.length > 0 || state.lectures?.length > 0)) {
+            ensureStudentSerials(state.students);
             renderDashboard();
             removeLoader();
         } else {
-            showLoader("جاري تحميل البيانات...");
+            showLoader("جاري تحميل بيانات المجموعة...");
         }
 
         listenToGroup(activeGroupId, user.uid);
@@ -218,6 +223,7 @@ function listenToGroup(groupId, uid) {
                 if (supervisorData.msgTypesCount) state.userInfo.msgTypesCount = supervisorData.msgTypesCount;
 
                 state.students.forEach(s => { if (!s.progress) s.progress = {}; });
+                ensureStudentSerials(state.students);
             } else if (state.userInfo?.role === 'group_supervisor') {
                 state.students = [];
                 state.allSupervisorsData = groupData.students || {};
@@ -269,7 +275,9 @@ export function renderTable(studentsList = null) {
     const savedScrollY = window.scrollY;
 
     let headersHTML = `
-        <th>#</th>
+        <th class="sortable-header" onclick="window.app.sort('serial')" title="ترتيب بالرقم التعريفي">
+            # <i class="fa-solid fa-sort"></i>
+        </th>
         <th class="sortable-header" onclick="window.app.sort('name')" title="اضغط للترتيب">
             اسم الطالب <i class="fa-solid fa-sort"></i>
         </th>
@@ -367,8 +375,7 @@ export function renderTable(studentsList = null) {
             const isCompletedLatest = latestLecId ? student.progress[latestLecId] : false;
             const rowClass = (isCompletedLatest && isCompletedLatest !== 'replied') ? 'row-tested' : 'row-active';
 
-            const originalIndex = state.students.findIndex(s => s.id === student.id);
-            const serial = (originalIndex + 1).toString().padStart(3, '0');
+            const serial = getStudentSerial(student);
 
             const percent = getStudentTotalScore(student, state.lectures);
             let progressColor = '#E74C3C';
@@ -472,6 +479,8 @@ export function renderTable(studentsList = null) {
  * تبديل حالة الحضور بشكل مباشر في واجهة المستخدم مع حفظ وإشعار فوري
  */
 export async function handleToggleStudentCheck(sId, lId) {
+    if (isContextMenuActionBlocked()) return;
+
     const student = state.students.find(s => s.id === sId);
     if (!student) return;
 
@@ -610,7 +619,9 @@ export function handleSearch() {
     const filtered = activeStudents.filter(s => {
         const name = (s.name || '').toLowerCase();
         const phone = (s.phone || '').toLowerCase();
-        return name.includes(query) || phone.includes(query);
+        const sSerial = s.serial ? String(s.serial) : '';
+        const sPadded = s.serial ? String(s.serial).padStart(3, '0') : '';
+        return name.includes(query) || phone.includes(query) || sSerial === query || sPadded.includes(query);
     });
 
     renderTable(filtered);
@@ -623,7 +634,11 @@ export function sortStudents(criteria, lecId = null) {
     sortDirection = -sortDirection;
 
     state.students.sort((a, b) => {
-        if (criteria === 'name') {
+        if (criteria === 'serial') {
+            const numA = (a.serial !== undefined && a.serial !== null && a.serial !== '') ? parseInt(a.serial, 10) : 0;
+            const numB = (b.serial !== undefined && b.serial !== null && b.serial !== '') ? parseInt(b.serial, 10) : 0;
+            return (numA - numB) * sortDirection;
+        } else if (criteria === 'name') {
             const nameA = (a.name || '').trim();
             const nameB = (b.name || '').trim();
             return nameA.localeCompare(nameB, 'ar') * sortDirection;
@@ -715,6 +730,18 @@ export function loadTheme() {
 
 let touchTimer = null;
 let touchMoved = false;
+let startTouchX = 0;
+let startTouchY = 0;
+let isLongPressOpening = false;
+let contextMenuOpenedAt = 0;
+let longPressTouchEndedAt = 0;
+
+/**
+ * فحص ما إذا كان الفاصل الزمني للضغط المطول نشطاً لمنع التحديد التلقائي
+ */
+export function isContextMenuActionBlocked() {
+    return isLongPressOpening || (Date.now() - contextMenuOpenedAt < 450) || (Date.now() - longPressTouchEndedAt < 300);
+}
 
 export function handleCellTouchStart(e, sId, lId) {
     touchMoved = false;
@@ -722,14 +749,18 @@ export function handleCellTouchStart(e, sId, lId) {
     
     // الالتقاط الفوري لإحداثيات اللمس في الشاشة عند بدء الضغط
     const touch = (e && e.touches && e.touches.length > 0) ? e.touches[0] : e;
+    startTouchX = touch ? touch.clientX : (e ? e.clientX : 0);
+    startTouchY = touch ? touch.clientY : (e ? e.clientY : 0);
     const touchPos = {
-        clientX: touch ? touch.clientX : (e ? e.clientX : 0),
-        clientY: touch ? touch.clientY : (e ? e.clientY : 0),
+        clientX: startTouchX,
+        clientY: startTouchY,
         preventDefault: () => { if (e && e.preventDefault) e.preventDefault(); }
     };
 
     touchTimer = setTimeout(() => {
         if (!touchMoved) {
+            isLongPressOpening = true;
+            contextMenuOpenedAt = Date.now();
             if (navigator.vibrate) {
                 try { navigator.vibrate(40); } catch (err) {}
             }
@@ -738,20 +769,43 @@ export function handleCellTouchStart(e, sId, lId) {
     }, 350);
 }
 
-export function handleCellTouchEnd() {
+export function handleCellTouchEnd(e) {
     if (touchTimer) {
         clearTimeout(touchTimer);
         touchTimer = null;
+    }
+    if (isLongPressOpening) {
+        isLongPressOpening = false;
+        longPressTouchEndedAt = Date.now();
+        if (e && e.cancelable && e.preventDefault) {
+            e.preventDefault();
+        }
     }
 }
 
-export function handleCellTouchMove() {
-    touchMoved = true;
-    if (touchTimer) {
-        clearTimeout(touchTimer);
-        touchTimer = null;
+export function handleCellTouchMove(e) {
+    const touch = (e && e.touches && e.touches.length > 0) ? e.touches[0] : e;
+    const curX = touch ? touch.clientX : 0;
+    const curY = touch ? touch.clientY : 0;
+    if (Math.abs(curX - startTouchX) > 10 || Math.abs(curY - startTouchY) > 10) {
+        touchMoved = true;
+        if (touchTimer) {
+            clearTimeout(touchTimer);
+            touchTimer = null;
+        }
     }
 }
+
+// التقاط انتهاء اللمس على مستوى النافذة في حال رفع المستخدم إصبعه فوق القائمة أو خارج الخلية
+window.addEventListener('touchend', (e) => {
+    if (isLongPressOpening) {
+        isLongPressOpening = false;
+        longPressTouchEndedAt = Date.now();
+        if (e && e.cancelable && e.preventDefault) {
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
 
 /**
  * قائمة السياق بالزر الأيمن أو الضغط المطول
@@ -812,6 +866,8 @@ export function showContextMenu(e, sId, lId) {
 }
 
 export function manualStatus(days) {
+    if (isContextMenuActionBlocked()) return;
+
     const { sId, lId } = contextTarget;
     if (!sId || !lId) return;
 
@@ -847,15 +903,26 @@ export function hideContextMenu() {
     const menu = document.getElementById('context-menu');
     if (menu) menu.style.display = 'none';
     contextTarget = { sId: null, lId: null };
+    isLongPressOpening = false;
 }
 
-// إغلاق القائمة عند النقر خارجها وتثبيتها عند التمرير (Scroll)
+// حماية ضد النقرة العارضة الناتجة عن رفع الإصبع بعد الضغط المطول، وإغلاق القائمة عند النقر خارجها
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('context-menu');
-    if (menu && menu.style.display !== 'none' && !e.target.closest('#context-menu')) {
+    if (!menu || menu.style.display === 'none') return;
+
+    // أثناء الفاصل الزمني للضغط المطول نمنع أي نقرة تماماً (داخل القائمة أو خارجها)
+    if (isContextMenuActionBlocked()) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+    }
+
+    // بعد انقضاء الفاصل الزمني: إذا نقر المستخدم خارج القائمة يتم إغلاقها
+    if (!e.target.closest('#context-menu')) {
         hideContextMenu();
     }
-});
+}, true);
 
 /**
  * نسخ كود المجموعة

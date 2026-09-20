@@ -342,16 +342,24 @@ body.light-mode .sa-header-brand h1 {
 }
 
 .spinner {
-    width: 44px; height: 44px;
-    border: 3px solid rgba(212,175,55,0.2);
-    border-top-color: var(--sa-gold, #D4AF37);
+    position: relative;
+    width: 50px; height: 50px;
+    border: 3.5px solid rgba(16, 185, 129, 0.18);
+    border-top-color: #10b981;
+    border-right-color: var(--sa-gold, #D4AF37);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.85s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.45));
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-#sa-loader p { color: #64748b; font-size: 0.88rem; }
+#sa-loader p {
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
 
 /* ══ Login Box ══════════════════════════════════════════════ */
 .sa-login-container {

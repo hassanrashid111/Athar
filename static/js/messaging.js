@@ -370,7 +370,7 @@ export async function startMessagingFlow() {
             if (matches) {
                 targetsRaw.push({
                     id: s.id,
-                    primarySerial: idx + 1,
+                    primarySerial: (s.serial ? parseInt(s.serial, 10) : idx + 1),
                     name: s.name,
                     phone: cleanPhone(s.phone),
                     progress: s.progress || {},
@@ -455,7 +455,7 @@ export async function startMessagingFlow() {
             const currentBatch = finalTargets.slice(start, end);
 
             if (btn) {
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري إرسال الدفعة ${i + 1} من ${totalBatches}...`;
+                btn.innerHTML = `<span class="athar-spinner-sm"></span> جاري إرسال الدفعة ${i + 1} من ${totalBatches}...`;
                 btn.disabled = true;
             }
 

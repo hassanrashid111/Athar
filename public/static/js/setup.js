@@ -239,7 +239,7 @@ export async function createGroupFlow() {
     const groupId = `${digits}${symbol}${letter}`;
 
     const submitBtn = document.getElementById('btn-final-submit');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإنشاء...'; }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="athar-spinner-sm"></span> جاري الإنشاء...'; }
 
     try {
         showLoader("جاري إنشاء المجموعة وحفظ الصلاحيات...");
@@ -306,7 +306,7 @@ export async function joinGroupFlow() {
     }
 
     const submitBtn = document.getElementById('btn-final-submit');
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...'; }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="athar-spinner-sm"></span> جاري التحقق...'; }
 
     try {
         showLoader("جاري التحقق من كود المجموعة...");

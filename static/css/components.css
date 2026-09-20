@@ -440,3 +440,209 @@ body.dark-theme .context-menu li:hover {
         max-height: 280px;
     }
 }
+
+/* ==========================================================================
+   ✨ مؤشر التحميل الدائري بهوية شعار أثر (Athar Branded Spinner & Loader)
+   ========================================================================== */
+
+@keyframes atharSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes atharReverseSpin {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes atharTextPulse {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+}
+
+@keyframes atharFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes atharFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* الحلقة الدائرية الأساسية لمؤشر أثر */
+.athar-spinner {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid rgba(26, 93, 58, 0.18);
+    border-top-color: var(--primary-green, #1A5D3A);
+    border-right-color: var(--accent-gold, #D4AF37);
+    animation: atharSpin 0.85s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+    box-sizing: border-box;
+    filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.3));
+    flex-shrink: 0;
+}
+
+/* مؤشر أثر الصغير - مخصص للأزرار وعناصر التحكم والمزامنة */
+.athar-spinner-sm {
+    display: inline-block;
+    vertical-align: middle;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255, 255, 255, 0.25);
+    border-top-color: var(--accent-gold, #D4AF37);
+    border-right-color: #ffffff;
+    animation: atharSpin 0.75s linear infinite;
+    box-sizing: border-box;
+    margin-inline-end: 6px;
+    filter: drop-shadow(0 0 3px rgba(212, 175, 55, 0.4));
+    flex-shrink: 0;
+}
+
+/* في حالة خلفية فاتحة أو زر فاتح */
+.athar-spinner-sm.dark,
+.btn-google .athar-spinner-sm,
+.btn-outline .athar-spinner-sm {
+    border-color: rgba(26, 93, 58, 0.15);
+    border-top-color: var(--primary-green, #1A5D3A);
+    border-right-color: var(--accent-gold, #D4AF37);
+}
+
+/* مؤشر أثر المتوسط - للجداول والبطاقات والمودالات */
+.athar-spinner-md {
+    width: 38px;
+    height: 38px;
+    border-width: 3.5px;
+    border-color: rgba(26, 93, 58, 0.15);
+    border-top-color: var(--primary-green, #1A5D3A);
+    border-right-color: var(--accent-gold, #D4AF37);
+}
+
+/* مؤشر أثر الكبير الفاخر - للشاشات الكاملة واللودر العام مع حلقة مزدوجة */
+.athar-spinner-lg {
+    width: 60px;
+    height: 60px;
+    border-width: 4px;
+    border-color: rgba(26, 93, 58, 0.2);
+    border-top-color: var(--primary-green, #1A5D3A);
+    border-right-color: var(--accent-gold, #D4AF37);
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.45));
+}
+
+.athar-spinner-lg .athar-spinner-inner {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-bottom-color: var(--accent-gold, #D4AF37);
+    border-left-color: rgba(255, 255, 255, 0.5);
+    animation: atharReverseSpin 1.1s cubic-bezier(0.5, 0.2, 0.5, 0.8) infinite;
+    box-sizing: border-box;
+}
+
+/* تخصيص مؤشر أثر في الوضع الليلي الفاخر */
+body.dark-theme .athar-spinner {
+    border-color: rgba(37, 211, 102, 0.15);
+    border-top-color: var(--primary-green, #25D366);
+    border-right-color: var(--accent-gold, #fbbf24);
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.35));
+}
+
+body.dark-theme .athar-spinner-sm {
+    border-top-color: #fbbf24;
+    border-right-color: #25D366;
+}
+
+body.dark-theme .athar-spinner-lg {
+    border-color: rgba(37, 211, 102, 0.2);
+    border-top-color: #25D366;
+    border-right-color: #fbbf24;
+}
+
+body.dark-theme .athar-spinner-lg .athar-spinner-inner {
+    border-bottom-color: #fbbf24;
+    border-left-color: rgba(37, 211, 102, 0.6);
+}
+
+/* شاشة التحميل الشاملة لمنصة أثر (Global Athar Loader Overlay) */
+.athar-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, rgba(14, 59, 36, 0.92) 0%, rgba(8, 30, 18, 0.96) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    animation: atharFadeIn 0.25s ease forwards;
+    cursor: wait;
+    user-select: none;
+}
+
+.athar-loader-overlay.fade-out {
+    animation: atharFadeOut 0.25s ease forwards;
+}
+
+.athar-loader-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 32px 40px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 30px rgba(212, 175, 55, 0.15);
+    max-width: 90vw;
+}
+
+.athar-loader-text {
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-align: center;
+    animation: atharTextPulse 1.8s ease-in-out infinite;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.athar-loader-subtext {
+    color: var(--accent-gold, #D4AF37);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: -8px;
+    opacity: 0.9;
+}
+
+/* أنماط الأزرار أثناء التحميل */
+button.btn-loading,
+.btn-login.btn-loading,
+.btn-action.btn-loading {
+    opacity: 0.88 !important;
+    cursor: wait !important;
+    pointer-events: none !important;
+    position: relative;
+}
+
+/* تنسيق أيقونات FontAwesome Spinner كبديل تلقائي يدعم هوية أثر */
+.fa-spin.fa-spinner,
+.fa-spin.fa-circle-notch {
+    color: var(--accent-gold, #D4AF37) !important;
+    filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.5));
+}
+
+body.dark-theme .fa-spin.fa-spinner,
+body.dark-theme .fa-spin.fa-circle-notch {
+    color: var(--accent-gold, #fbbf24) !important;
+}

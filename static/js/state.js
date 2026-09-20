@@ -253,7 +253,7 @@ export function showSyncIndicator(text = "جاري الحفظ والمزامنة
     if (syncIndicatorTimeout) clearTimeout(syncIndicatorTimeout);
 
     indicator.className = 'show';
-    indicator.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${text}</span>`;
+    indicator.innerHTML = `<span class="athar-spinner-sm"></span> <span>${text}</span>`;
 }
 
 export function hideSyncIndicator(successText = "تم الحفظ بنجاح ✓", isError = false) {
@@ -395,18 +395,34 @@ export async function trackOfflineOp() {
     }
 }
 
-// إزالة اللودر الكامل
+// إزالة اللودر الكامل مع تلاشي ناعم
 export function removeLoader() {
     const l = document.getElementById('firebase-loader');
-    if (l) l.remove();
+    if (l) {
+        l.classList.add('fade-out');
+        setTimeout(() => {
+            if (l.parentNode) l.parentNode.removeChild(l);
+        }, 220);
+    }
 }
 
-// إظهار اللودر الكامل
+// إظهار اللودر الكامل بهوية أثر الفاخرة
 export function showLoader(text = "جاري تحميل البيانات...") {
-    removeLoader();
-    const loadingMsg = document.createElement('div');
-    loadingMsg.id = 'firebase-loader';
-    loadingMsg.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(14,59,36,0.9);backdrop-filter:blur(5px);z-index:99999;display:flex;justify-content:center;align-items:center;font-size:20px;font-weight:bold;color:#ffffff;";
-    loadingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>&nbsp; ${text}`;
-    document.body.appendChild(loadingMsg);
+    // إزالة أي لودر سابق فوراً بدون تأخير
+    const old = document.getElementById('firebase-loader');
+    if (old) old.remove();
+
+    const loaderOverlay = document.createElement('div');
+    loaderOverlay.id = 'firebase-loader';
+    loaderOverlay.className = 'athar-loader-overlay';
+    loaderOverlay.innerHTML = `
+        <div class="athar-loader-card">
+            <div class="athar-spinner athar-spinner-lg">
+                <div class="athar-spinner-inner"></div>
+            </div>
+            <div class="athar-loader-text">${text}</div>
+            <div class="athar-loader-subtext">منصة أثر التعليمية</div>
+        </div>
+    `;
+    document.body.appendChild(loaderOverlay);
 }

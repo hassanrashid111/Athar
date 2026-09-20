@@ -17,6 +17,53 @@ let performanceChart = null;
 let currentEditingStudentId = null;
 
 /**
+ * الحصول على المعرف الفريد الدائم للطالب (Student Serial ID) بتنسيق ثلاثي (001، 015، إلخ)
+ */
+export function getStudentSerial(student) {
+    if (!student) return '---';
+    if (student.serial !== undefined && student.serial !== null && student.serial !== '') {
+        const num = parseInt(student.serial, 10);
+        return !isNaN(num) ? num.toString().padStart(3, '0') : String(student.serial);
+    }
+    const idx = (state.students || []).findIndex(s => s && s.id === student.id);
+    if (idx !== -1) {
+        return (idx + 1).toString().padStart(3, '0');
+    }
+    return '---';
+}
+
+/**
+ * التأكد من أن جميع الطلاب لديهم معرف فريد (serial) ثابت لا يتغير مع الترتيب أو الفلترة
+ */
+export function ensureStudentSerials(students) {
+    if (!Array.isArray(students)) return false;
+    let changed = false;
+    let maxSerial = 0;
+
+    // العثور على أعلى رقم تسلسلي حالي
+    students.forEach(s => {
+        if (s && s.serial !== undefined && s.serial !== null && s.serial !== '') {
+            const num = parseInt(s.serial, 10);
+            if (!isNaN(num) && num > maxSerial) {
+                maxSerial = num;
+            }
+        }
+    });
+
+    // تعيين أرقام للطلاب الذين ليس لديهم رقم تسلسلي ثابت
+    students.forEach((s) => {
+        if (!s) return;
+        if (s.serial === undefined || s.serial === null || s.serial === '') {
+            maxSerial++;
+            s.serial = maxSerial;
+            changed = true;
+        }
+    });
+
+    return changed;
+}
+
+/**
  * إضافة طالب جديد
  */
 export async function addStudentFlow(onSuccess) {
@@ -35,8 +82,14 @@ export async function addStudentFlow(onSuccess) {
         return;
     }
 
+    const maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     state.students.push({
         id: Date.now(),
+        serial: maxSerial + 1,
         name: name,
         phone: phone,
         progress: {},
@@ -302,16 +355,7 @@ export function openEditStudentModal(id) {
     if (nameElem) nameElem.value = student.name;
     if (phoneInput) {
         phoneInput.value = student.phone || "";
-        if (!phoneInput.iti && window.intlTelInput) {
-            phoneInput.iti = window.intlTelInput(phoneInput, {
-                initialCountry: "eg",
-                preferredCountries: ["eg", "sa", "ae", "kw", "qa"],
-                countryOrder: ["eg", "sa", "ae", "kw", "qa"],
-                separateDialCode: true,
-                dropdownContainer: document.body,
-                utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.11/build/js/utils.js"
-            });
-        }
+        phoneInput.placeholder = "مثال: 01012345678 أو +201012345678";
     }
 
     const modal = document.getElementById('edit-student-modal');
@@ -325,8 +369,7 @@ export async function saveStudentDataEdit(onSuccess) {
     const id = parseFloat(document.getElementById('edit-id').value);
     const newName = document.getElementById('edit-name').value.trim();
     const phoneInput = document.getElementById('edit-phone');
-    const newPhoneRaw = phoneInput.value.trim();
-    const newPhone = phoneInput.iti ? (phoneInput.iti.getNumber() || newPhoneRaw) : newPhoneRaw;
+    const newPhone = phoneInput ? phoneInput.value.trim() : "";
 
     if (!newName) {
         showAtharNotification('الاسم مطلوب', 'error');
@@ -359,6 +402,11 @@ export async function processBulkImport(onSuccess) {
     if (!confirmImport) return;
 
     let added = 0;
+    let maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     lines.forEach((line, idx) => {
         const isPhone = /^[0-9+\-\s()]{8,}$/.test(line);
         let newName = '';
@@ -379,8 +427,10 @@ export async function processBulkImport(onSuccess) {
         });
 
         if (!exists) {
+            maxSerial++;
             state.students.push({
                 id: Date.now() + idx,
+                serial: maxSerial,
                 name: newName,
                 phone: newPhone,
                 progress: {},
@@ -446,12 +496,25 @@ export function openNotesModal(studentId) {
                 if (score <= 30) statusClass = 'absent';
             }
 
+            const extTesters = (student.externalTesters && student.externalTesters[lec.id]) ? student.externalTesters[lec.id] : 0;
+
             const itemHTML = `
                 <div class="history-item ${statusClass}">
-                    <div>
+                    <div style="flex:1;">
                         <div style="font-weight:bold">${lec.title}</div>
                         <div class="date" style="font-size:0.7rem; color:#aaa;">
                              ${progressValue && progressValue !== true ? new Date(progressValue).toLocaleDateString('ar-EG') : ''}
+                        </div>
+                        <div style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:0.75rem; color:var(--primary-green); white-space:nowrap;">
+                                <i class="fa-solid fa-users" style="font-size:0.7rem;"></i> مختبرون خارجيون:
+                            </label>
+                            <input type="number" min="0" max="999"
+                                id="ext-testers-${lec.id}"
+                                value="${extTesters}"
+                                placeholder="0"
+                                style="width:60px; padding:3px 6px; border:1px solid var(--border-color); border-radius:6px; font-size:0.8rem; font-family:inherit; text-align:center;"
+                            />
                         </div>
                     </div>
                     <div class="status">${icon} ${statusText}</div>
@@ -549,10 +612,116 @@ export async function saveStudentNotes() {
             state.students[idx].age = ageVal ? parseInt(ageVal) : '';
         }
         state.students[idx].notes = document.getElementById('student-notes').value;
+
+        // حفظ عدد المختبرين من الخارج لكل محاضرة
+        const extTesters = {};
+        state.lectures.forEach(lec => {
+            const input = document.getElementById(`ext-testers-${lec.id}`);
+            if (input) {
+                const val = parseInt(input.value) || 0;
+                if (val > 0) extTesters[lec.id] = val;
+            }
+        });
+        state.students[idx].externalTesters = extTesters;
+
         await saveData();
         closeNotesModal();
         showAtharNotification("تم حفظ البيانات والملاحظات بنجاح");
     }
+}
+
+/**
+ * حفظ صورة مؤشر الأداء التراكمي فقط (بدون المحاور أفقياً ورأسياً)
+ */
+export function downloadChartOnlyImage() {
+    if (!performanceChart) {
+        showAtharNotification("المخطط غير جاهز بعد", "warning");
+        return;
+    }
+
+    try {
+        const chartInstance = performanceChart;
+        const originalXDisplay = chartInstance.options.scales.x.display;
+        const originalYDisplay = chartInstance.options.scales.y.display;
+
+        // إخفاء العناوين والمحاور مؤقتاً لالتقاط صورة المنحنى فقط
+        chartInstance.options.scales.x.display = false;
+        chartInstance.options.scales.y.display = false;
+        chartInstance.update('none');
+
+        const imageURI = chartInstance.toBase64Image('image/png', 1.0);
+
+        // إعادة إظهار المحاور
+        chartInstance.options.scales.x.display = originalXDisplay;
+        chartInstance.options.scales.y.display = originalYDisplay;
+        chartInstance.update('none');
+
+        const studentName = document.getElementById('modal-student-name')?.innerText || 'الطالب';
+        const link = document.createElement('a');
+        link.download = `مؤشر_أداء_${studentName}.png`;
+        link.href = imageURI;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showAtharNotification("تم حفظ صورة مؤشر الأداء بنجاح ✓", "success");
+    } catch (e) {
+        console.error("Chart image export failed:", e);
+        showAtharNotification("تعذر حفظ صورة المؤشر", "error");
+    }
+}
+
+/**
+ * نسخ سجل حضور الطالب بتفاصيله
+ */
+export function copyAttendanceHistory() {
+    if (!currentEditingStudentId) return;
+    const student = state.students.find(s => s.id === currentEditingStudentId);
+    if (!student) return;
+
+    let text = `=== سجل حضور الطالب: ${student.name} ===\n`;
+    text += `رقم الهاتف: ${student.phone || 'غير مسجل'}\n`;
+    text += `تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-EG')}\n`;
+    text += `----------------------------------------\n`;
+
+    state.lectures.forEach((lec) => {
+        const progressValue = student.progress ? student.progress[lec.id] : null;
+        const score = calculateScore(lec.timestamp, progressValue);
+
+        let statusText = '❌ غائب';
+        if (progressValue) {
+            if (score === 100) statusText = '👑 تم (السبت - 100%)';
+            else if (score === 90) statusText = '✅ تم (الأحد - 90%)';
+            else if (score === 80) statusText = '✅ تم (الاثنين - 80%)';
+            else if (score === 70) statusText = '✅ تم (الثلاثاء - 70%)';
+            else if (score === 60) statusText = '✅ تم (الأربعاء - 60%)';
+            else if (score === 50) statusText = '✅ تم (الخميس - 50%)';
+            else if (score === 40) statusText = '✅ تم (الجمعة - 40%)';
+            else if (score === 30) statusText = '⏳ تأخير أسبوع (30%)';
+            else if (score === 20) statusText = '⏳ تأخير أسبوعين (20%)';
+            else statusText = '⏳ تأخير > أسبوعين (10%)';
+        }
+
+        const dateStr = (progressValue && progressValue !== true && progressValue !== 'replied')
+            ? new Date(progressValue).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+
+        const extCount = (student.externalTesters && student.externalTesters[lec.id]) ? student.externalTesters[lec.id] : 0;
+        const extLine = extCount > 0 ? ` | 👥 مختبرون من الخارج: ${extCount}` : '';
+
+        text += `• ${lec.title}: ${statusText}${dateStr ? ' [' + dateStr + ']' : ''}${extLine}\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+        showAtharNotification("تم نسخ سجل الحضور بنجاح ✓", "success");
+    }).catch(() => {
+        const dummy = document.createElement("textarea");
+        dummy.value = text;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand("copy");
+        document.body.removeChild(dummy);
+        showAtharNotification("تم نسخ سجل الحضور بنجاح ✓", "success");
+    });
 }
 
 /**
@@ -760,7 +929,21 @@ export async function acceptStudentTransfer(tid, data, onSuccess) {
     try {
         const groupId = currentGroup.id;
         const currentStudents = state.students || [];
-        const combinedStudents = [...currentStudents, ...data.students];
+
+        let maxSerial = currentStudents.reduce((max, s) => {
+            const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+            return (!isNaN(val) && val > max) ? val : max;
+        }, 0);
+
+        const incomingStudents = (data.students || []).map(s => {
+            maxSerial++;
+            return {
+                ...s,
+                serial: maxSerial
+            };
+        });
+
+        const combinedStudents = [...currentStudents, ...incomingStudents];
 
         // قراءة قائمة طلاب المشرف المرسل الحالية لحذف الطلاب المنقولين فقط من عنده
         let remainingSenderStudents = [];
@@ -972,7 +1155,7 @@ export async function runAICleaner() {
     const originalBtnHTML = btn ? btn.innerHTML : '';
 
     if (btn) {
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التحليل والتنظيف بالذكاء الاصطناعي...`;
+        btn.innerHTML = `<span class="athar-spinner-sm"></span> جاري التحليل والتنظيف بالذكاء الاصطناعي...`;
         btn.disabled = true;
     }
 
@@ -1090,6 +1273,11 @@ export async function importCleanedStudents(onSuccess) {
     if (!confirm) return;
 
     let added = 0;
+    let maxSerial = (state.students || []).reduce((max, s) => {
+        const val = s && s.serial ? parseInt(s.serial, 10) : 0;
+        return (!isNaN(val) && val > max) ? val : max;
+    }, 0);
+
     cleanedStudentsCache.forEach((item, idx) => {
         const cleanP = cleanPhone(item.phone);
         const name = (item.name || '').trim();
@@ -1101,8 +1289,10 @@ export async function importCleanedStudents(onSuccess) {
         });
 
         if (!exists) {
+            maxSerial++;
             state.students.push({
                 id: Date.now() + idx,
+                serial: maxSerial,
                 name: name,
                 phone: cleanP,
                 progress: {},
@@ -1147,4 +1337,176 @@ export function copyCleanedStudents() {
         document.body.removeChild(dummy);
         showAtharNotification("📋 تم نسخ القائمة المنظفة إلى الحافظة بنجاح ✓", "success");
     });
+}
+
+/* ==========================================================================
+   👥 المختبرون من الخارج (External Testers Analytics)
+   ========================================================================== */
+
+/**
+ * فتح نافذة تقرير المختبرين من الخارج
+ */
+export function openExternalTestersModal() {
+    const modal = document.getElementById('external-testers-modal');
+    if (!modal) return;
+
+    // إعادة تعيين حالة الأزرار
+    const allBtn = document.getElementById('ext-all-btn');
+    const lastBtn = document.getElementById('ext-last-btn');
+    if (allBtn) {
+        allBtn.style.background = 'var(--primary-green)';
+        allBtn.style.color = 'white';
+        allBtn.style.border = 'none';
+    }
+    if (lastBtn) {
+        lastBtn.style.background = 'var(--bg-light)';
+        lastBtn.style.color = '';
+        lastBtn.style.border = '1px solid var(--border-color)';
+    }
+
+    const container = document.getElementById('external-testers-table-container');
+    if (container) container.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px;">اختر نوع التقرير من الأعلى</p>';
+
+    modal.style.display = 'flex';
+}
+
+/**
+ * رسم جدول المختبرين من الخارج
+ * @param {'all'|'last'} mode - كل المحاضرات أم آخر محاضرة
+ */
+export function renderExternalTestersTable(mode) {
+    const container = document.getElementById('external-testers-table-container');
+    if (!container) return;
+
+    // تحديث تنسيق الأزرار
+    const allBtn = document.getElementById('ext-all-btn');
+    const lastBtn = document.getElementById('ext-last-btn');
+    if (allBtn && lastBtn) {
+        if (mode === 'all') {
+            allBtn.style.background = 'var(--primary-green)';
+            allBtn.style.color = 'white';
+            allBtn.style.border = 'none';
+            lastBtn.style.background = 'var(--bg-light)';
+            lastBtn.style.color = '';
+            lastBtn.style.border = '1px solid var(--border-color)';
+        } else {
+            lastBtn.style.background = 'var(--primary-green)';
+            lastBtn.style.color = 'white';
+            lastBtn.style.border = 'none';
+            allBtn.style.background = 'var(--bg-light)';
+            allBtn.style.color = '';
+            allBtn.style.border = '1px solid var(--border-color)';
+        }
+    }
+
+    const activeStudents = state.students.filter(s => !s.deleted);
+    const lastLecture = state.lectures.length > 0 ? state.lectures[state.lectures.length - 1] : null;
+
+    // حساب البيانات لكل طالب
+    const rows = [];
+    let totalSum = 0;
+    let lastSum = 0;
+
+    activeStudents.forEach(s => {
+        const ext = s.externalTesters || {};
+
+        // العدد الكلي (كل المحاضرات)
+        let totalCount = 0;
+        Object.values(ext).forEach(v => { totalCount += (parseInt(v) || 0); });
+
+        // عدد آخر محاضرة
+        let lastCount = 0;
+        if (lastLecture) {
+            lastCount = parseInt(ext[lastLecture.id]) || 0;
+        }
+
+        const relevant = mode === 'all' ? totalCount : lastCount;
+        if (relevant === 0) return; // استثناء الصفر
+
+        rows.push({
+            id: s.id,
+            serial: getStudentSerial(s),
+            name: s.name || '',
+            phone: s.phone || '',
+            lastCount,
+            totalCount
+        });
+        totalSum += totalCount;
+        lastSum += lastCount;
+    });
+
+    // ترتيب حسب الوضع المختار
+    rows.sort((a, b) => {
+        const va = mode === 'all' ? a.totalCount : a.lastCount;
+        const vb = mode === 'all' ? b.totalCount : b.lastCount;
+        return vb - va;
+    });
+
+    if (rows.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:40px; color:#aaa;">
+                <i class="fa-solid fa-circle-info" style="font-size:2rem; margin-bottom:10px;"></i>
+                <p>لا يوجد طلاب لديهم مختبرون مسجلون من الخارج</p>
+            </div>`;
+        return;
+    }
+
+    const modeLabel = mode === 'all' ? 'كل المحاضرات' : `آخر محاضرة (${lastLecture?.title || ''})`;
+    const colLabel = mode === 'all' ? 'إجمالي المختبرين' : 'مختبرو آخر محاضرة';
+
+    let tableHTML = `
+        <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">
+            <i class="fa-solid fa-filter"></i> النتائج بناءً على: <strong>${modeLabel}</strong>
+        </p>
+        <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+                <tr style="background:var(--primary-green); color:white;">
+                    <th style="padding:10px 12px; text-align:center; border-radius:6px 0 0 0;">#</th>
+                    <th style="padding:10px 12px; text-align:right;">اسم الطالب</th>
+                    <th style="padding:10px 12px; text-align:center;">رقم الهاتف</th>
+                    <th style="padding:10px 12px; text-align:center;">${colLabel}</th>
+                    <th style="padding:10px 12px; text-align:center; border-radius:0 6px 0 0;">العدد الكلي</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    rows.forEach((r, i) => {
+        const isAlt = i % 2 === 1;
+        const bg = isAlt ? 'var(--bg-light)' : '';
+        const mainVal = mode === 'all' ? r.totalCount : r.lastCount;
+        tableHTML += `
+            <tr style="background:${bg};">
+                <td style="padding:9px 12px; color:var(--primary-green); font-weight:bold; text-align:center;">${r.serial}</td>
+                <td style="padding:9px 12px; font-weight:600;">${escapeHTML(r.name)}</td>
+                <td style="padding:9px 12px; text-align:center; direction:ltr; font-family:monospace;">${escapeHTML(r.phone)}</td>
+                <td style="padding:9px 12px; text-align:center;">
+                    <span style="background:var(--primary-green);color:white;padding:2px 10px;border-radius:12px;font-weight:700;">${mainVal}</span>
+                </td>
+                <td style="padding:9px 12px; text-align:center; color:#666;">${r.totalCount}</td>
+            </tr>
+        `;
+    });
+
+    // سطر المجموع
+    const totalRow = mode === 'all' ? totalSum : lastSum;
+    tableHTML += `
+            </tbody>
+            <tfoot>
+                <tr style="background:var(--bg-light); border-top:2px solid var(--primary-green); font-weight:700;">
+                    <td colspan="3" style="padding:10px 12px; color:var(--primary-green);">
+                        <i class="fa-solid fa-sigma"></i> المجموع الكلي
+                    </td>
+                    <td style="padding:10px 12px; text-align:center;">
+                        <span style="background:var(--primary-green);color:white;padding:3px 12px;border-radius:12px;font-weight:700;font-size:1rem;">${totalRow}</span>
+                    </td>
+                    <td style="padding:10px 12px; text-align:center; font-size:1rem;">${totalSum}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    `;
+
+    container.innerHTML = tableHTML;
 }
