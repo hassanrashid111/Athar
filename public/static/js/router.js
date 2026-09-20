@@ -219,6 +219,11 @@ export function initPageAuth(requiredRole = null) {
  * — مع مراعاة علامة الخروج الصريح (EXPLICIT_LOGOUT_KEY)
  */
 export async function checkAlreadyLoggedIn() {
+    const isAwaitingRedirect = sessionStorage.getItem('athar_awaiting_google_redirect') === '1';
+    if (isAwaitingRedirect) {
+        showLoader("جاري استكمال تسجيل الدخول عبر Google...");
+    }
+
     // 1. التحقق أولاً إذا كان المستخدم عائداً للتو من توجيه Google (Redirect)
     try {
         const { handleRedirectAuthResult } = await import("./auth.js");
@@ -228,9 +233,9 @@ export async function checkAlreadyLoggedIn() {
         console.warn("[Router] Check redirect result error:", e);
     }
 
-    // إذا خرج المستخدم صراحةً، لا نعيده تلقائياً أبداً
+    // إذا خرج المستخدم صراحةً، لا نعيده تلقائياً أبداً إلا إذا كان في تدفق تسجيل جديد عبر جوجل
     const explicitlyLoggedOut = localStorage.getItem('athar_explicitly_logged_out') === '1';
-    if (explicitlyLoggedOut) return;
+    if (explicitlyLoggedOut && !isAwaitingRedirect) return;
 
     const cachedUser = getCachedUser();
     const cachedUserData = getCachedUserData();
@@ -250,6 +255,22 @@ export async function checkAlreadyLoggedIn() {
                     if (userSnapshot.exists()) {
                         userData = userSnapshot.val();
                         setCachedUserData(userData);
+                    } else {
+                        // مستخدم جديد من Google لم يُنشأ له سجل في قاعدة البيانات بعد
+                        const newProfile = {
+                            email: user.email || "",
+                            name: user.displayName || "مشرف جديد",
+                            role: "followup_supervisor",
+                            createdAt: Date.now()
+                        };
+                        try {
+                            const { set: dbSet } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
+                            await dbSet(ref(db, `users/${user.uid}`), newProfile);
+                        } catch (setErr) {
+                            console.warn("[Router] Error creating initial user profile:", setErr);
+                        }
+                        userData = newProfile;
+                        setCachedUserData(userData);
                     }
                 }
             } catch (e) {
@@ -257,6 +278,11 @@ export async function checkAlreadyLoggedIn() {
             }
 
             if (!userData) userData = cachedUserData;
+
+            try {
+                localStorage.removeItem('athar_explicitly_logged_out');
+                sessionStorage.removeItem('athar_awaiting_google_redirect');
+            } catch (_) {}
 
             if (userData) {
                 const activeGroupId = userData.activeGroupId || userData.groupId;
@@ -267,6 +293,9 @@ export async function checkAlreadyLoggedIn() {
                 } else {
                     window.location.replace('/dashboard');
                 }
+                return;
+            } else {
+                window.location.replace('/setup');
                 return;
             }
         }

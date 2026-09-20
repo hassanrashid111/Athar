@@ -51,7 +51,8 @@ import {
     toggleNotificationCenter, openNotificationCenter, closeNotificationCenter,
     dismissNotification, clearAllNotifications, toggleNotificationsSetting,
     openAtRiskRadar, closeAtRiskRadar, updateAtRiskRadarBadge, updateNotificationBadgeUI,
-    promptPWAInstall, checkForAppUpdates, applyAppUpdate, dismissUpdateBanner, APP_VERSION
+    promptPWAInstall, checkForAppUpdates, applyAppUpdate, dismissUpdateBanner, APP_VERSION,
+    checkAndPromptAIInstructions, checkAndPromptNotificationPermission, resetAppVersionForTesting
 } from "./pwa.js";
 
 let sortDirection = 1;
@@ -250,6 +251,16 @@ function listenToGroup(groupId, uid) {
             if (state.userInfo?.role === 'followup_supervisor') {
                 checkPendingTransfers(() => renderDashboard());
             }
+
+            // 4. تسلسل الإشعارات الذكي (Smart Sequential Notification Flow):
+            // بعد الدخول: إشعار التنبيهات، أو إشعار تخصيص الذكاء الاصطناعي عند توفر أول طلبة
+            setTimeout(() => {
+                if ('Notification' in window && Notification.permission === 'default' && !localStorage.getItem('athar_notif_banner_dismissed')) {
+                    checkAndPromptNotificationPermission();
+                } else {
+                    checkAndPromptAIInstructions();
+                }
+            }, 1200);
         }
     });
 }
@@ -1137,7 +1148,9 @@ window.app = {
     promptPWAInstall: () => promptPWAInstall(),
     checkForAppUpdates: (manual = false) => checkForAppUpdates(manual),
     applyAppUpdate: () => applyAppUpdate(),
-    dismissUpdateBanner: () => dismissUpdateBanner()
+    dismissUpdateBanner: () => dismissUpdateBanner(),
+    checkAndPromptAIInstructions: () => checkAndPromptAIInstructions(),
+    resetAppVersionForTesting: () => resetAppVersionForTesting()
 };
 
 // بدء تشغيل اللوحة فوراً وبأمان

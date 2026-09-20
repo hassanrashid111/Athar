@@ -1137,9 +1137,30 @@
     // يُشغَّل قبل أي شيء آخر — يحدد ماذا يُعرَض للزائر
     // Blank-Slate Safe: null → 'paused' → شاشة الانتظار
     async function initLoginPage() {
+        // التحقق أولاً من نتيجة توجيه Google أو حالة انتظار التوجيه
+        const isAwaitingRedirect = sessionStorage.getItem('athar_awaiting_google_redirect') === '1';
+        if (isAwaitingRedirect) {
+            const loginContainer = document.querySelector('.login-container');
+            if (loginContainer) loginContainer.style.display = 'flex';
+            const pausedScreen = document.getElementById('system-paused-screen');
+            if (pausedScreen) pausedScreen.style.display = 'none';
+        }
+
+        try {
+            const { handleRedirectAuthResult } = await import("/static/js/auth.js");
+            const handled = await handleRedirectAuthResult();
+            if (handled) return;
+        } catch (e) {
+            console.warn('[LoginPage] handleRedirectAuthResult error:', e);
+        }
+
         onAuthStateChanged(auth, async (user) => {
-            if (user && (user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
-                window.location.replace('/super-admin');
+            if (user) {
+                if ((user.email || '').toLowerCase() === 'hrhalsharif@gmail.com') {
+                    window.location.replace('/super-admin');
+                    return;
+                }
+                checkAlreadyLoggedIn();
                 return;
             }
 

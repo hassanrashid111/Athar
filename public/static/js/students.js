@@ -8,6 +8,7 @@ import {
     showAtharNotification, showAtharPrompt, showAtharChoice, showAtharConfirm,
     cleanPhone, getInitials, calculateScore, escapeHTML
 } from "./utils.js";
+import { checkAndPromptAIInstructions } from "./pwa.js";
 
 // متغير داخلي لتخزين الأسباب الديناميكية من Firebase بعد تحميلها
 // (null-safe: يبدأ بقائمة فارغة حتى لو كانت قاعدة البيانات فارغة تماماً)
@@ -99,6 +100,7 @@ export async function addStudentFlow(onSuccess) {
     await saveData();
     showAtharNotification('تمت إضافة الطالب بنجاح');
     if (onSuccess) onSuccess();
+    checkAndPromptAIInstructions();
 }
 
 /**
@@ -446,6 +448,7 @@ export async function processBulkImport(onSuccess) {
     document.getElementById('import-text').value = '';
     showAtharNotification(`✅ تم إضافة ${added} طالب جديد.`);
     if (onSuccess) onSuccess();
+    checkAndPromptAIInstructions();
 }
 
 /**

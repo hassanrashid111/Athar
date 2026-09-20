@@ -185,10 +185,14 @@ export async function handleGoogleLogin(isRegistration = false) {
             sessionStorage.removeItem('athar_is_google_registration');
         }
 
+        // وسم حالة انتظار التوجيه عبر Google
+        sessionStorage.setItem('athar_awaiting_google_redirect', '1');
+
         // التوجيه الكامل لصفحة جوجل لاختيار الحساب (PWA / Mobile Friendly)
         await signInWithRedirect(auth, googleProvider);
     } catch (error) {
         _googleLoginInProgress = false;
+        sessionStorage.removeItem('athar_awaiting_google_redirect');
         originalStates.forEach(({ btn, html }) => {
             btn.disabled = false;
             btn.classList.remove('btn-loading');
@@ -200,15 +204,43 @@ export async function handleGoogleLogin(isRegistration = false) {
 
 /**
  * معالجة نتيجة العودة من التوجيه عبر Google (getRedirectResult)
- * تُستدعى عند فتح الصفحة للتحقق مما إذا كان المستخدم عائداً من صفحة اختيار حساب Google
+ * تدعم القراءة المباشرة من getRedirectResult مع fallback فوري لـ onAuthStateChanged
  */
 export async function handleRedirectAuthResult() {
+    const isAwaiting = sessionStorage.getItem('athar_awaiting_google_redirect') === '1';
+
     try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-            const user = result.user;
-            setCurrentUser(user);
+        let user = null;
+
+        // 1. محاولة قراءة نتيجة التوجيه من getRedirectResult
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                user = result.user;
+            }
+        } catch (e) {
+            console.warn("[Auth] getRedirectResult notice:", e?.message);
+        }
+
+        // 2. إذا كانت النتيجة null ولكن المتصفح عائد من توجيه Google، ننتظر onAuthStateChanged
+        if (!user && (isAwaiting || auth.currentUser)) {
+            user = auth.currentUser;
+            if (!user) {
+                user = await new Promise((resolve) => {
+                    const unsubscribe = onAuthStateChanged(auth, (u) => {
+                        unsubscribe();
+                        resolve(u);
+                    });
+                    setTimeout(() => resolve(null), 3000);
+                });
+            }
+        }
+
+        // 3. عند العثور على المستخدم العائد من Google:
+        if (user) {
+            sessionStorage.removeItem('athar_awaiting_google_redirect');
             try { localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch (_) {}
+            setCurrentUser(user);
 
             const { showLoader } = await import("./state.js");
             showLoader("جاري استكمال تسجيل الدخول عبر Google...");
@@ -222,23 +254,38 @@ export async function handleRedirectAuthResult() {
             if (!snapshot.exists()) {
                 let role = 'followup_supervisor';
 
-                await set(userRef, {
-                    email: user.email,
+                const newUserData = {
+                    email: user.email || '',
                     name: user.displayName || "مشرف جديد",
                     role: role,
                     createdAt: Date.now()
-                });
+                };
+
+                await set(userRef, newUserData);
+                const { setCachedUserData } = await import("./state.js");
+                setCachedUserData(newUserData);
 
                 showAtharNotification(`أهلاً بك يا ${user.displayName || "المشرف"}! تم إنشاء حسابك بنجاح.`);
                 window.location.replace('/setup');
             } else {
-                await update(userRef, { name: user.displayName || "مشرف أثر" });
+                const userData = snapshot.val() || {};
+                await update(userRef, {
+                    name: user.displayName || userData.name || "مشرف أثر",
+                    lastLoginAt: Date.now()
+                }).catch(() => {});
+
+                const { setCachedUserData } = await import("./state.js");
+                setCachedUserData(userData);
+
                 showAtharNotification("تم تسجيل الدخول بنجاح!");
                 await redirectAfterAuth(user.uid);
             }
             return true;
+        } else if (isAwaiting) {
+            sessionStorage.removeItem('athar_awaiting_google_redirect');
         }
     } catch (error) {
+        sessionStorage.removeItem('athar_awaiting_google_redirect');
         console.error("[Auth] Redirect result error:", error);
         if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
             showAtharNotification("خطأ في تسجيل الدخول عبر Google: " + error.message, 'error');

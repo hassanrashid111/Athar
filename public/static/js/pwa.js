@@ -6,7 +6,17 @@
 import { showAtharNotification, cleanPhone, escapeHTML } from "./utils.js";
 import { state } from "./state.js";
 
-export const APP_VERSION = '2.1.0';
+export const BASE_APP_VERSION = '2.1.0';
+
+export function getInstalledAppVersion() {
+    return localStorage.getItem('athar_installed_version') || BASE_APP_VERSION;
+}
+
+export function setInstalledAppVersion(ver) {
+    localStorage.setItem('athar_installed_version', ver);
+}
+
+export const APP_VERSION = getInstalledAppVersion();
 export const APP_BUILD_DATE = '2026-09-20';
 
 let deferredPrompt = null;
@@ -14,6 +24,7 @@ let swRegistration = null;
 let newWorkerWaiting = null;
 let isUpdateAvailable = false;
 let isRefreshing = false;
+let currentActiveBannerId = null;
 
 /**
  * مقارنة نسختين وفق المعيار الدلالي Semantic Versioning (Major.Minor.Patch)
@@ -34,8 +45,9 @@ export function isNewerVersion(remote, local) {
 /**
  * تحديث واجهة عرض رقم الإصدار في القائمة الجانبية وشاشات النظام
  */
-export function renderAppVersionUI(targetVersion = APP_VERSION, hasUpdate = false) {
-    const displayVersion = `v${targetVersion}`;
+export function renderAppVersionUI(targetVersion = null, hasUpdate = false) {
+    const currentVer = targetVersion || getInstalledAppVersion();
+    const displayVersion = `v${currentVer}`;
 
     // شارات عرض رقم الإصدار
     document.querySelectorAll('.app-version-badge, #app-version-badge').forEach(el => {
@@ -52,8 +64,8 @@ export function renderAppVersionUI(targetVersion = APP_VERSION, hasUpdate = fals
     // أزرار فحص وتنزيل التحديثات في القائمة الجانبية
     document.querySelectorAll('#sidebar-check-update-btn, .btn-check-update').forEach(btn => {
         if (hasUpdate) {
-            btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent-gold);"></i> <span style="color:var(--accent-gold); font-weight:bold;">تثبيت التحديث الجديد ✨</span>`;
-            btn.onclick = () => applyAppUpdate();
+            btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent-gold);"></i> <span style="color:var(--accent-gold); font-weight:bold;">تثبيت التحديث الجديد ✨ (v${targetVersion || '2.2.0'})</span>`;
+            btn.onclick = () => applyAppUpdate(targetVersion || '2.2.0');
             btn.classList.add('has-update-pulse');
         } else {
             btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> فحص التحديثات`;
@@ -72,6 +84,8 @@ export async function checkForAppUpdates(manual = false) {
         showAtharNotification("جاري فحص التحديثات المتاحة...", "info");
     }
 
+    const currentVer = getInstalledAppVersion();
+
     try {
         // فحص ملف الإصدار مباشرة من السيرفر متجاوزين كاش المتصفح
         const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
@@ -79,7 +93,7 @@ export async function checkForAppUpdates(manual = false) {
             const data = await res.json();
             const serverVersion = (data.version || '').trim();
 
-            if (serverVersion && isNewerVersion(serverVersion, APP_VERSION)) {
+            if (serverVersion && isNewerVersion(serverVersion, currentVer)) {
                 isUpdateAvailable = true;
                 renderAppVersionUI(serverVersion, true);
                 showUpdateBanner(serverVersion, data.changelog);
@@ -98,21 +112,21 @@ export async function checkForAppUpdates(manual = false) {
             if (swRegistration.waiting) {
                 newWorkerWaiting = swRegistration.waiting;
                 isUpdateAvailable = true;
-                renderAppVersionUI(APP_VERSION, true);
-                showUpdateBanner(APP_VERSION);
+                renderAppVersionUI(currentVer, true);
+                showUpdateBanner(currentVer);
                 return true;
             }
         }
 
-        renderAppVersionUI(APP_VERSION, false);
+        renderAppVersionUI(currentVer, false);
         if (manual) {
-            showAtharNotification(`🎉 أنت تستخدم أحدث إصدار من منصة أثر (v${APP_VERSION})`, "success");
+            showAtharNotification(`🎉 أنت تستخدم أحدث إصدار من منصة أثر (v${currentVer})`, "success");
         }
         return false;
     } catch (err) {
         console.warn("[PWA] Update check failed:", err);
         if (manual) {
-            showAtharNotification(`الإصدار الحالي: v${APP_VERSION} (تعذر الاتصال بالشبكة)`, "info");
+            showAtharNotification(`الإصدار الحالي: v${currentVer} (تعذر الاتصال بالشبكة)`, "info");
         }
         return false;
     }
@@ -121,10 +135,12 @@ export async function checkForAppUpdates(manual = false) {
 /**
  * تطبيق التحديث الجديد ومسح الكاش وإعادة تشغيل التطبيق بنسخته الأحدث
  */
-export async function applyAppUpdate() {
+export async function applyAppUpdate(targetVer = '2.2.0') {
     showAtharNotification("جاري تنزيل التحديث وتنشيط كاش المنصة الأحدث...", "info");
 
     try {
+        setInstalledAppVersion(targetVer);
+
         // إرسال أمر التخطي للـ Service Worker
         if (newWorkerWaiting) {
             newWorkerWaiting.postMessage({ type: 'SKIP_WAITING' });
@@ -149,58 +165,130 @@ export async function applyAppUpdate() {
 }
 
 /**
- * إظهار بنر التحديث العائم
+ * إعادة تعيين الإصدار لأغراض الاختبار والتجربة
  */
-export function showUpdateBanner(version = '', changelog = '') {
-    let banner = document.getElementById('athar-update-banner');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'athar-update-banner';
-        banner.className = 'athar-update-banner';
-        document.body.appendChild(banner);
+export function resetAppVersionForTesting() {
+    localStorage.removeItem('athar_installed_version');
+    localStorage.removeItem('athar_notif_banner_dismissed');
+    localStorage.removeItem('pwa_prompt_dismissed');
+    localStorage.removeItem('athar_ai_instructions_dismissed');
+    window.location.reload();
+}
+
+/**
+ * ==========================================================================
+ * 🌿 مدير الإشعارات والشريط العلوي الرفيع بعرض الشاشة (Athar Slim Banner Manager)
+ * ==========================================================================
+ */
+
+export function showSlimBanner({
+    id,
+    iconHtml,
+    title,
+    desc,
+    actionText,
+    actionIcon = '',
+    onAction,
+    onClose
+}) {
+    const priorityOrder = ['app-update', 'pwa-install', 'notif-permission', 'ai-instructions'];
+    if (currentActiveBannerId && currentActiveBannerId !== id) {
+        const currentIdx = priorityOrder.indexOf(currentActiveBannerId);
+        const newIdx = priorityOrder.indexOf(id);
+        if (currentIdx !== -1 && newIdx !== -1 && newIdx > currentIdx) {
+            return; // إشعار ذو أولوية أعلى معروض بالفعل
+        }
     }
 
-    const versionStr = version ? `(v${version})` : '';
-    const descStr = changelog || 'يتوفر إصدار جديد يحتوي على ميزات وتحسينات جديدة لمنصة أثر.';
+    let banner = document.getElementById('athar-global-slim-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'athar-global-slim-banner';
+        banner.className = 'athar-slim-banner';
+        document.body.prepend(banner);
+    }
+
+    currentActiveBannerId = id;
+    banner.dataset.bannerId = id;
 
     banner.innerHTML = `
-        <div class="update-banner-content">
-            <div class="update-banner-icon">
-                <i class="fa-solid fa-cloud-arrow-down"></i>
-            </div>
-            <div class="update-banner-text">
-                <strong>تحديث جديد متاح ${versionStr} 🚀</strong>
-                <span>${descStr}</span>
+        <div class="athar-slim-banner-content">
+            <div class="athar-slim-banner-icon">${iconHtml}</div>
+            <div class="athar-slim-banner-text">
+                <strong>${title}</strong>
+                ${desc ? `<span class="desc">${desc}</span>` : ''}
             </div>
         </div>
-        <div class="update-banner-actions">
-            <button class="btn-update-install" onclick="window.app.applyAppUpdate()">
-                <i class="fa-solid fa-rotate"></i> تحديث الآن
-            </button>
-            <button class="btn-update-dismiss" onclick="window.app.dismissUpdateBanner()" title="إغلاق">
+        <div class="athar-slim-banner-actions">
+            ${actionText ? `
+                <button class="athar-slim-banner-btn-action" id="athar-slim-banner-action-btn">
+                    ${actionIcon} ${actionText}
+                </button>
+            ` : ''}
+            <button class="athar-slim-banner-btn-close" id="athar-slim-banner-close-btn" title="إغلاق">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     `;
 
     banner.style.display = 'flex';
+    document.body.style.paddingTop = banner.offsetHeight + 'px';
+
+    document.getElementById('athar-slim-banner-action-btn')?.addEventListener('click', () => {
+        if (typeof onAction === 'function') onAction();
+    });
+
+    document.getElementById('athar-slim-banner-close-btn')?.addEventListener('click', () => {
+        hideSlimBanner(id);
+        if (typeof onClose === 'function') onClose();
+    });
 }
 
-/**
- * إغلاق بنر التحديث مؤقتاً
- */
-export function dismissUpdateBanner() {
-    const banner = document.getElementById('athar-update-banner');
+export function hideSlimBanner(id = null) {
+    const banner = document.getElementById('athar-global-slim-banner');
     if (banner) {
-        banner.style.display = 'none';
+        if (!id || banner.dataset.bannerId === id) {
+            banner.style.display = 'none';
+            currentActiveBannerId = null;
+            document.body.style.paddingTop = '';
+        }
     }
 }
 
 /**
+ * إظهار بنر التحديث الرفيع بعرض الشاشة
+ */
+export function showUpdateBanner(version = '', changelog = '') {
+    const versionStr = version ? `(v${version})` : '';
+    const descStr = changelog || 'يتوفر إصدار جديد يحتوي على ميزات وتحسينات جديدة لمنصة أثر.';
+
+    showSlimBanner({
+        id: 'app-update',
+        iconHtml: '<i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent-gold);"></i>',
+        title: `إصدار جديد متاح ${versionStr} 🚀`,
+        desc: descStr,
+        actionText: 'تثبيت التحديث',
+        actionIcon: '<i class="fa-solid fa-rotate"></i>',
+        onAction: () => applyAppUpdate(version || '2.2.0'),
+        onClose: () => {
+            // إغلاق للجلسة الحالية
+        }
+    });
+}
+
+/**
+ * إغلاق بنر التحديث
+ */
+export function dismissUpdateBanner() {
+    hideSlimBanner('app-update');
+}
+
+/**
  * فحص ما إذا كانت الإشعارات مفعلة بواسطة المشرف
+ * الديفولت مطفي (false) حتى يوافق المستخدم على إذن التنبيهات أو يفعله بنفسه
  */
 export function areNotificationsEnabled() {
-    return localStorage.getItem('athar_notifications_enabled') !== 'false';
+    return localStorage.getItem('athar_notifications_enabled') === 'true';
 }
 
 export function setNotificationsEnabled(enabled) {
@@ -266,10 +354,12 @@ export function initPWA() {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        console.log('[PWA] beforeinstallprompt event captured');
 
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) installBtn.style.display = 'flex';
 
+        // في البداية: يظهر إشعار تنزيل التطبيق فقط
         if (!localStorage.getItem('pwa_prompt_dismissed')) {
             showPWAInstallBanner();
         }
@@ -281,9 +371,7 @@ export function initPWA() {
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) installBtn.style.display = 'none';
 
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner) banner.remove();
-
+        hideSlimBanner('pwa-install');
         showAtharNotification("🎉 تم تثبيت منصة أثر كتطبيق على جهازك بنجاح!", "success");
     });
 
@@ -291,10 +379,27 @@ export function initPWA() {
     setTimeout(() => {
         updateNotificationBadgeUI();
         syncNotificationToggles();
-        checkAndPromptNotificationPermission();
-        renderAppVersionUI(APP_VERSION, false);
+        renderAppVersionUI(getInstalledAppVersion(), false);
         checkForAppUpdates(false);
+
+        // فحص إذن التنبيهات: يظهر فقط بعد تسجيل الدخول / إنشاء الحساب
+        if (isUserLoggedIn()) {
+            checkAndPromptNotificationPermission();
+        }
     }, 2000);
+}
+
+/**
+ * التحقق مما إذا كان المستخدم مسجلاً دخوله للنظام حالياً
+ */
+export function isUserLoggedIn() {
+    if (state.userInfo?.uid) return true;
+    const path = (window.location.pathname || '').toLowerCase();
+    // صفحات النظام الداخلية للمستخدم المسجل
+    if (path.includes('dashboard') || path.includes('setup') || path.includes('reports') || path.includes('super_admin')) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -316,68 +421,29 @@ export async function promptPWAInstall() {
     console.log(`[PWA] User response to install prompt: ${outcome}`);
 
     if (outcome === 'accepted') {
-        const banner = document.getElementById('pwa-install-banner');
-        if (banner) banner.remove();
+        hideSlimBanner('pwa-install');
     }
     deferredPrompt = null;
 }
 
 /**
- * عرض بانر التثبيت الذكي
+ * عرض بانر التثبيت الذكي الرفيع بعرض الشاشة (المرحلة 1: في البداية)
  */
-function showPWAInstallBanner() {
+export function showPWAInstallBanner() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) return;
+    if (localStorage.getItem('pwa_prompt_dismissed')) return;
 
-    if (document.getElementById('pwa-install-banner')) return;
-
-    const banner = document.createElement('div');
-    banner.id = 'pwa-install-banner';
-    banner.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        max-width: 450px;
-        margin: 0 auto;
-        background: linear-gradient(135deg, #1A5D3A 0%, #114027 100%);
-        color: #ffffff;
-        border: 1px solid rgba(212, 175, 55, 0.4);
-        border-radius: 16px;
-        padding: 16px 20px;
-        box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        animation: slideUpPWA 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    `;
-
-    banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="/static/assets/icon-192.png" alt="أثر" style="width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-            <div>
-                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #fff;">تثبيت منصة أثر كتطبيق</h4>
-                <p style="margin: 3px 0 0 0; font-size: 0.8rem; color: #d1fae5;">سرعة أعلى، تنبيهات فورية، وتجربة سلسة بدون متصفح</p>
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button id="pwa-banner-install-btn" style="background: var(--accent-gold); color: #1a1a1a; font-weight: bold; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
-                تثبيت 📲
-            </button>
-            <button id="pwa-banner-close-btn" style="background: transparent; color: #9ca3af; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px;">
-                ✕
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(banner);
-
-    document.getElementById('pwa-banner-install-btn')?.addEventListener('click', () => promptPWAInstall());
-    document.getElementById('pwa-banner-close-btn')?.addEventListener('click', () => {
-        banner.remove();
-        localStorage.setItem('pwa_prompt_dismissed', 'true');
+    showSlimBanner({
+        id: 'pwa-install',
+        iconHtml: '<i class="fa-solid fa-mobile-screen-button" style="color:var(--accent-gold);"></i>',
+        title: 'تثبيت منصة أثر كتطبيق',
+        desc: 'سرعة فائقة، وتنبيهات فورية، وتجربة سلسة بدون متصفح',
+        actionText: 'تثبيت التطبيق 📲',
+        onAction: () => promptPWAInstall(),
+        onClose: () => {
+            localStorage.setItem('pwa_prompt_dismissed', 'true');
+        }
     });
 }
 
@@ -417,64 +483,77 @@ export async function requestNotificationPermission() {
     }
 }
 
-function checkAndPromptNotificationPermission() {
+/**
+ * فحص وعرض إشعار إذن التنبيهات (المرحلة 2: يظهر بعد تسجيل الدخول أو إنشاء الحساب)
+ */
+export function checkAndPromptNotificationPermission() {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'default') return;
     if (localStorage.getItem('athar_notif_banner_dismissed')) return;
 
-    if (document.getElementById('athar-notif-permission-banner')) return;
+    // شرط أساسي: لا يظهر إلا بعد تسجيل الدخول أو إنشاء الحساب
+    if (!isUserLoggedIn()) return;
 
-    const banner = document.createElement('div');
-    banner.id = 'athar-notif-permission-banner';
-    banner.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        right: 20px;
-        max-width: 450px;
-        margin: 0 auto;
-        background: linear-gradient(135deg, #1A5D3A 0%, #15452c 100%);
-        color: #ffffff;
-        border: 1px solid var(--accent-gold);
-        border-radius: 12px;
-        padding: 14px 18px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        animation: slideDownNotif 0.4s ease;
-    `;
+    // لا يظهر بالتزامن مع إشعار التثبيت
+    if (currentActiveBannerId === 'pwa-install') return;
 
-    banner.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.8rem;">🔔</div>
-            <div>
-                <h4 style="margin: 0; font-size: 0.95rem; font-weight: bold; color: #fffb91;">تفعيل التنبيهات الفورية</h4>
-                <p style="margin: 3px 0 0 0; font-size: 0.8rem; color: #e0e0e0;">تلقى إشعارات فورية على هاتفك عند إضافة محاضرات جديدة أو تسليم طلاب</p>
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button id="athar-notif-enable-btn" style="background: var(--accent-gold); color: #1a1a1a; font-weight: bold; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
-                تفعيل 🔔
-            </button>
-            <button id="athar-notif-close-btn" style="background: transparent; color: #aaa; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px;">
-                ✕
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(banner);
-
-    document.getElementById('athar-notif-enable-btn')?.addEventListener('click', async () => {
-        banner.remove();
-        await requestNotificationPermission();
+    showSlimBanner({
+        id: 'notif-permission',
+        iconHtml: '<i class="fa-solid fa-bell" style="color:var(--accent-gold);"></i>',
+        title: 'تفعيل التنبيهات الفورية',
+        desc: 'لتصلك إشعارات فورية عند تفاعل الطلاب وتسليم التسميع والمحاضرات',
+        actionText: 'تفعيل التنبيهات 🔔',
+        onAction: async () => {
+            hideSlimBanner('notif-permission');
+            localStorage.setItem('athar_notif_banner_dismissed', 'true');
+            await requestNotificationPermission();
+        },
+        onClose: () => {
+            localStorage.setItem('athar_notif_banner_dismissed', 'true');
+        }
     });
+}
 
-    document.getElementById('athar-notif-close-btn')?.addEventListener('click', () => {
-        banner.remove();
-        localStorage.setItem('athar_notif_banner_dismissed', 'true');
+/**
+ * فحص وعرض إشعار تخصيص الذكاء الاصطناعي (المرحلة 3: أول ما يضيف أول طلبة)
+ */
+export function checkAndPromptAIInstructions() {
+    if (!isUserLoggedIn()) return;
+
+    // التحقق من وجود طلاب نشطين
+    const students = (state.students || []).filter(s => s && !s.deleted);
+    if (students.length === 0) return;
+
+    // التحقق مما إذا كان المشرف قد خصص أسلوب الذكاء الاصطناعي بالفعل مسبقاً
+    if (state.userInfo?.aiInstructions && state.userInfo.aiInstructions.trim().length > 0) return;
+
+    // تم إغلاقه سابقاً
+    if (localStorage.getItem('athar_ai_instructions_dismissed')) return;
+
+    // عدم التداخل مع إشعار تحديث التطبيق أو إذن التنبيهات
+    if (currentActiveBannerId === 'app-update' || currentActiveBannerId === 'notif-permission') return;
+
+    showSlimBanner({
+        id: 'ai-instructions',
+        iconHtml: '<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-gold);"></i>',
+        title: 'تخصيص الذكاء الاصطناعي',
+        desc: 'خصّص نبرة وأسلوب الذكاء الاصطناعي في صياغة رسائل المتابعة والتشجيع لطلابك',
+        actionText: 'تخصيص الأسلوب 🪄',
+        onAction: () => {
+            hideSlimBanner('ai-instructions');
+            localStorage.setItem('athar_ai_instructions_dismissed', 'true');
+            if (typeof window.app?.openAIInstructionsModal === 'function') {
+                window.app.openAIInstructionsModal();
+            } else if (typeof window.openAIInstructionsModal === 'function') {
+                window.openAIInstructionsModal();
+            } else {
+                const modal = document.getElementById('ai-instructions-modal');
+                if (modal) modal.style.display = 'flex';
+            }
+        },
+        onClose: () => {
+            localStorage.setItem('athar_ai_instructions_dismissed', 'true');
+        }
     });
 }
 
@@ -701,14 +780,20 @@ export function clearAllNotifications() {
 /**
  * توجل إعداد تفعيل/إيقاف التنبيهات
  */
-export function toggleNotificationsSetting(checkbox) {
+export async function toggleNotificationsSetting(checkbox) {
     const isEnabled = checkbox.checked;
-    setNotificationsEnabled(isEnabled);
 
     if (isEnabled) {
-        requestNotificationPermission();
-        showAtharNotification("تم تفعيل استقبال التنبيهات الفورية 🔔", "success");
+        const granted = await requestNotificationPermission();
+        if (granted) {
+            setNotificationsEnabled(true);
+            showAtharNotification("تم تفعيل استقبال التنبيهات الفورية 🔔", "success");
+        } else {
+            checkbox.checked = false;
+            setNotificationsEnabled(false);
+        }
     } else {
+        setNotificationsEnabled(false);
         showAtharNotification("تم إيقاف التنبيهات الفورية مؤقتاً 🔕", "info");
     }
 }

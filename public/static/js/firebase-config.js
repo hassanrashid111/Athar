@@ -13,9 +13,12 @@ import {
     signInWithRedirect, getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+const isHosting = typeof window !== 'undefined' && window.location.hostname &&
+    (window.location.hostname.endsWith('web.app') || window.location.hostname.endsWith('firebaseapp.com'));
+
 const firebaseConfig = {
     apiKey: atob("QUl6YVN5QTA3QlBHTm4yMXR6RDJPNXRBY2tKSnVoTHo0alE5UDdF"),
-    authDomain: "athar-final1.firebaseapp.com",
+    authDomain: isHosting ? window.location.host : "athar-final1.firebaseapp.com",
     databaseURL: "https://athar-final1-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "athar-final1",
     storageBucket: "athar-final1.firebasestorage.app",

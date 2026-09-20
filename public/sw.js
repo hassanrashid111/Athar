@@ -1,4 +1,4 @@
-const CACHE_NAME = 'athar-pwa-v2.1.0';
+const CACHE_NAME = 'athar-pwa-v2.2.0';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

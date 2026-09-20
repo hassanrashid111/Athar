@@ -33,7 +33,8 @@ import {
     requestNotificationPermission, toggleNotificationCenter,
     openNotificationCenter, closeNotificationCenter, dismissNotification,
     clearAllNotifications, toggleNotificationsSetting, updateNotificationBadgeUI,
-    promptPWAInstall, checkForAppUpdates, applyAppUpdate, dismissUpdateBanner, APP_VERSION
+    promptPWAInstall, checkForAppUpdates, applyAppUpdate, dismissUpdateBanner, APP_VERSION,
+    resetAppVersionForTesting
 } from "./pwa.js";
 
 /**
@@ -578,7 +579,8 @@ window.app = {
     promptPWAInstall: () => promptPWAInstall(),
     checkForAppUpdates: (manual = false) => checkForAppUpdates(manual),
     applyAppUpdate: () => applyAppUpdate(),
-    dismissUpdateBanner: () => dismissUpdateBanner()
+    dismissUpdateBanner: () => dismissUpdateBanner(),
+    resetAppVersionForTesting: () => resetAppVersionForTesting()
 };
 
 // بدء تشغيل صفحة التقارير فوراً وبأمان
