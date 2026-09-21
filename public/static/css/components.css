@@ -422,6 +422,126 @@ body.dark-theme .context-menu li:hover {
     color: #25D366 !important;
 }
 
+/* ================= Custom Transfer Table Styling ================= */
+.custom-transfer-table-wrapper {
+    background: var(--card-white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.custom-transfer-table-wrapper thead tr {
+    background: var(--bg-light);
+    color: var(--text-dark);
+}
+
+.custom-transfer-table-wrapper thead th {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    font-weight: 700;
+}
+
+.custom-transfer-row {
+    background-color: var(--card-white);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.15s ease;
+}
+
+.custom-transfer-row:hover {
+    background-color: rgba(37, 211, 102, 0.05);
+}
+
+.custom-transfer-row.selected {
+    background-color: rgba(37, 211, 102, 0.12) !important;
+}
+
+.custom-transfer-row td {
+    padding: 10px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.custom-transfer-row td.transfer-col-check {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background-color: inherit;
+    text-align: center;
+    padding: 10px 6px;
+    width: 75px;
+    min-width: 75px;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.06);
+}
+
+.transfer-student-serial {
+    color: var(--primary-green);
+    font-weight: 800;
+    font-size: 0.88rem;
+    font-family: monospace;
+}
+
+.transfer-student-name {
+    color: var(--text-dark);
+    font-size: 0.92rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.transfer-student-phone {
+    color: var(--text-light);
+    font-family: monospace;
+    font-size: 0.9rem;
+    direction: ltr;
+    display: inline-block;
+}
+
+/* ================= Dark Mode Overrides for Custom Transfer ================= */
+body.dark-theme .custom-transfer-table-wrapper {
+    background-color: #0d1a15;
+    border-color: #1e3a2f;
+}
+
+body.dark-theme .custom-transfer-table-wrapper thead tr,
+body.dark-theme .custom-transfer-table-wrapper thead th {
+    background-color: #080f0c !important;
+    color: #e2e8f0 !important;
+    border-color: #1e3a2f !important;
+}
+
+body.dark-theme .custom-transfer-row {
+    background-color: #0d1a15;
+    border-color: #1e3a2f;
+}
+
+body.dark-theme .custom-transfer-row td {
+    border-color: #1e3a2f;
+}
+
+body.dark-theme .custom-transfer-row:hover {
+    background-color: #142820;
+}
+
+body.dark-theme .custom-transfer-row.selected {
+    background-color: #17382a !important;
+}
+
+body.dark-theme .custom-transfer-row td.transfer-col-check {
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .transfer-student-serial {
+    color: var(--primary-green);
+    font-weight: 800;
+}
+
+body.dark-theme .transfer-student-name {
+    color: #f8fafc !important;
+    font-weight: 700;
+}
+
+body.dark-theme .transfer-student-phone {
+    color: #cbd5e1 !important;
+}
+
 @media (max-width: 768px) {
     .modal-card {
         width: 95%;

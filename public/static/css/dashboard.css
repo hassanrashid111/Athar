@@ -249,6 +249,86 @@ tbody tr:hover {
     background-color: rgba(243, 156, 18, 0.12) !important;
 }
 
+/* ================= Sticky Serial Column (#) for Supervisor Table ================= */
+#students-table th:first-child {
+    position: sticky;
+    right: 0;
+    z-index: 25;
+    background-color: var(--primary-green);
+    min-width: 50px;
+    max-width: 60px;
+    width: 55px;
+    text-align: center;
+    border-left: 2px solid var(--dark-green);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.08);
+}
+
+#students-table td:first-child {
+    position: sticky;
+    right: 0;
+    z-index: 5;
+    background-color: var(--card-white, #ffffff);
+    min-width: 50px;
+    max-width: 60px;
+    width: 55px;
+    text-align: center;
+    border-left: 2px solid var(--border-color);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+#students-table tbody tr:hover td:first-child {
+    background-color: #f1f8f4;
+}
+
+#students-table .row-tested td:first-child {
+    background-color: #f4fbf7;
+}
+
+#students-table .row-tested:hover td:first-child {
+    background-color: #ebf7f0;
+}
+
+#students-table .status-replied td:first-child {
+    background-color: #fef8ee !important;
+}
+
+#students-table .status-replied:hover td:first-child {
+    background-color: #fdf2df !important;
+}
+
+/* Dark theme sticky serial column */
+body.dark-theme #students-table th:first-child {
+    background-color: #0f1c17;
+    border-left: 2px solid #1e3a2f;
+    box-shadow: -3px 0 6px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme #students-table td:first-child {
+    background-color: var(--card-white, #13221c);
+    border-left: 2px solid #1e3a2f;
+    box-shadow: -3px 0 6px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme #students-table tbody tr:hover td:first-child {
+    background-color: #1a2e26;
+}
+
+body.dark-theme #students-table .row-tested td:first-child {
+    background-color: #172a22;
+}
+
+body.dark-theme #students-table .row-tested:hover td:first-child {
+    background-color: #1f372d;
+}
+
+body.dark-theme #students-table .status-replied td:first-child {
+    background-color: #2a2416 !important;
+}
+
+body.dark-theme #students-table .status-replied:hover td:first-child {
+    background-color: #352d1c !important;
+}
+
 .clickable-name {
     font-weight: 700;
     color: var(--text-dark);

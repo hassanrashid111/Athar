@@ -244,6 +244,7 @@ export async function checkAlreadyLoggedIn() {
     }
 
     onAuthStateChanged(auth, async (user) => {
+        if (localStorage.getItem('athar_explicitly_logged_out') === '1' && !isAwaitingRedirect) return;
         const activeUser = user || cachedUser;
 
         if (activeUser) {

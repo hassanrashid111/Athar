@@ -1025,6 +1025,7 @@ export function renderCustomTransferTable(filterText = '') {
         const isChecked = customTransferSelectedIds.has(s.id);
         const safeName = escapeHTML(s.name || 'بدون اسم');
         const safePhone = escapeHTML(s.phone || '-');
+        const serial = getStudentSerial(s);
 
         // حساب المحاضرات المختبرة
         let testedCount = 0;
@@ -1039,21 +1040,22 @@ export function renderCustomTransferTable(filterText = '') {
         if (percent >= 75) badgeColor = '#27ae60';
         else if (percent >= 50) badgeColor = '#f39c12';
 
-        const rowBg = isChecked ? 'rgba(26, 93, 58, 0.12)' : 'var(--bg-card, #ffffff)';
-
         rowsHTML += `
-            <tr style="border-bottom: 1px solid var(--border-color); background: ${rowBg}; transition: background 0.15s;">
-                <td style="text-align: center; padding: 10px 8px; width: 48px; min-width: 48px; position: sticky; right: 0; background: ${rowBg}; z-index: 1; box-shadow: -2px 0 4px rgba(0,0,0,0.06);">
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.app.toggleTransferStudentSelection(${s.id}, this.checked)" style="cursor: pointer; transform: scale(1.2);">
+            <tr class="custom-transfer-row ${isChecked ? 'selected' : ''}">
+                <td class="transfer-col-check">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.app.toggleTransferStudentSelection(${s.id}, this.checked)" style="cursor: pointer; transform: scale(1.15);">
+                        <span class="transfer-student-serial">#${serial}</span>
+                    </div>
                 </td>
                 <td style="padding: 10px 10px; white-space: nowrap; min-width: 150px;">
-                    <strong style="color: var(--text-dark);">${safeName}</strong>
+                    <strong class="transfer-student-name">${safeName}</strong>
                 </td>
-                <td style="padding: 10px 10px; direction: ltr; font-family: monospace; white-space: nowrap; min-width: 130px; color: var(--text-light);">
-                    ${safePhone}
+                <td style="padding: 10px 10px; direction: ltr; white-space: nowrap; min-width: 130px;">
+                    <span class="transfer-student-phone">${safePhone}</span>
                 </td>
                 <td style="padding: 10px 10px; text-align: center; white-space: nowrap; min-width: 140px;">
-                    <span style="background: ${badgeColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; display: inline-block;">
+                    <span style="background: ${badgeColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: inline-block;">
                         ${testedCount} / ${totalLectures} (${percent}%)
                     </span>
                 </td>

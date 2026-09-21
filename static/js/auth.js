@@ -23,6 +23,11 @@ function clearAuthCache() {
         localStorage.removeItem(CACHE_USER_KEY);
         localStorage.removeItem(CACHE_USER_DATA_KEY);
         localStorage.setItem(EXPLICIT_LOGOUT_KEY, '1');
+        try {
+            sessionStorage.removeItem('athar_awaiting_google_redirect');
+            sessionStorage.removeItem('athar_is_google_registration');
+            sessionStorage.removeItem('athar_sw_refreshed');
+        } catch (_) {}
         // مسح كل مفاتيح الحالة المحلية
         Object.keys(localStorage).forEach(k => {
             if (k.startsWith('athar_offline_state_') || k.startsWith('athar_offline_queue')) {
@@ -299,14 +304,14 @@ export async function handleRedirectAuthResult() {
  */
 export async function handleLogout() {
     try {
-        clearAuthCache(); // مسح الكاش أولاً قبل signOut
-        await signOut(auth);
-        window.location.replace('/');
-    } catch (error) {
-        // حتى لو فشل signOut، نمسح الكاش ونوجّه للصفحة الرئيسية
         clearAuthCache();
-        showAtharNotification("خطأ في تسجيل الخروج", "error");
-        setTimeout(() => { window.location.replace('/'); }, 1000);
+        try { sessionStorage.clear(); } catch (_) {}
+        await signOut(auth);
+        window.location.replace('/?login=true');
+    } catch (error) {
+        clearAuthCache();
+        try { sessionStorage.clear(); } catch (_) {}
+        window.location.replace('/?login=true');
     }
 }
 

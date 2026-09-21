@@ -341,10 +341,15 @@ export function initPWA() {
                     console.warn('[PWA] Service Worker registration failed:', err);
                 });
 
-            // الاستماع لتغيير المتحكم وإعادة التحميل تلقائياً عند تفعيل التحديث
+            // الاستماع لتغيير المتحكم وإعادة التحميل تلقائياً عند تفعيل التحديث فقط
+            // حماية ضد التحديث اللانهائي: لا نعيد التحميل إلا إذا كانت الصفحة مدارة مسبقاً وكان التحديث مقصوداً
+            const initialController = navigator.serviceWorker.controller;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!initialController) return; // أول تثبيت للسيرفس وركر لا يحتاج إعادة تحميل
                 if (isRefreshing) return;
+                if (sessionStorage.getItem('athar_sw_refreshed')) return;
                 isRefreshing = true;
+                sessionStorage.setItem('athar_sw_refreshed', '1');
                 window.location.reload();
             });
         });
